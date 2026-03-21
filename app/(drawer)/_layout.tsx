@@ -17,7 +17,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { View } from 'react-native';
 
 export default function DrawerLayout() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <Drawer
@@ -48,7 +48,7 @@ export default function DrawerLayout() {
           headerShown: true,
           headerLeft: () => (
             <View className="ml-2">
-              <DrawerToggleButton tintColor={undefined} />
+              <DrawerToggleButton tintColor={colors.text} />
             </View>
           ),
           headerRight: () => (
@@ -66,7 +66,7 @@ export default function DrawerLayout() {
           headerShown: true,
           headerLeft: () => (
             <View className="ml-2">
-              <DrawerToggleButton tintColor={undefined} />
+              <DrawerToggleButton tintColor={colors.text} />
             </View>
           ),
           headerRight: () => (
@@ -84,7 +84,7 @@ export default function DrawerLayout() {
           headerShown: true,
           headerLeft: () => (
             <View className="ml-2">
-              <DrawerToggleButton tintColor={undefined} />
+              <DrawerToggleButton tintColor={colors.text} />
             </View>
           ),
           headerRight: () => (

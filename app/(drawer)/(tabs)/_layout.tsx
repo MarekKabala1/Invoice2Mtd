@@ -108,65 +108,68 @@ const AnimatedIcons = ({
 export default function TabsLayout() {
 	const { colors, isDark } = useTheme();
 	return (
-		<Tabs
-			screenOptions={{
-				headerStyle: { backgroundColor: colors.primary },
-				headerTintColor: colors.text,
-				headerTitleStyle: { fontWeight: 'bold' },
-				tabBarStyle: Platform.select({
-					android: {
-						position: 'relative',
-						bottom: 10,
-						backgroundColor: colors.nav,
-						height: 80,
-						margin: 10,
-						paddingBottom: 15,
-						paddingTop: 15,
-						borderRadius: 20,
-						elevation: 10,
-						borderColor: 'transparent',
-						borderWidth: 0,
-					},
-					ios: {
-						position: 'relative',
-						bottom: 15,
-						backgroundColor: colors.nav,
-						height: 80,
-						margin: 10,
-						paddingBottom: 10,
-						paddingTop: 10,
-						borderRadius: 20,
-						shadowColor: '#000',
-						shadowOffset: { width: 0, height: 4 },
-						shadowOpacity: 0.2,
-						shadowRadius: 8,
-						justifyContent: 'center',
-						alignItems: 'center',
-						borderColor: 'transparent',
-						borderWidth: 0,
-					},
-					default: {
-						backgroundColor: colors.nav,
-						borderTopWidth: 0,
-					},
-				}),
+		<View className='flex-1' style={{ backgroundColor: colors.primary }}>
+			<Tabs
+				screenOptions={{
+					headerStyle: { backgroundColor: colors.primary },
+					headerTintColor: colors.text,
+					headerTitleStyle: { fontWeight: 'bold' },
+					tabBarStyle: Platform.select({
+						android: {
+							position: 'absolute',
+							bottom: 10,
+							left: 10,
+							right: 10,
+							backgroundColor: colors.nav,
+							height: 70,
+							paddingBottom: 10,
+							paddingTop: 10,
+							borderRadius: 20,
+							elevation: 10,
+							borderColor: 'transparent',
+							borderWidth: 0,
+							borderTopWidth: 0,
+						},
+						ios: {
+							position: 'absolute',
+							bottom: 15,
+							left: 10,
+							right: 10,
+							backgroundColor: colors.nav,
+							height: 70,
+							paddingBottom: 8,
+							paddingTop: 8,
+							borderRadius: 20,
+							shadowColor: '#000',
+							shadowOffset: { width: 0, height: 4 },
+							shadowOpacity: 0.2,
+							shadowRadius: 8,
+							borderColor: 'transparent',
+							borderWidth: 0,
+							borderTopWidth: 0,
+						},
+						default: {
+							backgroundColor: colors.nav,
+							borderTopWidth: 0,
+						},
+					}),
 
-				tabBarActiveTintColor: colors.text,
-				tabBarInactiveTintColor: colors.noActive,
-				headerTitleAlign: 'center',
-				tabBarHideOnKeyboard: true,
-				headerShown: true,
-				headerLeft: () => (
-					<View className="ml-2">
-						<DrawerToggleButton tintColor={undefined} />
-					</View>
-				),
-				headerRight: () => (
-					<View className="mr-3">
-						<ThemeToggle size={22} />
-					</View>
-				),
-				tabBarLabel: ({ focused, children }) => (
+					tabBarActiveTintColor: colors.text,
+					tabBarInactiveTintColor: colors.noActive,
+					headerTitleAlign: 'center',
+					tabBarHideOnKeyboard: true,
+					headerShown: true,
+					headerLeft: () => (
+						<View className="ml-2">
+							<DrawerToggleButton tintColor={colors.text} />
+						</View>
+					),
+					headerRight: () => (
+						<View className="mr-3">
+							<ThemeToggle size={22} />
+						</View>
+					),
+					tabBarLabel: ({ focused, children }) => (
 					<AnimatedTabLabel focused={focused}>{children}</AnimatedTabLabel>
 				),
 			}}>
@@ -292,5 +295,6 @@ export default function TabsLayout() {
 				}}
 			/>
 		</Tabs>
+		</View>
 	);
 }
