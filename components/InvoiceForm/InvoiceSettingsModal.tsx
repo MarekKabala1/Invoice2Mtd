@@ -9,7 +9,7 @@ import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
 import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
 import AddToBudgetModal from '../AddToBudgetModal';
 import { sendPaymentReminder } from '@/utils/emailOperations';
-import { handleSendInvoice } from '@/utils/invoiceFormOperations';
+import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoiceFormOperations';
 import { addMtdTransaction } from '@/db/mtdOperations';
 import { toISO } from '@/utils/mtdDates';
 import { getCurrentUserId } from '@/utils/getCurrentUser';
@@ -157,6 +157,26 @@ export default function InvoiceSettingsModal({
 		// Navigate to edit mode where preview is available
 		setShowSettings(false);
 		router.push('/(stack)/createInvoice');
+	};
+
+	const handleSavePdf = async () => {
+		if (!user || !customer || !bankDetails) {
+			Alert.alert('Error', 'Missing customer or bank details.');
+			return;
+		}
+		try {
+			await handleExportPdfInvoice(
+				{ ...invoice, workItems, payments },
+				user,
+				customer,
+				bankDetails,
+				typeof notes === 'string' ? notes : '',
+				false
+			);
+			Alert.alert('Saved', 'PDF saved to device.');
+		} catch (error: any) {
+			Alert.alert('Error', error.message || 'Failed to save PDF.');
+		}
 	};
 
 	const handleSendPaymentReminder = async () => {
@@ -323,28 +343,49 @@ export default function InvoiceSettingsModal({
 							</View>
 						</View>
 
-						{/* Save and Preview buttons */}
+						{/* Action buttons */}
 					<View className='flex-row gap-3 mt-2'>
 						<TouchableOpacity
 							onPress={handleEditInvoice}
 							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
-							style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+							style={{
+								backgroundColor: isDark ? '#4f46e5' : '#4338ca',
+								shadowColor: '#4f46e5',
+								shadowOffset: { width: 0, height: 2 },
+								shadowOpacity: 0.3,
+								shadowRadius: 4,
+								elevation: 4,
+							}}
 						>
 							<MaterialCommunityIcons name="pencil" size={18} color="white" />
 							<Text className='font-bold text-white text-sm'>Edit</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
-							onPress={handlePreview}
+							onPress={handleSavePdf}
 							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
-							style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+							style={{
+								backgroundColor: isDark ? '#7c3aed' : '#6d28d9',
+								shadowColor: '#7c3aed',
+								shadowOffset: { width: 0, height: 2 },
+								shadowOpacity: 0.3,
+								shadowRadius: 4,
+								elevation: 4,
+							}}
 						>
-							<MaterialCommunityIcons name="eye-outline" size={18} color={colors.text} />
-							<Text className='font-bold text-sm' style={{ color: colors.text }}>Preview</Text>
+							<MaterialCommunityIcons name="file-pdf-box" size={18} color="white" />
+							<Text className='font-bold text-white text-sm'>PDF</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={handleShareInvoice}
 							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
-							style={{ backgroundColor: '#39AD6A' }}
+							style={{
+								backgroundColor: '#39AD6A',
+								shadowColor: '#39AD6A',
+								shadowOffset: { width: 0, height: 2 },
+								shadowOpacity: 0.3,
+								shadowRadius: 4,
+								elevation: 4,
+							}}
 						>
 							<MaterialCommunityIcons name="share-variant" size={18} color="white" />
 							<Text className='font-bold text-white text-sm'>Share</Text>
