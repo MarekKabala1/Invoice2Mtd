@@ -12,7 +12,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
@@ -35,6 +35,7 @@ const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [
 export default function MtdQuarterlySummaryScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { settings } = useAppSettings();
   const userId = settings?.userId ?? '';
   const rates = useTaxRates();
@@ -42,7 +43,13 @@ export default function MtdQuarterlySummaryScreen() {
   const startYear = currentTaxYearStart();
   const tyLabel = taxYearLabel(startYear);
 
-  const [selectedQuarter, setSelectedQuarter] = useState<1 | 2 | 3 | 4>(1);
+  // Pre-select quarter if passed via navigation params (from deadlines)
+  const initialQuarter = (() => {
+    const q = parseInt(params.quarter as string);
+    return q >= 1 && q <= 4 ? (q as 1 | 2 | 3 | 4) : 1;
+  })();
+
+  const [selectedQuarter, setSelectedQuarter] = useState<1 | 2 | 3 | 4>(initialQuarter);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [txLoading, setTxLoading] = useState(false);
 
