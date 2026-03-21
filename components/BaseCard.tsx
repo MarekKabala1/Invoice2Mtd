@@ -4,9 +4,10 @@ import { View, Platform } from 'react-native';
 interface BaseCardProps {
 	children: React.ReactNode;
 	className?: string;
+	accentColor?: string;
 }
 
-const BaseCard: React.FC<BaseCardProps> = ({ children, className = '' }) => {
+const BaseCard: React.FC<BaseCardProps> = ({ children, className = '', accentColor }) => {
 	return (
 		<View
 			className={`bg-light-nav dark:bg-dark-nav p-2 rounded-md active:opacity-90 ${className}`}
@@ -19,6 +20,13 @@ const BaseCard: React.FC<BaseCardProps> = ({ children, className = '' }) => {
 							shadowRadius: 20,
 						}
 					: { borderRadius: 15, elevation: 4 },
+				accentColor ? {
+					borderLeftWidth: 3,
+					borderLeftColor: accentColor,
+					borderTopWidth: 0,
+					borderRightWidth: 0,
+					borderBottomWidth: 0,
+				} : undefined,
 			]}>
 			{children}
 		</View>

@@ -41,7 +41,7 @@ const InvoiceCard = ({
 }: InvoiceCardProps) => {
 	const router = useRouter();
 	const [expanded, setExpanded] = useState(false);
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	const [showSettings, setShowSettings] = useState(false);
 	const [invoiceData, setInvoiceData] = useState<InvoiceType>(invoice);
 	const [customerData, setCustomerData] = useState<CustomerType>(
@@ -97,23 +97,43 @@ const InvoiceCard = ({
 	return (
 		<>
 			<BaseCard
-				className={`mb-3 ${onAdd ? 'w-[90%]' : ''} ${!isPayed ? 'border border-1 border-danger' : 'bg-danger'}`}>
+				className={`mb-3 ${onAdd ? 'w-[90%]' : ''}`}
+				accentColor={isPayed ? undefined : (isDark ? '#9fb3c8' : '#486581')}>
 				<TouchableOpacity
 					onPress={handleExpand}
 					onLongPress={handleDelete}
 					className='flex-col justify-between items-center gap-1'>
 					<View className='flex-row w-full justify-between items-center'>
-						<View>
-							<Text className='text-lg font-bold text-light-text dark:text-dark-text '>
-								Invoice # {invoice.id}
-							</Text>
+						<View className='flex-1 mr-2'>
+							<View className='flex-row items-center gap-2'>
+								<Text className='text-lg font-bold text-light-text dark:text-dark-text'>
+									Invoice # {invoice.id}
+								</Text>
+								<View
+									className='px-2 py-0.5 rounded-full'
+									style={{
+										backgroundColor: isPayed
+											? isDark ? '#334e68' : '#334e68'
+											: isDark ? 'rgba(238,28,28,0.2)' : 'rgba(238,28,28,0.1)',
+									}}
+								>
+									<Text
+										className='text-xs font-bold'
+										style={{
+											color: isPayed ? '#d9e2ec' : '#ee1c1c',
+										}}
+									>
+										{isPayed ? 'Paid' : 'Unpaid'}
+									</Text>
+								</View>
+							</View>
 							<Text className='text-xs text-light-text dark:text-dark-text'>
 								Due: {new Date(invoice.dueDate).toLocaleDateString()}
 							</Text>
 						</View>
 
 						<View className='flex-row items-center'>
-							<Text className='font-bold text-lg text-light-text dark:text-dark-text mr-2'>
+							<Text className='font-bold text-lg text-light-text dark:text-dark-text mr-2 tabular-nums'>
 								{getCurrencySymbol(invoice.currency)}
 								{invoice.amountAfterTax.toFixed(2)}
 							</Text>
@@ -202,7 +222,7 @@ const InvoiceCard = ({
 							<Text className='font-semibold text-light-text dark:text-dark-text'>
 								Balance:
 							</Text>
-							<Text className='font-semibold text-light-text dark:text-dark-text text-md border-b border-light-text'>
+							<Text className='font-bold text-2xl text-light-text dark:text-dark-text tabular-nums'>
 								{getCurrencySymbol(invoice.currency)}
 								{balance.toFixed(2)}
 							</Text>
