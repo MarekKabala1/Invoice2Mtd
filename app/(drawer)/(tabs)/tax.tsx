@@ -58,6 +58,21 @@ export default function TaxScreen() {
   const { nextDeadline } = useMtdDeadlines(2);
   const rates = useTaxRates();
 
+  // Yearly turnover — fetch all 4 quarters
+  const q1 = useMtdData({ taxYear: tyLabel, quarter: 1, userId });
+  const q2 = useMtdData({ taxYear: tyLabel, quarter: 2, userId });
+  const q3 = useMtdData({ taxYear: tyLabel, quarter: 3, userId });
+  const q4 = useMtdData({ taxYear: tyLabel, quarter: 4, userId });
+  const allQuarterAggs = [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates];
+
+  const yearlyTurnover = useMemo(() => {
+    return allQuarterAggs.reduce((sum, agg) => sum + (agg?.totalTurnover ?? 0), 0);
+  }, [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates]);
+
+  const yearlyProfit = useMemo(() => {
+    return allQuarterAggs.reduce((sum, agg) => sum + (agg?.netProfit ?? 0), 0);
+  }, [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates]);
+
   // Tax estimate for current quarter
   const taxEstimate = useMemo(() => {
     if (!aggregates) return null;
@@ -141,6 +156,26 @@ export default function TaxScreen() {
         <Text className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>
           {currentQuarter.label}
         </Text>
+
+        {/* Quarter and Year turnover */}
+        <View className="flex-row gap-4 mt-4">
+          <View className="flex-1">
+            <Text className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Quarter turnover
+            </Text>
+            <Text className="text-xl font-bold text-white tabular-nums mt-1">
+              {formatGBP(aggregates?.totalTurnover ?? 0)}
+            </Text>
+          </View>
+          <View className="flex-1">
+            <Text className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Year turnover
+            </Text>
+            <Text className="text-xl font-bold text-white tabular-nums mt-1">
+              {formatGBP(yearlyTurnover)}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View className="px-5 py-4 gap-4">
