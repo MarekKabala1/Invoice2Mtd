@@ -1,0 +1,331 @@
+[
+	{
+		"country": "United States",
+		"countryCode": "US",
+		"currencyName": "Dollar",
+		"currencyCode": "USD",
+		"symbol": "$"
+	},
+	{
+		"country": "Canada",
+		"countryCode": "CA",
+		"currencyName": "Canadian Dollar",
+		"currencyCode": "CAD",
+		"symbol": "$"
+	},
+	{
+		"country": "United Kingdom",
+		"countryCode": "GB",
+		"currencyName": "Pound Sterling",
+		"currencyCode": "GBP",
+		"symbol": "£"
+	},
+	{
+		"country": "European Union",
+		"countryCode": "EU",
+		"currencyName": "Euro",
+		"currencyCode": "EUR",
+		"symbol": "€"
+	},
+	{
+		"country": "Japan",
+		"countryCode": "JP",
+		"currencyName": "Yen",
+		"currencyCode": "JPY",
+		"symbol": "¥"
+	},
+	{
+		"country": "Australia",
+		"countryCode": "AU",
+		"currencyName": "Australian Dollar",
+		"currencyCode": "AUD",
+		"symbol": "$"
+	},
+	{
+		"country": "Switzerland",
+		"countryCode": "CH",
+		"currencyName": "Swiss Franc",
+		"currencyCode": "CHF",
+		"symbol": "CHF"
+	},
+	{
+		"country": "China",
+		"countryCode": "CN",
+		"currencyName": "Yuan",
+		"currencyCode": "CNY",
+		"symbol": "¥"
+	},
+	{
+		"country": "India",
+		"countryCode": "IN",
+		"currencyName": "Indian Rupee",
+		"currencyCode": "INR",
+		"symbol": "₹"
+	},
+	{
+		"country": "Russia",
+		"countryCode": "RU",
+		"currencyName": "Russian Ruble",
+		"currencyCode": "RUB",
+		"symbol": "₽"
+	},
+	{
+		"country": "Brazil",
+		"countryCode": "BR",
+		"currencyName": "Brazilian Real",
+		"currencyCode": "BRL",
+		"symbol": "R$"
+	},
+	{
+		"country": "South Africa",
+		"countryCode": "ZA",
+		"currencyName": "South African Rand",
+		"currencyCode": "ZAR",
+		"symbol": "R"
+	},
+	{
+		"country": "Mexico",
+		"countryCode": "MX",
+		"currencyName": "Mexican Peso",
+		"currencyCode": "MXN",
+		"symbol": "$"
+	},
+	{
+		"country": "South Korea",
+		"countryCode": "KR",
+		"currencyName": "South Korean Won",
+		"currencyCode": "KRW",
+		"symbol": "₩"
+	},
+	{
+		"country": "Turkey",
+		"countryCode": "TR",
+		"currencyName": "Turkish Lira",
+		"currencyCode": "TRY",
+		"symbol": "₺"
+	},
+	{
+		"country": "Indonesia",
+		"countryCode": "ID",
+		"currencyName": "Indonesian Rupiah",
+		"currencyCode": "IDR",
+		"symbol": "Rp"
+	},
+	{
+		"country": "Saudi Arabia",
+		"countryCode": "SA",
+		"currencyName": "Saudi Riyal",
+		"currencyCode": "SAR",
+		"symbol": "﷼"
+	},
+	{
+		"country": "United Arab Emirates",
+		"countryCode": "AE",
+		"currencyName": "UAE Dirham",
+		"currencyCode": "AED",
+		"symbol": "د.إ"
+	},
+	{
+		"country": "Singapore",
+		"countryCode": "SG",
+		"currencyName": "Singapore Dollar",
+		"currencyCode": "SGD",
+		"symbol": "$"
+	},
+	{
+		"country": "Malaysia",
+		"countryCode": "MY",
+		"currencyName": "Malaysian Ringgit",
+		"currencyCode": "MYR",
+		"symbol": "RM"
+	},
+	{
+		"country": "Thailand",
+		"countryCode": "TH",
+		"currencyName": "Thai Baht",
+		"currencyCode": "THB",
+		"symbol": "฿"
+	},
+	{
+		"country": "Nigeria",
+		"countryCode": "NG",
+		"currencyName": "Nigerian Naira",
+		"currencyCode": "NGN",
+		"symbol": "₦"
+	},
+	{
+		"country": "Egypt",
+		"countryCode": "EG",
+		"currencyName": "Egyptian Pound",
+		"currencyCode": "EGP",
+		"symbol": "ج.م"
+	},
+	{
+		"country": "Israel",
+		"countryCode": "IL",
+		"currencyName": "Israeli New Shekel",
+		"currencyCode": "ILS",
+		"symbol": "₪"
+	},
+	{
+		"country": "Argentina",
+		"countryCode": "AR",
+		"currencyName": "Argentine Peso",
+		"currencyCode": "ARS",
+		"symbol": "$"
+	},
+	{
+		"country": "Chile",
+		"countryCode": "CL",
+		"currencyName": "Chilean Peso",
+		"currencyCode": "CLP",
+		"symbol": "$"
+	},
+	{
+		"country": "Philippines",
+		"countryCode": "PH",
+		"currencyName": "Philippine Peso",
+		"currencyCode": "PHP",
+		"symbol": "₱"
+	},
+	{
+		"country": "Vietnam",
+		"countryCode": "VN",
+		"currencyName": "Vietnamese Dong",
+		"currencyCode": "VND",
+		"symbol": "₫"
+	},
+	{
+		"country": "Pakistan",
+		"countryCode": "PK",
+		"currencyName": "Pakistani Rupee",
+		"currencyCode": "PKR",
+		"symbol": "₨"
+	},
+	{
+		"country": "Colombia",
+		"countryCode": "CO",
+		"currencyName": "Colombian Peso",
+		"currencyCode": "COP",
+		"symbol": "$"
+	},
+	{
+		"country": "New Zealand",
+		"countryCode": "NZ",
+		"currencyName": "New Zealand Dollar",
+		"currencyCode": "NZD",
+		"symbol": "$"
+	},
+	{
+		"country": "Hong Kong",
+		"countryCode": "HK",
+		"currencyName": "Hong Kong Dollar",
+		"currencyCode": "HKD",
+		"symbol": "$"
+	},
+	{
+		"country": "Kenya",
+		"countryCode": "KE",
+		"currencyName": "Kenyan Shilling",
+		"currencyCode": "KES",
+		"symbol": "KSh"
+	},
+	{
+		"country": "Bangladesh",
+		"countryCode": "BD",
+		"currencyName": "Bangladeshi Taka",
+		"currencyCode": "BDT",
+		"symbol": "৳"
+	},
+	{
+		"country": "Qatar",
+		"countryCode": "QA",
+		"currencyName": "Qatari Riyal",
+		"currencyCode": "QAR",
+		"symbol": "﷼"
+	},
+	{
+		"country": "Ukraine",
+		"countryCode": "UA",
+		"currencyName": "Ukrainian Hryvnia",
+		"currencyCode": "UAH",
+		"symbol": "₴"
+	},
+	{
+		"country": "Norway",
+		"countryCode": "NO",
+		"currencyName": "Norwegian Krone",
+		"currencyCode": "NOK",
+		"symbol": "kr"
+	},
+	{
+		"country": "Sweden",
+		"countryCode": "SE",
+		"currencyName": "Swedish Krona",
+		"currencyCode": "SEK",
+		"symbol": "kr"
+	},
+	{
+		"country": "Denmark",
+		"countryCode": "DK",
+		"currencyName": "Danish Krone",
+		"currencyCode": "DKK",
+		"symbol": "kr"
+	},
+	{
+		"country": "Poland",
+		"countryCode": "PL",
+		"currencyName": "Polish Zloty",
+		"currencyCode": "PLN",
+		"symbol": "zł"
+	},
+	{
+		"country": "Hungary",
+		"countryCode": "HU",
+		"currencyName": "Hungarian Forint",
+		"currencyCode": "HUF",
+		"symbol": "Ft"
+	},
+	{
+		"country": "Czech Republic",
+		"countryCode": "CZ",
+		"currencyName": "Czech Koruna",
+		"currencyCode": "CZK",
+		"symbol": "Kč"
+	},
+	{
+		"country": "Romania",
+		"countryCode": "RO",
+		"currencyName": "Romanian Leu",
+		"currencyCode": "RON",
+		"symbol": "lei"
+	},
+	{
+		"country": "Peru",
+		"countryCode": "PE",
+		"currencyName": "Peruvian Sol",
+		"currencyCode": "PEN",
+		"symbol": "S/."
+	},
+	{
+		"country": "Kuwait",
+		"countryCode": "KW",
+		"currencyName": "Kuwaiti Dinar",
+		"currencyCode": "KWD",
+		"symbol": "د.ك"
+	},
+	{
+		"country": "Oman",
+		"countryCode": "OM",
+		"currencyName": "Omani Rial",
+		"currencyCode": "OMR",
+		"symbol": "﷼"
+	},
+	{
+		"country": "Bahrain",
+		"countryCode": "BH",
+		"currencyName": "Bahraini Dinar",
+		"currencyCode": "BHD",
+		"symbol": ".د.ب"
+	}
+]
