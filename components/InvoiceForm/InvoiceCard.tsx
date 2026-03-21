@@ -27,6 +27,7 @@ type InvoiceCardProps = {
 	onAdd: boolean;
 	onDelete?: (invoiceId: string) => void;
 	onUpdate: (id: string, updateData?: Partial<InvoiceType>) => void;
+	onSyncComplete?: () => void;
 };
 
 const InvoiceCard = ({
@@ -38,6 +39,7 @@ const InvoiceCard = ({
 	onDelete,
 	onUpdate,
 	onAdd = false,
+	onSyncComplete,
 }: InvoiceCardProps) => {
 	const router = useRouter();
 	const [expanded, setExpanded] = useState(false);
@@ -257,6 +259,7 @@ const InvoiceCard = ({
 				payments={payments}
 				notes={notes.map((n) => n.noteText).join('\n')}
 				bankDetails={bankDetails}
+				onSyncComplete={onSyncComplete}
 			/>
 		</>
 	);

@@ -12,7 +12,15 @@ import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoiceSync';
 import { toISO, quarterForDate } from '@/utils/mtdDates';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { EXPENSE_CATEGORY_LABELS } from '@/utils/mtdCategories';
+import { useTheme as useThemeHook } from '@/context/ThemeContext';
+
+const INCOME_CATEGORIES = [
+	{ id: 'turnover', label: 'Turnover / Sales' },
+	{ id: 'other_business_income', label: 'Other Business Income' },
+	{ id: 'uk_property_non_fhl_income', label: 'UK Property (non-FHL)' },
+	{ id: 'foreign_property_fhl_eea_income', label: 'Foreign Property FHL (EEA)' },
+	{ id: 'foreign_property_fhl_non_eea_income', label: 'Foreign Property FHL (non-EEA)' },
+];
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -26,6 +34,7 @@ export default function InvoiceSettingsModal({
 	payments,
 	notes,
 	bankDetails,
+	onSyncComplete,
 }: {
 	showSettings: boolean;
 	setShowSettings: (show: boolean) => void;
@@ -38,13 +47,18 @@ export default function InvoiceSettingsModal({
 	payments: any[];
 	notes: string;
 	bankDetails: any;
+	onSyncComplete?: () => void;
 }) {
 	const [localInvoice, setLocalInvoice] = useState(invoice);
 	const { colors, isDark } = useTheme();
 	const { isPayed } = useIsInvoicePaid(localInvoice);
 
 	const [showDatePicker, setShowDatePicker] = useState(false);
-	const [paymentDate, setPaymentDate] = useState(invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date()));
+	const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+	const [selectedIncomeCategory, setSelectedIncomeCategory] = useState('turnover');
+	const [paymentDate, setPaymentDate] = useState(
+		invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date())
+	);
 
 	useEffect(() => {
 		setLocalInvoice(invoice);
@@ -52,7 +66,7 @@ export default function InvoiceSettingsModal({
 
 	const handleMarkAsPayed = async () => {
 		if (isPayed) {
-			// Mark as UNPAID — warn about linked records
+			// Mark as UNPAID
 			Alert.alert(
 				'Mark as Unpaid',
 				'This will also delete the linked budget entry and MTD record. Continue?',
@@ -66,6 +80,7 @@ export default function InvoiceSettingsModal({
 								await markInvoiceAsUnpaid(invoice.id!);
 								setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
 								setIsPayedOptimistic(false);
+								onSyncComplete?.();
 							} catch (error) {
 								Alert.alert('Error', 'Failed to mark as unpaid.');
 							}
@@ -74,19 +89,27 @@ export default function InvoiceSettingsModal({
 				]
 			);
 		} else {
-			// Mark as PAID — show date picker
-			setShowDatePicker(true);
+			// Mark as PAID — show category picker first
+			setShowCategoryPicker(true);
 		}
+	};
+
+	const handleCategorySelected = () => {
+		setShowCategoryPicker(false);
+		// Date defaults to due date, user can change
+		setPaymentDate(invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date()));
+		setShowDatePicker(true);
 	};
 
 	const handleConfirmPaid = async () => {
 		setShowDatePicker(false);
 		const q = quarterForDate(new Date(paymentDate));
+		const catLabel = INCOME_CATEGORIES.find((c) => c.id === selectedIncomeCategory)?.label ?? 'Turnover';
 		Alert.alert(
 			'Confirm Payment',
+			`Category: ${catLabel}\n` +
 			`Date: ${new Date(paymentDate).toLocaleDateString()}\n` +
 			`Amount: ${getCurrencySymbol(invoice.currency)}${invoice.amountAfterTax?.toFixed(2)}\n` +
-			`Budget category: Turnover / Sales\n` +
 			`MTD quarter: Q${q.quarter} (${q.label})`,
 			[
 				{ text: 'Cancel', style: 'cancel' },
@@ -99,10 +122,12 @@ export default function InvoiceSettingsModal({
 								invoice.amountAfterTax!,
 								invoice.currency,
 								paymentDate,
+								selectedIncomeCategory,
 								customer?.name ?? 'customer'
 							);
 							setLocalInvoice((prev) => ({ ...prev, isPayed: true }));
 							setIsPayedOptimistic(true);
+							onSyncComplete?.();
 						} catch (error) {
 							Alert.alert('Error', 'Failed to mark invoice as paid.');
 						}
@@ -389,6 +414,62 @@ export default function InvoiceSettingsModal({
 					</View>
 				</View>
 			</Modal>
+
+			{/* Income category picker modal */}
+			{showCategoryPicker && (
+				<Modal
+					visible={showCategoryPicker}
+					transparent={true}
+					animationType='slide'
+					onRequestClose={() => setShowCategoryPicker(false)}
+				>
+					<View className='flex-1 justify-center items-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+						<View
+							className='p-5 rounded-lg w-11/12'
+							style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+						>
+							<Text className='text-lg font-bold text-center mb-4' style={{ color: colors.text }}>
+								Select Income Category
+							</Text>
+							{INCOME_CATEGORIES.map((cat) => (
+								<TouchableOpacity
+									key={cat.id}
+									onPress={() => setSelectedIncomeCategory(cat.id)}
+									className='flex-row items-center p-3 rounded-lg mb-2'
+									style={{
+										backgroundColor: selectedIncomeCategory === cat.id
+											? isDark ? '#4f46e5' : '#4338ca'
+											: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+									}}
+								>
+									<Text
+										className='font-bold text-sm'
+										style={{ color: selectedIncomeCategory === cat.id ? 'white' : colors.text }}
+									>
+										{cat.label}
+									</Text>
+								</TouchableOpacity>
+							))}
+							<View className='flex-row gap-3 mt-4'>
+								<TouchableOpacity
+									onPress={() => setShowCategoryPicker(false)}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+								>
+									<Text className='font-bold' style={{ color: colors.text }}>Cancel</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={handleCategorySelected}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: '#39AD6A' }}
+								>
+									<Text className='font-bold text-white'>Next</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					</View>
+				</Modal>
+			)}
 
 			{/* Payment date picker modal */}
 			{showDatePicker && (

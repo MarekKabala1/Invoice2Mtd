@@ -348,6 +348,7 @@ export default function InvoiceList() {
 					onAdd={false}
 					onDelete={handleDeleteInvoice}
 					onUpdate={(id: string, updateData?: Partial<InvoiceType>) => handleUpdateInvoice(id, updateData)}
+					onSyncComplete={loadData}
 				/>
 			</View>
 		);

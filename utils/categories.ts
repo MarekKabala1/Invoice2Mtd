@@ -12,10 +12,14 @@
 
 export const categories = {
   INCOME: [
+    { id: 'turnover', name: 'Turnover / Sales', emoji: '📊' },
+    { id: 'other_business_income', name: 'Other Business Income', emoji: '💼' },
+    { id: 'uk_property_non_fhl_income', name: 'UK Property (non-FHL)', emoji: '🏠' },
+    { id: 'foreign_property_fhl_eea_income', name: 'Foreign Property FHL (EEA)', emoji: '🌍' },
+    { id: 'foreign_property_fhl_non_eea_income', name: 'Foreign Property FHL (non-EEA)', emoji: '🌏' },
     { id: 'salary', name: 'Salary', emoji: '💰' },
     { id: 'freelance', name: 'Freelance', emoji: '💻' },
     { id: 'investments', name: 'Investments', emoji: '📈' },
-    { id: 'turnover', name: 'Turnover / Sales', emoji: '📊' },
     { id: 'other_income', name: 'Other Income', emoji: '🤑' },
   ],
   EXPENSE: [

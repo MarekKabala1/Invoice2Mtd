@@ -39,6 +39,7 @@ export async function markInvoiceAsPaid(
   invoiceAmount: number,
   invoiceCurrency: string | null,
   paymentDate: string,      // YYYY-MM-DD
+  incomeCategory: string,   // turnover, other_business_income, etc.
   customerName: string
 ): Promise<void> {
   const userId = await getCurrentUserId();
@@ -62,7 +63,7 @@ export async function markInvoiceAsPaid(
       description: `Invoice from ${customerName}`,
       date: paymentDate,
       type: 'INCOME',
-      categoryId: 'turnover',
+      categoryId: incomeCategory,
       userId: userId,
       currency: invoiceCurrency ?? 'GBP',
     });
@@ -77,7 +78,7 @@ export async function markInvoiceAsPaid(
       description: `Invoice from ${customerName}`,
       amount: invoiceAmount,
       type: 'income',
-      category: 'turnover',
+      category: incomeCategory,
       taxYear: tyLabel,
       quarter,
       currency: invoiceCurrency ?? 'GBP',
