@@ -2,8 +2,8 @@
  * DrawerContent.tsx
  *
  * Custom drawer content component. Renders app name, user info,
- * navigation items (Home, Settings, Info, Charts), theme toggle,
- * and app version.
+ * navigation items, theme toggle, and app version.
+ * Integrates all features from the old app into the drawer.
  *
  * Depends on: context/ThemeContext, utils/theme, expo-constants,
  *             @react-navigation/drawer
@@ -23,14 +23,36 @@ interface DrawerItem {
   label: string;
   route: string;
   icon: string;
+  section: 'main' | 'tools' | 'account';
 }
 
 const DRAWER_ITEMS: DrawerItem[] = [
-  { label: 'Home', route: '/(drawer)/(tabs)/home', icon: 'home-outline' },
-  { label: 'Settings', route: '/(drawer)/settings', icon: 'settings-outline' },
-  { label: 'Info', route: '/(drawer)/info', icon: 'information-circle-outline' },
-  { label: 'Charts & Analytics', route: '/(drawer)/charts', icon: 'bar-chart-outline' },
+  // Main navigation
+  { label: 'Home', route: '/(drawer)/(tabs)/home', icon: 'home-outline', section: 'main' },
+  { label: 'Invoices', route: '/(drawer)/(tabs)/invoices', icon: 'document-text-outline', section: 'main' },
+  { label: 'Tax (MTD)', route: '/(drawer)/(tabs)/tax', icon: 'calculator-outline', section: 'main' },
+  { label: 'Budget', route: '/(drawer)/(tabs)/budget', icon: 'wallet-outline', section: 'main' },
+  { label: 'Scanner', route: '/(drawer)/(tabs)/scanner', icon: 'scan-outline', section: 'main' },
+  // Tools
+  { label: 'Charts & Analytics', route: '/(drawer)/charts', icon: 'bar-chart-outline', section: 'tools' },
+  { label: 'Client Information', route: '/(stack)/clientInfo', icon: 'business-outline', section: 'tools' },
+  { label: 'Terms & Conditions', route: '/(stack)/termsAndConditions', icon: 'document-outline', section: 'tools' },
+  // Account
+  { label: 'Your Information', route: '/(stack)/(user)/userInfo', icon: 'person-outline', section: 'account' },
+  { label: 'Settings', route: '/(drawer)/settings', icon: 'settings-outline', section: 'account' },
+  { label: 'MTD Info', route: '/(drawer)/info', icon: 'information-circle-outline', section: 'account' },
 ];
+
+function SectionLabel({ title, isDark }: { title: string; isDark: boolean }) {
+  return (
+    <Text
+      className="text-xs font-bold uppercase tracking-widest px-3 pt-5 pb-2"
+      style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)' }}
+    >
+      {title}
+    </Text>
+  );
+}
 
 export default function DrawerContent(props: DrawerContentComponentProps) {
   const { colors, isDark } = useTheme();
@@ -38,11 +60,51 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
   const version = Constants.expoConfig?.version ?? '1.0.0';
 
   const isActive = (route: string): boolean => {
-    if (route === '/(drawer)/(tabs)/home') {
-      return pathname.includes('(tabs)');
-    }
-    return pathname.includes(route.split('/').pop() ?? '');
+    // Extract the screen name from the route
+    const parts = route.split('/');
+    const screenName = parts[parts.length - 1];
+    return pathname.includes(screenName);
   };
+
+  const renderItem = (item: DrawerItem) => {
+    const focused = isActive(item.route);
+    return (
+      <TouchableOpacity
+        key={item.label}
+        className="flex-row items-center rounded-lg px-3 py-2.5"
+        style={{
+          backgroundColor: focused
+            ? isDark
+              ? 'rgba(255,255,255,0.1)'
+              : 'rgba(0,0,0,0.05)'
+            : 'transparent',
+        }}
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.push(item.route as any);
+        }}
+      >
+        <Ionicons
+          name={item.icon as any}
+          size={20}
+          color={focused ? colors.text : colors.noActive}
+        />
+        <Text
+          className="ml-3 text-sm"
+          style={{
+            color: focused ? colors.text : colors.noActive,
+            fontWeight: focused ? 'bold' : 'normal',
+          }}
+        >
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const mainItems = DRAWER_ITEMS.filter((i) => i.section === 'main');
+  const toolItems = DRAWER_ITEMS.filter((i) => i.section === 'tools');
+  const accountItems = DRAWER_ITEMS.filter((i) => i.section === 'account');
 
   return (
     <View className="flex-1" style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
@@ -61,43 +123,21 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
           </Text>
         </View>
 
-        {/* Navigation items */}
+        {/* Main navigation */}
         <View className="mt-4 px-3">
-          {DRAWER_ITEMS.map((item) => {
-            const focused = isActive(item.route);
-            return (
-              <TouchableOpacity
-                key={item.label}
-                className="flex-row items-center rounded-lg px-3 py-3"
-                style={{
-                  backgroundColor: focused
-                    ? isDark
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(0,0,0,0.05)'
-                    : 'transparent',
-                }}
-                onPress={() => {
-                  props.navigation.closeDrawer();
-                  router.push(item.route as any);
-                }}
-              >
-                <Ionicons
-                  name={item.icon as any}
-                  size={22}
-                  color={focused ? colors.text : colors.noActive}
-                />
-                <Text
-                  className="ml-3 text-sm"
-                  style={{
-                    color: focused ? colors.text : colors.noActive,
-                    fontWeight: focused ? 'bold' : 'normal',
-                  }}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {mainItems.map(renderItem)}
+        </View>
+
+        {/* Tools section */}
+        <View className="px-3">
+          <SectionLabel title="Tools" isDark={isDark} />
+          {toolItems.map(renderItem)}
+        </View>
+
+        {/* Account section */}
+        <View className="px-3">
+          <SectionLabel title="Account" isDark={isDark} />
+          {accountItems.map(renderItem)}
         </View>
       </ScrollView>
 
