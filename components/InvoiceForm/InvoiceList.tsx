@@ -43,7 +43,7 @@ export default function InvoiceList() {
 		useAddInvoiceToBudget();
 
 	const router = useRouter();
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 
 	const toggleSection = useCallback((sectionKey: string) => {
 		setCollapsedSections((prev) => {
@@ -271,22 +271,35 @@ export default function InvoiceList() {
 		const isCollapsed = collapsedSections.has(section.key);
 
 		return (
-			<TouchableOpacity onPress={() => toggleSection(section.key)} className='bg-light-nav dark:bg-dark-nav py-3 px-2 mb-2 rounded-md'>
+			<TouchableOpacity
+				onPress={() => toggleSection(section.key)}
+				className='py-3 px-3 mb-2 rounded-lg'
+				style={{
+					backgroundColor: isDark ? colors.nav : colors.card,
+					shadowColor: '#000',
+					shadowOffset: { width: 0, height: 2 },
+					shadowOpacity: 0.15,
+					shadowRadius: 6,
+					elevation: 3,
+				}}
+			>
 				<View className='flex-row justify-between items-center'>
 					<View className='flex-1'>
 						<View className='flex-row items-center'>
-							<Text className='text-xl font-bold text-light-accent dark:text-dark-accent'>{section.title}</Text>
+							<Text className='text-xl font-bold' style={{ color: isDark ? '#a5b4fc' : '#486581' }}>
+								{section.title}
+							</Text>
 							{section.hasUnpaid && (
-								<View className='ml-2 bg-danger rounded-full px-2 py-0.5'>
+								<View className='ml-2 rounded-full px-2 py-0.5' style={{ backgroundColor: '#ee1c1c' }}>
 									<Text className='text-white text-xs font-bold'>{section.unpaidCount} Unpaid</Text>
 								</View>
 							)}
 						</View>
-						<Text className='text-sm font-semibold text-light-text dark:text-dark-text mt-1'>
+						<Text className='text-sm font-semibold mt-1' style={{ color: colors.text }}>
 							{section.subtitle} ({section.data.length} invoice{section.data.length !== 1 ? 's' : ''})
 						</Text>
 					</View>
-					<Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} size={24} color={colors.text} />
+					<Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} size={24} color={colors.noActive} />
 				</View>
 			</TouchableOpacity>
 		);
