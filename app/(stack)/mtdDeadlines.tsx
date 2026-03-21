@@ -112,14 +112,15 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
 export default function MtdDeadlinesScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
-  const { deadlines, overdue, urgent, upcoming } = useMtdDeadlines(2);
+  const { deadlines, overdue, thisQuarter, upcoming } = useMtdDeadlines(2);
 
   const handlePress = (item: DeadlineItem) => {
     if (item.type === 'quarterly' && item.quarter) {
-      // Navigate to quarterly summary with this quarter pre-selected
+      // Navigate to quarterly summary with quarter AND taxYear
+      // so it shows data for the correct year, not always the current year
       router.push({
         pathname: '/(stack)/mtdQuarterlySummary',
-        params: { quarter: item.quarter.toString() },
+        params: { quarter: item.quarter.toString(), taxYear: item.taxYear },
       });
     } else if (item.type === 'final_declaration') {
       // Navigate to annual estimate
@@ -160,11 +161,11 @@ export default function MtdDeadlinesScreen() {
             </View>
           )}
 
-          {/* Due within 14 days */}
-          {urgent.length > 0 && (
+          {/* This quarter */}
+          {thisQuarter.length > 0 && (
             <View>
-              <SectionHeader title="Due within 14 days" color="#f59e0b" />
-              {urgent.map((item) => (
+              <SectionHeader title="This Quarter" color="#f59e0b" />
+              {thisQuarter.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
                   item={item}
@@ -175,7 +176,7 @@ export default function MtdDeadlinesScreen() {
             </View>
           )}
 
-          {/* Upcoming */}
+          {/* Upcoming — deadline only, no data */}
           {upcoming.length > 0 && (
             <View>
               <SectionHeader title="Upcoming" color={isDark ? '#a5b4fc' : '#4f46e5'} />

@@ -41,7 +41,9 @@ export default function MtdQuarterlySummaryScreen() {
   const rates = useTaxRates();
 
   const startYear = currentTaxYearStart();
-  const tyLabel = taxYearLabel(startYear);
+
+  // Use taxYear from params if provided (from deadlines), otherwise current year
+  const tyLabel = params.taxYear ? (params.taxYear as string) : taxYearLabel(startYear);
 
   // Pre-select quarter if passed via navigation params (from deadlines)
   const initialQuarter = (() => {
