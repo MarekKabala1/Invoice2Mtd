@@ -25,7 +25,6 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useHomeInsights } from '@/hooks/useHomeInsights';
 import { formatGBP } from '@/utils/mtdTaxCalc';
-import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -49,11 +48,6 @@ export default function Home() {
         className="flex-1 px-5"
         contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {/* Header */}
-        <View className="w-full items-end py-3">
-          <ThemeToggle size={30} />
-        </View>
-
         <Text
           className="text-2xl font-bold mb-6 text-center"
           style={{ color: colors.text }}

@@ -106,12 +106,12 @@ const AnimatedIcons = ({
 };
 
 export default function TabsLayout() {
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	return (
 		<Tabs
 			screenOptions={{
 				headerStyle: { backgroundColor: colors.primary },
-				headerTintColor: colors.noActive,
+				headerTintColor: colors.text,
 				headerTitleStyle: { fontWeight: 'bold' },
 				tabBarStyle: Platform.select({
 					android: {
@@ -125,6 +125,7 @@ export default function TabsLayout() {
 						borderRadius: 20,
 						elevation: 10,
 						borderColor: 'transparent',
+						borderWidth: 0,
 					},
 					ios: {
 						position: 'relative',
@@ -135,13 +136,18 @@ export default function TabsLayout() {
 						paddingBottom: 10,
 						paddingTop: 10,
 						borderRadius: 20,
-						shadowColor: colors.primary,
-						shadowOffset: { width: 5, height: 5 },
-						shadowOpacity: 0.3,
-						shadowRadius: 10,
+						shadowColor: '#000',
+						shadowOffset: { width: 0, height: 4 },
+						shadowOpacity: 0.2,
+						shadowRadius: 8,
 						justifyContent: 'center',
 						alignItems: 'center',
 						borderColor: 'transparent',
+						borderWidth: 0,
+					},
+					default: {
+						backgroundColor: colors.nav,
+						borderTopWidth: 0,
 					},
 				}),
 
@@ -153,6 +159,11 @@ export default function TabsLayout() {
 				headerLeft: () => (
 					<View className="ml-2">
 						<DrawerToggleButton tintColor={undefined} />
+					</View>
+				),
+				headerRight: () => (
+					<View className="mr-3">
+						<ThemeToggle size={22} />
 					</View>
 				),
 				tabBarLabel: ({ focused, children }) => (

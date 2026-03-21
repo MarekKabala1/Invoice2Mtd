@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ThemeToggle from './ThemeToggle';
 import BaseCard from './BaseCard';
 import { useTheme } from '@/context/ThemeContext';
 import TransactionList from '@/components/TransactionList';
@@ -20,9 +19,6 @@ const BudgetScreen: React.FC = () => {
 			style={{ backgroundColor: colors.primary, paddingTop: insets.top }}
 		>
 			<View className='flex-1 gap-2 p-2 mb-20'>
-				<View className='w-full items-end'>
-					<ThemeToggle size={30} />
-				</View>
 				<BaseCard>
 					<View className='flex-row justify-between items-center'>
 						<TouchableOpacity
