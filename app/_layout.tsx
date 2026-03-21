@@ -217,24 +217,7 @@ function StackLayout() {
 					},
 				}}
 			/>
-			<Stack.Screen
-				name='(stack)/settings'
-				options={{
-					headerShown: true,
-					headerLeft: () => <HeaderLeft />,
-					headerRight: () => <ThemeToggle size={26} />,
-					title: 'Settings',
-					headerStyle: {
-						backgroundColor: colors.primary,
-					},
-					headerTitleAlign: 'center',
-					headerTintColor: colors.text,
-					animation: 'slide_from_left',
-					headerTitleStyle: {
-						fontWeight: 'bold',
-					},
-				}}
-			/>
+	
 		</Stack>
 	);
 }
