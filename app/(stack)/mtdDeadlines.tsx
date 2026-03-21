@@ -112,7 +112,7 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
 export default function MtdDeadlinesScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
-  const { deadlines, overdue, thisQuarter, upcoming } = useMtdDeadlines(2);
+  const { deadlines, overdue, thisQuarter, endOfYear, upcoming } = useMtdDeadlines(2);
 
   const handlePress = (item: DeadlineItem) => {
     if (item.type === 'quarterly' && item.quarter) {
@@ -176,7 +176,22 @@ export default function MtdDeadlinesScreen() {
             </View>
           )}
 
-          {/* Upcoming — deadline only, no data */}
+          {/* End of year — final declaration */}
+          {endOfYear.length > 0 && (
+            <View>
+              <SectionHeader title="End of Year Declaration" color={isDark ? '#a5b4fc' : '#6d28d9'} />
+              {endOfYear.map((item) => (
+                <DeadlineCard
+                  key={`${item.type}-${item.deadline}`}
+                  item={item}
+                  isDark={isDark}
+                  onPress={() => handlePress(item)}
+                />
+              ))}
+            </View>
+          )}
+
+          {/* Upcoming — future quarters only */}
           {upcoming.length > 0 && (
             <View>
               <SectionHeader title="Upcoming" color={isDark ? '#a5b4fc' : '#4f46e5'} />

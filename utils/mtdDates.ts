@@ -79,10 +79,16 @@ export const quartersForTaxYear = (startYear: number): TaxQuarter[] => {
 
 export const buildTaxYear = (startYear: number): TaxYear => {
   const quarters = quartersForTaxYear(startYear);
+  const year2 = startYear + 1;
   return {
     label: taxYearLabel(startYear),
     start: `${startYear}-04-06`,
-    end: `${startYear + 1}-04-05`,
+    end: `${year2}-04-05`,
+    // Final declaration appears the day after tax year ends (Apr 5)
+    // For tax year 2025-26 (ends Apr 5 2026): visible from Apr 5 2026
+    finalDeclarationStart: `${year2}-04-05`,
+    // Final declaration deadline: Jan 31 the year after tax year ends
+    // For tax year 2025-26: deadline Jan 31 2027
     finalDeclarationDeadline: `${startYear + 2}-01-31`,
     quarters,
   };
@@ -145,18 +151,22 @@ export const upcomingDeadlines = (lookAheadYears = 2): DeadlineItem[] => {
       }
     }
 
-    // Final declaration
-    const fdDays = daysUntil(ty.finalDeclarationDeadline);
-    if (fdDays > -90) {
-      items.push({
-        type: 'final_declaration',
-        label: `Final declaration — ${ty.label}`,
-        deadline: ty.finalDeclarationDeadline,
-        deadlineFormatted: formatDeadline(ty.finalDeclarationDeadline),
-        daysUntil: fdDays,
-        status: deadlineStatus(ty.finalDeclarationDeadline),
-        taxYear: ty.label,
-      });
+    // Final declaration — only visible after tax year ends (Apr 5)
+    // For tax year 2025-26: appears from Apr 5 2026, deadline Jan 31 2027
+    const today = toISO(new Date());
+    if (today >= ty.finalDeclarationStart) {
+      const fdDays = daysUntil(ty.finalDeclarationDeadline);
+      if (fdDays > -90) {
+        items.push({
+          type: 'final_declaration',
+          label: `Final declaration — ${ty.label}`,
+          deadline: ty.finalDeclarationDeadline,
+          deadlineFormatted: formatDeadline(ty.finalDeclarationDeadline),
+          daysUntil: fdDays,
+          status: deadlineStatus(ty.finalDeclarationDeadline),
+          taxYear: ty.label,
+        });
+      }
     }
   }
 

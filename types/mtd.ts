@@ -67,7 +67,8 @@ export type TaxYear = {
   label: string;
   start: string;
   end: string;
-  finalDeclarationDeadline: string;
+  finalDeclarationStart: string;   // Apr 5+1yr — when final declaration appears
+  finalDeclarationDeadline: string; // Jan 31+2yr — when it's due
   quarters: TaxQuarter[];
 };
 
