@@ -42,7 +42,7 @@ export default function Index() {
 		);
 	}
 	const handleNavigation = () => {
-		router.push('/home');
+		router.push('/(drawer)/(tabs)/home');
 	};
 
 	return (
