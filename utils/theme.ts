@@ -59,19 +59,19 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  primary: 'rgb(13, 59, 102)',
-  text: 'rgb(243, 237, 226)',
-  textOpacity: 'rgba(243, 237, 226, 0.5)',
-  secondary: 'rgb(67, 179, 229)',
-  card: 'rgb(55, 90, 127)',
-  nav: 'rgb(55, 90, 127)',
-  noActive: 'rgb(100, 116, 139)',
+  primary: 'rgb(15, 23, 42)',
+  text: 'rgb(241, 245, 249)',
+  textOpacity: 'rgba(241, 245, 249, 0.5)',
+  secondary: 'rgb(99, 102, 241)',
+  card: 'rgb(30, 41, 59)',
+  nav: 'rgb(30, 41, 59)',
+  noActive: 'rgb(148, 163, 184)',
   bg_accent: 'rgb(130, 0, 0)',
   popover: 'rgb(202, 170, 192)',
-  muted: 'rgb(100, 116, 139)',
+  muted: 'rgb(148, 163, 184)',
   accent: 'rgb(241, 245, 249)',
-  danger: 'rgb(238, 28, 28)',
-  border: 'rgb(226, 232, 240)',
-  input: 'rgb(226, 232, 240)',
-  success: 'rgb(57, 173, 106)'
+  danger: 'rgb(248, 113, 113)',
+  border: 'rgb(51, 65, 85)',
+  input: 'rgb(51, 65, 85)',
+  success: 'rgb(74, 222, 128)'
 };

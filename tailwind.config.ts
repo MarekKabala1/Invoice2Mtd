@@ -14,11 +14,11 @@ module.exports = {
           nav: '#ede4d4',
         },
         dark: {
-          primary: '#0D3B66',
-          text: '#F3EDE2',
-          secondary: '#43B3E5',
-          accent: '#43B3E5',
-          nav: '#375A7F'
+          primary: '#0f172a',
+          text: '#f1f5f9',
+          secondary: '#6366f1',
+          accent: '#6366f1',
+          nav: '#1e293b',
         },
         bg_accent: '#820000',
         popover: '#CAAAC',
