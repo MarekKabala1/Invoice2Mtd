@@ -43,6 +43,13 @@
       "when": 1753246804895,
       "tag": "0005_wandering_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1774079030646,
+      "tag": "0006_slow_the_professor",
+      "breakpoints": true
     }
   ]
 }
