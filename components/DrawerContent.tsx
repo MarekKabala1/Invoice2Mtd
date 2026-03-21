@@ -10,7 +10,7 @@
  * Used by: app/(drawer)/_layout.tsx (drawerContent prop)
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { usePathname, router } from 'expo-router';
@@ -18,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useTheme } from '@/context/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
+import { db } from '@/db/config';
+import { User } from '@/db/schema';
 
 interface DrawerItem {
   label: string;
@@ -58,6 +60,23 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
   const { colors, isDark } = useTheme();
   const pathname = usePathname();
   const version = Constants.expoConfig?.version ?? '1.0.0';
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const users = await db.select().from(User).limit(1);
+        if (users.length > 0) {
+          setUserName(users[0].fullName ?? null);
+          setUserEmail(users[0].emailAddress ?? null);
+        }
+      } catch {
+        // Silent fail — user info is non-critical
+      }
+    };
+    fetchUser();
+  }, []);
 
   const isActive = (route: string): boolean => {
     // Extract the screen name from the route
@@ -121,6 +140,17 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
           <Text className="mt-1 text-xs text-white opacity-70">
             Invoicing &amp; Making Tax Digital
           </Text>
+          {userName && (
+            <View className="mt-3 flex-row items-center gap-2">
+              <Ionicons name="person-circle-outline" size={20} color="rgba(255,255,255,0.7)" />
+              <View>
+                <Text className="text-sm text-white font-bold">{userName}</Text>
+                {userEmail && (
+                  <Text className="text-xs text-white opacity-60">{userEmail}</Text>
+                )}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Main navigation */}
