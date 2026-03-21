@@ -10,6 +10,9 @@ import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
 import AddToBudgetModal from '../AddToBudgetModal';
 import { sendPaymentReminder } from '@/utils/emailOperations';
 import { handleSendInvoice } from '@/utils/invoiceFormOperations';
+import { addMtdTransaction } from '@/db/mtdOperations';
+import { useAppSettings } from '@/context/AppSettingsContext';
+import { toISO, quarterForDate } from '@/utils/mtdDates';
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -37,7 +40,7 @@ export default function InvoiceSettingsModal({
 	bankDetails: any;
 }) {
 	const [localInvoice, setLocalInvoice] = useState(invoice);
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	const { isPayed } = useIsInvoicePaid(localInvoice);
 
 	const {
@@ -112,6 +115,22 @@ export default function InvoiceSettingsModal({
 					workItems: [],
 				},
 			]);
+
+			// Also create MTD income record linked to this invoice
+			// so it shows in the Tax tab immediately
+			const invoiceDate = new Date(invoice.invoiceDate!);
+			await addMtdTransaction(
+				{
+					date: toISO(invoiceDate),
+					description: `Invoice from ${customer?.name ?? 'customer'}`,
+					amount: invoice.amountAfterTax!,
+					type: 'income',
+					category: 'turnover',
+					notes: `Linked to invoice #${invoice.id}`,
+					invoiceId: invoice.id!,
+				},
+				invoice.userId!
+			);
 		} catch (error) {
 			setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
 			setIsPayedOptimistic(false);
@@ -164,20 +183,25 @@ export default function InvoiceSettingsModal({
 				animationType='slide'
 				transparent={true}
 				onRequestClose={() => setShowSettings(false)}>
-				<View className='flex-1 justify-end  bg-light-text/30 dark:bg-dark-text/30'>
-					<View className='bg-light-primary dark:bg-dark-primary w-full h-fit rounded-t-lg p-6 gap-4'>
-						<View className='flex-row w-full items-center justify-between  '>
-							<View>
-								<Text className='text-lg font-bold text-light-text dark:text-dark-text'>
+				<View className='flex-1 justify-end' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+					<View
+						className='w-full h-fit rounded-t-lg p-6 gap-4'
+						style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+					>
+						<View className='flex-row w-full items-center justify-between'>
+							<View className='flex-1'>
+								<Text className='text-lg font-bold' style={{ color: colors.text }}>
 									Invoice # {localInvoice.id} to {customer?.name}
 								</Text>
-								<Text className='text-sm text-danger dark:text-danger'>
-									{isPayed ? '' : `${howManyDaysOverdue()} days overdue`}{' '}
-								</Text>
+								{!isPayed && (
+									<Text className='text-sm mt-1' style={{ color: '#ee1c1c' }}>
+										{howManyDaysOverdue()} days overdue
+									</Text>
+								)}
 							</View>
 							<TouchableOpacity
 								onPress={() => setShowSettings(false)}
-								className='mb-4'>
+								className='p-2'>
 								<MaterialCommunityIcons
 									name='close'
 									size={20}
@@ -185,75 +209,87 @@ export default function InvoiceSettingsModal({
 								/>
 							</TouchableOpacity>
 						</View>
-						<View className=' w-full gap-2 items-center justify-center'>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+						<View className='w-full gap-2 items-center justify-center'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='cash-multiple'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										{isPayed ? 'Payed' : 'To Be Payed'}
+									<Text className='text-sm' style={{ color: colors.text }}>
+										{isPayed ? 'Paid' : 'To Be Paid'}
 									</Text>
 								</View>
 								{isPayed ? (
-									<Text className='text-sm text-success dark:text-success'>
+									<Text className='text-sm font-bold' style={{ color: '#39AD6A' }}>
 										{getCurrencySymbol(localInvoice.currency)}
 										{localInvoice.amountAfterTax.toFixed(2)}
 									</Text>
 								) : (
-									<Text className='text-sm text-danger dark:text-danger'>
+									<Text className='text-sm font-bold' style={{ color: '#ee1c1c' }}>
 										{getCurrencySymbol(localInvoice.currency)}
 										{localInvoice.amountAfterTax.toFixed(2)}
 									</Text>
 								)}
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='calendar-range'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Invoice Due Date
 									</Text>
 								</View>
-								<Text className='text-sm text-light-text dark:text-dark-text'>
+								<Text className='text-sm' style={{ color: colors.text }}>
 									{new Date(localInvoice.dueDate).toLocaleDateString()}
 								</Text>
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='file-document'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Invoice Status
 									</Text>
 								</View>
 								{isPayed ? (
-									<Text className='text-sm font-bold text-success dark:text-success'>
-										Payed
+									<Text className='text-sm font-bold' style={{ color: '#39AD6A' }}>
+										Paid
 									</Text>
 								) : (
-									<Text className='text-sm font-bold text-danger dark:text-danger'>
+									<Text className='text-sm font-bold' style={{ color: '#ee1c1c' }}>
 										Overdue
 									</Text>
 								)}
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='check-circle-outline'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										Mark as payed
+									<Text className='text-sm' style={{ color: colors.text }}>
+										Mark as Paid
 									</Text>
 								</View>
 								<TouchableOpacity
@@ -263,74 +299,80 @@ export default function InvoiceSettingsModal({
 										<MaterialCommunityIcons
 											name='checkbox-marked-outline'
 											size={28}
-											color={colors.success}
+											color='#39AD6A'
 										/>
 									) : (
 										<MaterialCommunityIcons
 											name='checkbox-blank-outline'
 											size={28}
-											color={colors.danger}
+											color='#ee1c1c'
 										/>
 									)}
 								</TouchableOpacity>
 							</View>
 							<TouchableOpacity
 								onPress={handleEditInvoice}
-								className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='pencil'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Edit Invoice
 									</Text>
 								</View>
 								<MaterialCommunityIcons
 									name='chevron-right'
 									size={30}
-									color={colors.text}
+									color={colors.noActive}
 								/>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={handleShareInvoice}
-								className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='share-variant'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Share Invoice
 									</Text>
 								</View>
 								<MaterialCommunityIcons
 									name='chevron-right'
 									size={30}
-									color={colors.text}
+									color={colors.noActive}
 								/>
 							</TouchableOpacity>
 						</View>
 						{!isPayed && customer?.emailAddress && (
 							<TouchableOpacity
 								onPress={handleSendPaymentReminder}
-								className='flex-row w-full items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+							>
 								<View className='flex-row items-center gap-2'>
 									<MaterialCommunityIcons
 										name='email-send-outline'
 										size={40}
 										color={colors.text}
 									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Send Payment Reminder
 									</Text>
 								</View>
 								<MaterialCommunityIcons
 									name='chevron-right'
 									size={30}
-									color={colors.text}
+									color={colors.noActive}
 								/>
 							</TouchableOpacity>
 						)}
