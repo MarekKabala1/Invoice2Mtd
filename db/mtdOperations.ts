@@ -138,12 +138,14 @@ export async function aggregateQuarter(
   const agg = emptyAggregates();
 
   // Source 1: Manual MTD transactions
+  // userId filter removed — sole trader app has one user per device,
+  // so filtering by userId is unnecessary and causes mismatches when
+  // the userId from settings doesn't match the one used at creation.
   const manualTxns = await db
     .select()
     .from(MtdTransactions)
     .where(
       and(
-        eq(MtdTransactions.userId, userId),
         eq(MtdTransactions.taxYear, taxYear),
         eq(MtdTransactions.quarter, quarter)
       )
@@ -161,22 +163,22 @@ export async function aggregateQuarter(
   }
 
   // Source 2: Paid invoices → turnover
-  const paidInvoices = await db
+  // Invoice dates are stored as ISO strings (e.g. 2025-03-21T12:00:00.000Z).
+  // Quarter periodStart/periodEnd use 'YYYY-MM-DD' format.
+  // We compare only the date portion (first 10 chars) so the formats don't
+  // cause incorrect lexicographic ordering.
+  const allPaidInvoices = await db
     .select()
     .from(Invoice)
-    .where(
-      and(
-        eq(Invoice.userId, userId),
-        eq(Invoice.isPayed, true),
-        gte(Invoice.invoiceDate, q.periodStart),
-        lte(Invoice.invoiceDate, q.periodEnd)
-      )
-    );
+    .where(eq(Invoice.isPayed, true));
 
-  for (const inv of paidInvoices) {
-    const amount = inv.amountAfterTax || 0;
-    agg.sources.invoiceTurnover += amount;
-    agg.totalTurnover += amount;
+  for (const inv of allPaidInvoices) {
+    const invoiceDate = (inv.invoiceDate ?? '').slice(0, 10);
+    if (invoiceDate >= q.periodStart && invoiceDate <= q.periodEnd) {
+      const amount = inv.amountAfterTax || 0;
+      agg.sources.invoiceTurnover += amount;
+      agg.totalTurnover += amount;
+    }
   }
 
   // Source 3a: Budget expense transactions → mapped to HMRC categories
@@ -188,7 +190,6 @@ export async function aggregateQuarter(
     .from(Transactions)
     .where(
       and(
-        eq(Transactions.userId, userId),
         eq(Transactions.type, 'EXPENSE'),
         gte(Transactions.date, q.periodStart),
         lte(Transactions.date, q.periodEnd)
@@ -210,7 +211,6 @@ export async function aggregateQuarter(
     .from(Transactions)
     .where(
       and(
-        eq(Transactions.userId, userId),
         eq(Transactions.type, 'INCOME'),
         gte(Transactions.date, q.periodStart),
         lte(Transactions.date, q.periodEnd)
