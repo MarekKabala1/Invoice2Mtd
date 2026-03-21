@@ -143,7 +143,11 @@ export async function aggregateQuarter(
   // so filtering by userId is unnecessary and causes mismatches when
   // the userId from settings doesn't match the one used at creation.
   const manualTxns = await db
-    .select()
+    .select({
+      type: MtdTransactions.type,
+      category: MtdTransactions.category,
+      amount: MtdTransactions.amount,
+    })
     .from(MtdTransactions)
     .where(
       and(
@@ -164,22 +168,23 @@ export async function aggregateQuarter(
   }
 
   // Source 2: Paid invoices → turnover
-  // Invoice dates are stored as ISO strings (e.g. 2025-03-21T12:00:00.000Z).
-  // Quarter periodStart/periodEnd use 'YYYY-MM-DD' format.
-  // We compare only the date portion (first 10 chars) so the formats don't
-  // cause incorrect lexicographic ordering.
-  const allPaidInvoices = await db
-    .select()
+  // Invoice dates are ISO strings (2025-03-21T12:00:00.000Z).
+  // Quarter boundaries use 'YYYY-MM-DD' format.
+  // SQL LIKE 'pattern%' matches the date prefix efficiently.
+  const paidInvoices = await db
+    .select({ amountAfterTax: Invoice.amountAfterTax, invoiceDate: Invoice.invoiceDate })
     .from(Invoice)
-    .where(eq(Invoice.isPayed, true));
+    .where(
+      and(
+        eq(Invoice.isPayed, true),
+        gte(Invoice.invoiceDate, q.periodStart),
+        lte(Invoice.invoiceDate, q.periodEnd + 'T23:59:59.999Z')
+      )
+    );
 
-  for (const inv of allPaidInvoices) {
-    const invoiceDate = (inv.invoiceDate ?? '').slice(0, 10);
-    if (invoiceDate >= q.periodStart && invoiceDate <= q.periodEnd) {
-      const amount = inv.amountAfterTax || 0;
-      agg.sources.invoiceTurnover += amount;
-      agg.totalTurnover += amount;
-    }
+  for (const inv of paidInvoices) {
+    agg.sources.invoiceTurnover += (inv.amountAfterTax || 0);
+    agg.totalTurnover += (inv.amountAfterTax || 0);
   }
 
   // Source 3a: Budget expense transactions → mapped to HMRC categories
