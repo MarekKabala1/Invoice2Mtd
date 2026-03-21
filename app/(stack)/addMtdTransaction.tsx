@@ -94,7 +94,13 @@ export default function AddMtdTransactionScreen() {
 
   const onSubmit = async (data: NewMtdTransactionType) => {
     try {
-      await addTransaction(data);
+      // Add quarter/year prefix to description for easy identification
+      const qLabel = quarterInfo ? `[Q${quarterInfo.quarter} ${quarterInfo.taxYear}] ` : '';
+      const enrichedData = {
+        ...data,
+        description: `${qLabel}${data.description}`,
+      };
+      await addTransaction(enrichedData);
       Alert.alert('Saved', `Saved to Q${quarterInfo?.quarter} ${quarterInfo?.taxYear}`);
       router.back();
     } catch {

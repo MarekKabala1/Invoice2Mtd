@@ -11,6 +11,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { generateId } from './generateUuid';
 import { calculateInvoiceWorkItemTotals } from './invoiceCalculations';
+import { quarterForDate } from './mtdDates';
 import {
 	CustomerType,
 	InvoiceType,
@@ -360,19 +361,25 @@ const handleNotes = async (
 ): Promise<void> => {
 	if (note.trim()) {
 		if (isUpdateMode && noteItemId) {
+			const invoiceDate = new Date(data.invoiceDate!);
+			const q = quarterForDate(invoiceDate);
+			const quarterTag = `[Q${q.quarter} ${q.taxYear}] `;
 			await db
 				.update(Note)
 				.set({
-					noteText: note,
+					noteText: quarterTag + note,
 					noteDate: data.invoiceDate,
 				})
 				.where(eq(Note.id, noteItemId));
 		} else {
 			const noteId = await generateId();
+			const invoiceDate = new Date(data.invoiceDate!);
+			const q = quarterForDate(invoiceDate);
+			const quarterTag = `[Q${q.quarter} ${q.taxYear}] `;
 			const notes = {
 				id: noteId,
 				invoiceId: invoiceId,
-				noteText: note,
+				noteText: quarterTag + note,
 				noteDate: data.invoiceDate,
 				createdAt: new Date().toISOString(),
 			};
