@@ -16,7 +16,6 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
-import { useMtdTransaction } from '@/hooks/useMtdTransaction';
 import { EXPENSE_CATEGORY_LABELS, isAllowable } from '@/utils/mtdCategories';
 import { currentTaxYearStart, taxYearLabel } from '@/utils/mtdDates';
 import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
@@ -24,10 +23,7 @@ import { useTaxRates } from '@/hooks/useTaxRates';
 import { ExpenseCategory, EXPENSE_CATEGORIES } from '@/types/mtd';
 import { getMtdTransactions } from '@/db/mtdOperations';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from '@/db/config';
-import { Transactions } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { deleteMtdTransactionSync } from '@/utils/invoiceSync';
 
 const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [
   { num: 1, label: 'Q1' },
@@ -55,8 +51,6 @@ export default function MtdQuarterlySummaryScreen() {
     quarter: selectedQuarter,
     userId,
   });
-  const { deleteTransaction } = useMtdTransaction();
-
   // Fetch individual MTD transactions for the selected quarter
   const fetchTransactions = useCallback(async () => {
     setTxLoading(true);
@@ -76,11 +70,13 @@ export default function MtdQuarterlySummaryScreen() {
     }, [fetchTransactions])
   );
 
-  // Delete MTD transaction and its linked budget entry
+  // Delete MTD record — cascades to budget + invoice via sync service
   const handleDelete = (tx: any) => {
     Alert.alert(
       'Delete Record',
-      `Delete "${tx.description}" (${formatGBP(tx.amount)})?`,
+      `Delete "${tx.description}" (${formatGBP(tx.amount)})?` +
+      (tx.transactionId ? '\n\nLinked budget entry will also be deleted.' : '') +
+      (tx.invoiceId ? '\n\nLinked invoice will be marked as unpaid.' : ''),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -88,11 +84,7 @@ export default function MtdQuarterlySummaryScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteTransaction(tx.id);
-              // Also delete linked budget transaction if one exists
-              if (tx.transactionId) {
-                await db.delete(Transactions).where(eq(Transactions.id, tx.transactionId));
-              }
+              await deleteMtdTransactionSync(tx.id);
               fetchTransactions();
               refresh();
             } catch (err) {
