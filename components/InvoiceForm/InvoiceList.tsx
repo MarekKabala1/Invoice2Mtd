@@ -13,6 +13,7 @@ import ThemeToggle from '../ThemeToggle';
 import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoiceFinancialGrouping';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
+import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoiceSync';
 import AddToBudgetModal from '../AddToBudgetModal';
 import InvoiceEstimateSwitcher from '@/components/InvoiceEstimateSwitcher';
 import { EstimateList } from '../EstimateForm';
@@ -224,15 +225,29 @@ export default function InvoiceList() {
 	const handleDeleteInvoice = useCallback(
 		async (invoiceId: string) => {
 			try {
-				await db.transaction(async (tx) => {
-					await Promise.all([
-						tx.delete(WorkInformation).where(eq(WorkInformation.invoiceId, invoiceId)),
-						tx.delete(Payment).where(eq(Payment.invoiceId, invoiceId)),
-						tx.delete(Note).where(eq(Note.invoiceId, invoiceId)),
-						tx.delete(Invoice).where(eq(Invoice.id, invoiceId)),
-					]);
-				});
-				await loadData();
+				const linked = await findLinkedRecordsForInvoice(invoiceId);
+				const warnings: string[] = [];
+				if (linked.hasLinkedBudget) warnings.push('linked budget entry');
+				if (linked.hasLinkedMtd) warnings.push('linked MTD record');
+				const warningText = warnings.length > 0
+					? `\n\nThis will also delete: ${warnings.join(', ')}.`
+					: '';
+
+				Alert.alert(
+					'Delete Invoice',
+					`Are you sure you want to delete this invoice?${warningText}`,
+					[
+						{ text: 'Cancel', style: 'cancel' },
+						{
+							text: 'Delete',
+							style: 'destructive',
+							onPress: async () => {
+								await deleteInvoiceFull(invoiceId);
+								await loadData();
+							},
+						},
+					]
+				);
 			} catch (error) {
 				console.error('Error deleting invoice:', error);
 				Alert.alert('Error', 'Failed to delete invoice. Please try again.');
