@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EXPENSE_CATEGORIES } from '@/types/mtd';
 
 const emailRegex =
 	/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
@@ -164,6 +165,8 @@ export const appSettingsSchema = z.object({
 	language: z.string().default('en-GB'),
 	theme: z.string().default('system'),
 	logoUrl: z.string().optional(),
+	applyTaxByDefault: z.boolean().default(true),
+	defaultNotes: z.string().optional(),
 	createdAt: z.string().optional(),
 	updatedAt: z.string().optional(),
 });
@@ -181,3 +184,15 @@ export type EstimateType = z.infer<typeof estimateSchema>;
 export type EstimateNotesType = z.infer<typeof estimateNotesSchema>;
 export type EstimateTermsType = z.infer<typeof estimateTermsSchema>;
 export type AppSettingsType = z.infer<typeof appSettingsSchema>;
+
+export const newMtdTransactionSchema = z.object({
+	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+	description: z.string().min(1, 'Description is required'),
+	amount: z.coerce.number().positive('Amount must be positive'),
+	type: z.enum(['income', 'expense']),
+	category: z.enum(EXPENSE_CATEGORIES),
+	receiptRef: z.string().optional(),
+	notes: z.string().optional(),
+});
+
+export type NewMtdTransactionType = z.infer<typeof newMtdTransactionSchema>;
