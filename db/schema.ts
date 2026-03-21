@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 
 export const User = sqliteTable('User', {
 	id: text('id').primaryKey(),
@@ -57,7 +57,10 @@ export const Invoice = sqliteTable('Invoice', {
 	taxValue: integer('taxValue', { mode: 'boolean' }).default(false),
 	isPayed: integer('is_payed', { mode: 'boolean' }).default(false),
 	discount: real('discount'),
-});
+}, (table) => ({
+	invoiceDateIdx: index('invoice_date_idx').on(table.invoiceDate),
+	isPayedIdx: index('is_payed_idx').on(table.isPayed),
+}));
 
 export const Estimate = sqliteTable('Estimate', {
 	id: text('id').primaryKey(),
@@ -120,7 +123,10 @@ export const Transactions = sqliteTable('Transactions', {
 	currency: text('currency').default('GBP'),
 	description: text('description').default(''),
 	type: text('type'),
-});
+}, (table) => ({
+	dateIdx: index('txn_date_idx').on(table.date),
+	typeIdx: index('txn_type_idx').on(table.type),
+}));
 
 export const appSettings = sqliteTable('app_settings', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -182,7 +188,9 @@ export const MtdTransactions = sqliteTable('Mtd_Transactions', {
 	receiptRef: text('receipt_ref'),
 	notes: text('notes'),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
-});
+}, (table) => ({
+	taxYearQuarterIdx: index('mtd_txn_year_quarter_idx').on(table.taxYear, table.quarter),
+}));
 
 export const MtdQuarterlySummary = sqliteTable(
 	'Mtd_Quarterly_Summary',
