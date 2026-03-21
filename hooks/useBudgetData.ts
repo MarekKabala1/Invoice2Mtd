@@ -6,6 +6,7 @@ import { TransactionType } from '@/db/zodSchema';
 import { between, eq } from 'drizzle-orm';
 import { startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 import { calculateTotals } from '@/utils/transactionCalculation';
+import { deleteBudgetTransaction } from '@/utils/invoiceSync';
 
 export const useBudgetData = () => {
 	const [currentDate, setCurrentDate] = useState(new Date());
@@ -85,7 +86,7 @@ export const useBudgetData = () => {
 	}, []);
 
 	const deleteTransaction = useCallback(async (transactionId: string) => {
-		await db.delete(Transactions).where(eq(Transactions.id, transactionId));
+		await deleteBudgetTransaction(transactionId);
 		setTransactions((prev) => prev.filter((t) => t.id !== transactionId));
 	}, []);
 
