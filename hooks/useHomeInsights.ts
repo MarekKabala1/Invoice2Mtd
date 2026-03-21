@@ -25,7 +25,7 @@ interface UseHomeInsightsResult {
   refresh: () => Promise<void>;
 }
 
-export function useHomeInsights(userId: string): UseHomeInsightsResult {
+export function useHomeInsights(_userId: string): UseHomeInsightsResult {
   const [currentQuarterTurnover, setCurrentQuarterTurnover] = useState(0);
   const [currentQuarterNetProfit, setCurrentQuarterNetProfit] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,10 +34,6 @@ export function useHomeInsights(userId: string): UseHomeInsightsResult {
   const { nextDeadline } = useMtdDeadlines(2);
 
   const refresh = useCallback(async () => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
     setIsLoading(true);
     setError(null);
     try {
@@ -46,7 +42,9 @@ export function useHomeInsights(userId: string): UseHomeInsightsResult {
       const today = new Date();
       const q = quarterForDate(today);
 
-      const agg = await aggregateQuarter(tyLabel, q.quarter, userId);
+      // userId param is kept for API compatibility but no longer used
+      // in aggregateQuarter — sole trader app has one user per device
+      const agg = await aggregateQuarter(tyLabel, q.quarter, '');
       setCurrentQuarterTurnover(agg.totalTurnover);
       setCurrentQuarterNetProfit(agg.netProfit);
     } catch (err) {
@@ -55,7 +53,7 @@ export function useHomeInsights(userId: string): UseHomeInsightsResult {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     refresh();
