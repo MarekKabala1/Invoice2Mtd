@@ -23,7 +23,7 @@ import { useTransaction } from '@/hooks/useTransaction';
 import { handleSaveTransaction } from '@/utils/transactionOperations';
 import { mapCategoryToHmrc } from '@/utils/mtdCategories';
 import { addMtdTransaction } from '@/db/mtdOperations';
-import { useAppSettings } from '@/context/AppSettingsContext';
+import { getCurrentUserId } from '@/utils/getCurrentUser';
 
 const transactionTypes = [
 	{ id: 'EXPENSE', label: 'Expense' },
@@ -38,7 +38,6 @@ interface TransactionFormProps {
 const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false, transactionData }) => {
 	const { users } = useTransaction();
 	const { colors, isDark } = useTheme();
-	const { settings } = useAppSettings();
 	const MAX_LENGTH = 20;
 	const [alsoAddToMtd, setAlsoAddToMtd] = useState(false);
 
@@ -67,21 +66,24 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 		await handleSaveTransaction(data, isUpdateMode, transactionData);
 
 		// Also add to MTD if the switch is on (for new transactions only)
-		if (alsoAddToMtd && !isUpdateMode && settings?.userId) {
+		if (alsoAddToMtd && !isUpdateMode) {
 			try {
-				const hmrcCategory = mapCategoryToHmrc(data.categoryId || '');
-				const mtdType = data.type === 'INCOME' ? 'income' : 'expense';
-				const amount = parseFloat(data.amount as unknown as string);
-				await addMtdTransaction(
-					{
-						date: data.date ? new Date(data.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
-						description: data.description || '',
-						amount: isNaN(amount) ? 0 : amount,
-						type: mtdType as 'income' | 'expense',
-						category: hmrcCategory,
-					},
-					settings.userId
-				);
+				const mtdUserId = await getCurrentUserId();
+				if (mtdUserId) {
+					const hmrcCategory = mapCategoryToHmrc(data.categoryId || '');
+					const mtdType = data.type === 'INCOME' ? 'income' : 'expense';
+					const amount = parseFloat(data.amount as unknown as string);
+					await addMtdTransaction(
+						{
+							date: data.date ? new Date(data.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+							description: data.description || '',
+							amount: isNaN(amount) ? 0 : amount,
+							type: mtdType as 'income' | 'expense',
+							category: hmrcCategory,
+						},
+						mtdUserId
+					);
+				}
 			} catch (err) {
 				console.error('Failed to add MTD record:', err);
 			}

@@ -1,12 +1,13 @@
 /**
  * useMtdTransaction.ts
  *
- * MTD add/delete transaction hook. Follows useTransaction pattern.
- * Calls addMtdTransaction / deleteMtdTransaction then refreshCurrentYear.
- * When adding MTD records, also creates a budget Transaction so both
- * modules stay in sync.
+ * MTD add/delete transaction hook. Uses getCurrentUserId to get the
+ * user from the database instead of settings. When adding MTD records,
+ * also creates a budget Transaction and links back via transactionId
+ * so deletion keeps both modules in sync.
  *
- * Depends on: db/mtdOperations.ts, db/config.ts, db/schema.ts
+ * Depends on: db/mtdOperations.ts, db/config.ts, db/schema.ts,
+ *             utils/getCurrentUser.ts
  * Used by: app/(stack)/addMtdTransaction.tsx
  */
 
@@ -17,7 +18,8 @@ import { NewMtdTransaction } from '@/types/mtd';
 import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
 import { generateId } from '@/utils/generateUuid';
-import { mapCategoryToHmrc } from '@/utils/mtdCategories';
+import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { eq } from 'drizzle-orm';
 
 // Maps HMRC categories back to budget category IDs
 const hmrcToBudgetCategory: Record<string, string> = {
@@ -35,7 +37,7 @@ const hmrcToBudgetCategory: Record<string, string> = {
   otherDisallowableExpenses: 'other_disallowable',
 };
 
-export const useMtdTransaction = (userId: string) => {
+export const useMtdTransaction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,15 +45,20 @@ export const useMtdTransaction = (userId: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Add MTD record
-      await addMtdTransaction(tx, userId);
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        throw new Error('No user found. Please set up your profile first.');
+      }
 
-      // Also add to budget so both modules stay in sync
+      let budgetTransactionId: string | null = null;
+
+      // Add to budget first if requested, so we can link the IDs
       if (alsoAddToBudget) {
         const budgetCategoryId = hmrcToBudgetCategory[tx.category] ?? 'other_expense';
         const budgetType = tx.type === 'income' ? 'INCOME' : 'EXPENSE';
+        budgetTransactionId = await generateId();
         await db.insert(Transactions).values({
-          id: await generateId(),
+          id: budgetTransactionId,
           amount: tx.amount,
           description: tx.description,
           date: tx.date,
@@ -62,6 +69,12 @@ export const useMtdTransaction = (userId: string) => {
         });
       }
 
+      // Add MTD record with transactionId link
+      await addMtdTransaction(
+        { ...tx, transactionId: budgetTransactionId ?? undefined },
+        userId
+      );
+
       await refreshCurrentYear(userId);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to add MTD transaction';
@@ -70,12 +83,14 @@ export const useMtdTransaction = (userId: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   const deleteTransaction = useCallback(async (id: string) => {
     setIsLoading(true);
     setError(null);
     try {
+      const userId = await getCurrentUserId();
+      if (!userId) return;
       await deleteMtdTransaction(id);
       await refreshCurrentYear(userId);
     } catch (err) {
@@ -85,7 +100,7 @@ export const useMtdTransaction = (userId: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   return {
     addTransaction,

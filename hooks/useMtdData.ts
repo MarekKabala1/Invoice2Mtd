@@ -18,10 +18,10 @@ import { currentTaxYearStart } from '@/utils/mtdDates';
 interface UseMtdDataParams {
   taxYear: string;
   quarter: 1 | 2 | 3 | 4;
-  userId: string;
+  userId?: string;
 }
 
-export const useMtdData = ({ taxYear, quarter, userId }: UseMtdDataParams) => {
+export const useMtdData = ({ taxYear, quarter, userId = '' }: UseMtdDataParams) => {
   const [aggregates, setAggregates] = useState<QuarterAggregates | null>(null);
   const [annualSummary, setAnnualSummary] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -13,6 +13,7 @@ import { handleSendInvoice } from '@/utils/invoiceFormOperations';
 import { addMtdTransaction } from '@/db/mtdOperations';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { toISO, quarterForDate } from '@/utils/mtdDates';
+import { getCurrentUserId } from '@/utils/getCurrentUser';
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -118,19 +119,22 @@ export default function InvoiceSettingsModal({
 
 			// Also create MTD income record linked to this invoice
 			// so it shows in the Tax tab immediately
-			const invoiceDate = new Date(invoice.invoiceDate!);
-			await addMtdTransaction(
-				{
-					date: toISO(invoiceDate),
-					description: `Invoice from ${customer?.name ?? 'customer'}`,
-					amount: invoice.amountAfterTax!,
-					type: 'income',
-					category: 'turnover',
-					notes: `Linked to invoice #${invoice.id}`,
-					invoiceId: invoice.id!,
-				},
-				invoice.userId!
-			);
+			const mtdUserId = await getCurrentUserId();
+			if (mtdUserId) {
+				const invoiceDate = new Date(invoice.invoiceDate!);
+				await addMtdTransaction(
+					{
+						date: toISO(invoiceDate),
+						description: `Invoice from ${customer?.name ?? 'customer'}`,
+						amount: invoice.amountAfterTax!,
+						type: 'income',
+						category: 'turnover',
+						notes: `Linked to invoice #${invoice.id}`,
+						invoiceId: invoice.id!,
+					},
+					mtdUserId
+				);
+			}
 		} catch (error) {
 			setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
 			setIsPayedOptimistic(false);

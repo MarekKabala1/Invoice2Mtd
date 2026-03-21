@@ -25,7 +25,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
-import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdTransaction } from '@/hooks/useMtdTransaction';
 import { newMtdTransactionSchema, NewMtdTransactionType } from '@/db/zodSchema';
 import {
@@ -44,9 +43,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function AddMtdTransactionScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
-  const { settings } = useAppSettings();
-  const userId = settings?.userId ?? '';
-  const { addTransaction, isLoading } = useMtdTransaction(userId);
+  const { addTransaction, isLoading } = useMtdTransaction();
   const { scannedData, handleScan, isLoading: isScanning } = useCameraScanner();
 
   const {

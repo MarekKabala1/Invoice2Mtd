@@ -32,7 +32,7 @@ import {
 // ─── Add manual MTD transaction ──────────────────────────────────────────────
 
 export async function addMtdTransaction(
-  tx: NewMtdTransaction & { invoiceId?: string },
+  tx: NewMtdTransaction & { invoiceId?: string; transactionId?: string },
   userId: string
 ): Promise<void> {
   const date = new Date(tx.date);
@@ -44,6 +44,7 @@ export async function addMtdTransaction(
     id: await generateId(),
     userId,
     invoiceId: tx.invoiceId ?? null,
+    transactionId: tx.transactionId ?? null,
     date: tx.date,
     description: tx.description,
     amount: tx.amount,

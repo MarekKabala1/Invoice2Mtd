@@ -27,6 +27,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { getCurrentUserId } from '@/utils/getCurrentUser';
 
 const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [
   { num: 1, label: 'Q1' },
@@ -54,7 +55,7 @@ export default function MtdQuarterlySummaryScreen() {
     quarter: selectedQuarter,
     userId,
   });
-  const { deleteTransaction } = useMtdTransaction(userId);
+  const { deleteTransaction } = useMtdTransaction();
 
   // Fetch individual MTD transactions for the selected quarter
   const fetchTransactions = useCallback(async () => {
