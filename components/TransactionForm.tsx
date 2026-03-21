@@ -9,8 +9,8 @@
  * Used by: app/(stack)/addTransaction.tsx
  */
 
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categories } from '@/utils/categories';
@@ -21,6 +21,9 @@ import { useTheme } from '@/context/ThemeContext';
 import DatePicker from '@/components/DatePicker';
 import { useTransaction } from '@/hooks/useTransaction';
 import { handleSaveTransaction } from '@/utils/transactionOperations';
+import { mapCategoryToHmrc } from '@/utils/mtdCategories';
+import { addMtdTransaction } from '@/db/mtdOperations';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const transactionTypes = [
 	{ id: 'EXPENSE', label: 'Expense' },
@@ -35,7 +38,9 @@ interface TransactionFormProps {
 const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false, transactionData }) => {
 	const { users } = useTransaction();
 	const { colors, isDark } = useTheme();
+	const { settings } = useAppSettings();
 	const MAX_LENGTH = 20;
+	const [alsoAddToMtd, setAlsoAddToMtd] = useState(false);
 
 	const {
 		control,
@@ -60,7 +65,30 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 
 	const onSubmit = async (data: TransactionType) => {
 		await handleSaveTransaction(data, isUpdateMode, transactionData);
+
+		// Also add to MTD if the switch is on (for new transactions only)
+		if (alsoAddToMtd && !isUpdateMode && settings?.userId) {
+			try {
+				const hmrcCategory = mapCategoryToHmrc(data.categoryId || '');
+				const mtdType = data.type === 'INCOME' ? 'income' : 'expense';
+				const amount = parseFloat(data.amount as unknown as string);
+				await addMtdTransaction(
+					{
+						date: data.date ? new Date(data.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+						description: data.description || '',
+						amount: isNaN(amount) ? 0 : amount,
+						type: mtdType as 'income' | 'expense',
+						category: hmrcCategory,
+					},
+					settings.userId
+				);
+			} catch (err) {
+				console.error('Failed to add MTD record:', err);
+			}
+		}
+
 		reset();
+		setAlsoAddToMtd(false);
 	};
 
 	return (
@@ -235,6 +263,32 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 					/>
 					{errors.categoryId && <Text className='text-xs' style={{ color: '#ee1c1c' }}>{errors.categoryId.message}</Text>}
 				</View>
+
+				{/* Also add to MTD switch */}
+				{!isUpdateMode && (
+					<View
+						className='flex-row items-center justify-between p-3 rounded-lg'
+						style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+					>
+						<View className='flex-1 mr-3'>
+							<Text className='text-sm font-bold' style={{ color: colors.text }}>
+								Also add to MTD
+							</Text>
+							<Text className='text-xs' style={{ color: colors.noActive }}>
+								Create an MTD tax record alongside the budget entry
+							</Text>
+						</View>
+						<Switch
+							value={alsoAddToMtd}
+							onValueChange={setAlsoAddToMtd}
+							trackColor={{
+								false: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+								true: '#4f46e5',
+							}}
+							thumbColor={alsoAddToMtd ? 'white' : isDark ? '#F3EDE2' : '#8B5E3C'}
+						/>
+					</View>
+				)}
 
 				{/* Submit */}
 				<TouchableOpacity
