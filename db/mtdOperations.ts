@@ -16,7 +16,7 @@
 
 import { eq, and, gte, lte, sql as sqlFn } from 'drizzle-orm';
 import { db } from './config';
-import { MtdTransactions, MtdQuarterlySummary, MtdAnnualSummary, Invoice, Transactions, Categories } from './schema';
+import { MtdTransactions, MtdQuarterlySummary, MtdAnnualSummary, Invoice, Transactions } from './schema';
 import { generateId } from '@/utils/generateUuid';
 import { quartersForTaxYear, taxYearForDate, toISO } from '@/utils/mtdDates';
 import { mapCategoryToHmrc } from '@/utils/mtdCategories';
@@ -32,7 +32,7 @@ import {
 // ─── Add manual MTD transaction ──────────────────────────────────────────────
 
 export async function addMtdTransaction(
-  tx: NewMtdTransaction,
+  tx: NewMtdTransaction & { invoiceId?: string },
   userId: string
 ): Promise<void> {
   const date = new Date(tx.date);
@@ -43,6 +43,7 @@ export async function addMtdTransaction(
   await db.insert(MtdTransactions).values({
     id: await generateId(),
     userId,
+    invoiceId: tx.invoiceId ?? null,
     date: tx.date,
     description: tx.description,
     amount: tx.amount,
@@ -178,15 +179,13 @@ export async function aggregateQuarter(
     agg.totalTurnover += amount;
   }
 
-  // Source 3: Budget transactions → expenses (mapped to HMRC categories)
-  const budgetTxns = await db
+  // Source 3a: Budget expense transactions → mapped to HMRC categories
+  const budgetExpenses = await db
     .select({
       amount: Transactions.amount,
       categoryId: Transactions.categoryId,
-      categoryName: Categories.name,
     })
     .from(Transactions)
-    .leftJoin(Categories, eq(Transactions.categoryId, Categories.id))
     .where(
       and(
         eq(Transactions.userId, userId),
@@ -196,11 +195,32 @@ export async function aggregateQuarter(
       )
     );
 
-  for (const bt of budgetTxns) {
+  for (const bt of budgetExpenses) {
     const hmrcCat = mapCategoryToHmrc(bt.categoryId || '');
     const amt = bt.amount || 0;
     agg.sources.budgetExpenses[hmrcCat] = (agg.sources.budgetExpenses[hmrcCat] || 0) + amt;
     (agg as any)[hmrcCat] = ((agg as any)[hmrcCat] || 0) + amt;
+  }
+
+  // Source 3b: Budget income transactions → turnover
+  // When the user adds income via the Budget tab, it should also
+  // appear as MTD turnover so the tax estimate stays accurate.
+  const budgetIncome = await db
+    .select({ amount: Transactions.amount })
+    .from(Transactions)
+    .where(
+      and(
+        eq(Transactions.userId, userId),
+        eq(Transactions.type, 'INCOME'),
+        gte(Transactions.date, q.periodStart),
+        lte(Transactions.date, q.periodEnd)
+      )
+    );
+
+  for (const bi of budgetIncome) {
+    const amt = bi.amount || 0;
+    agg.sources.manualTurnover += amt;
+    agg.totalTurnover += amt;
   }
 
   // Compute totals
