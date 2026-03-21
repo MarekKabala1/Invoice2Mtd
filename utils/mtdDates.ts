@@ -151,10 +151,12 @@ export const upcomingDeadlines = (lookAheadYears = 2): DeadlineItem[] => {
       }
     }
 
-    // Final declaration — only visible after tax year ends (Apr 5)
-    // For tax year 2025-26: appears from Apr 5 2026, deadline Jan 31 2027
+    // Final declaration — visible from the start of Q4 (Jan 6 the year after start)
+    // For tax year 2025-26 (startYear=2025): Q4 starts Jan 6 2026, final declaration
+    // becomes visible then. Deadline is Jan 31 2027.
     const today = toISO(new Date());
-    if (today >= ty.finalDeclarationStart) {
+    const q4 = ty.quarters[3]; // Q4 starts Jan 6 year after start
+    if (q4 && today >= q4.periodStart) {
       const fdDays = daysUntil(ty.finalDeclarationDeadline);
       if (fdDays > -90) {
         items.push({
