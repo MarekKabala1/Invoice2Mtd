@@ -69,10 +69,6 @@ export default function TaxScreen() {
     return allQuarterAggs.reduce((sum, agg) => sum + (agg?.totalTurnover ?? 0), 0);
   }, [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates]);
 
-  const yearlyProfit = useMemo(() => {
-    return allQuarterAggs.reduce((sum, agg) => sum + (agg?.netProfit ?? 0), 0);
-  }, [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates]);
-
   // Tax estimate for current quarter
   const taxEstimate = useMemo(() => {
     if (!aggregates) return null;
