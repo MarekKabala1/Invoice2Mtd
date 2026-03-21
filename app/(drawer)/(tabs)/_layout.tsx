@@ -12,6 +12,7 @@ import Animated, {
 import { color } from '@/utils/theme';
 import { useTheme } from '@/context/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
+import { DrawerToggleButton } from '@react-navigation/drawer';
 
 const AnimatedTabLabel = ({
 	focused,
@@ -148,7 +149,12 @@ export default function TabsLayout() {
 				tabBarInactiveTintColor: colors.noActive,
 				headerTitleAlign: 'center',
 				tabBarHideOnKeyboard: true,
-				headerShown: false,
+				headerShown: true,
+				headerLeft: () => (
+					<View className="ml-2">
+						<DrawerToggleButton tintColor={undefined} />
+					</View>
+				),
 				tabBarLabel: ({ focused, children }) => (
 					<AnimatedTabLabel focused={focused}>{children}</AnimatedTabLabel>
 				),

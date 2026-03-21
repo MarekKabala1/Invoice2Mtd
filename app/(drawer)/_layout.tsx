@@ -10,14 +10,27 @@
  */
 
 import { Drawer } from 'expo-router/drawer';
+import { DrawerToggleButton } from '@react-navigation/drawer';
 import DrawerContent from '@/components/DrawerContent';
+import { useTheme } from '@/context/ThemeContext';
+import ThemeToggle from '@/components/ThemeToggle';
+import { View } from 'react-native';
 
 export default function DrawerLayout() {
+  const { colors } = useTheme();
+
   return (
     <Drawer
       drawerContent={(props) => <DrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerTitleAlign: 'center',
+        drawerStyle: {
+          width: 300,
+        },
       }}
     >
       <Drawer.Screen
@@ -32,13 +45,35 @@ export default function DrawerLayout() {
         options={{
           drawerLabel: 'Settings',
           title: 'Settings',
+          headerShown: true,
+          headerLeft: () => (
+            <View className="ml-2">
+              <DrawerToggleButton tintColor={undefined} />
+            </View>
+          ),
+          headerRight: () => (
+            <View className="mr-3">
+              <ThemeToggle size={24} />
+            </View>
+          ),
         }}
       />
       <Drawer.Screen
         name="info"
         options={{
-          drawerLabel: 'Info',
+          drawerLabel: 'MTD Info',
           title: 'MTD Info',
+          headerShown: true,
+          headerLeft: () => (
+            <View className="ml-2">
+              <DrawerToggleButton tintColor={undefined} />
+            </View>
+          ),
+          headerRight: () => (
+            <View className="mr-3">
+              <ThemeToggle size={24} />
+            </View>
+          ),
         }}
       />
       <Drawer.Screen
@@ -46,6 +81,17 @@ export default function DrawerLayout() {
         options={{
           drawerLabel: 'Charts & Analytics',
           title: 'Charts & Analytics',
+          headerShown: true,
+          headerLeft: () => (
+            <View className="ml-2">
+              <DrawerToggleButton tintColor={undefined} />
+            </View>
+          ),
+          headerRight: () => (
+            <View className="mr-3">
+              <ThemeToggle size={24} />
+            </View>
+          ),
         }}
       />
     </Drawer>
