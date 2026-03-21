@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-light: #F3EDE2;
+  --text-light: #8B5E3C;
+  --secondary-light: #0B57A9;
+  --card-light: #EADDC7;
+  --bg-accent: #820000;
+  --popover-bg: #CAAAC;
+  --primary-dark: #0D3B66;
+  --secondary-dark: #0B57A9;
+  --muted-foreground: #64748B;
+  --accent: #F1F5F9;
+  --danger: #ee1c1c;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --success: #39AD6A;
+  --text-dark: #E3DEDE;
+  --nav-light: #ede4d4;
+}

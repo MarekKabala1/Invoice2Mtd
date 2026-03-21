@@ -1,0 +1,96 @@
+{
+	"expo": {
+		"name": "Invoicing-Budget",
+		"slug": "invoice",
+		"version": "1.0.4",
+		"orientation": "portrait",
+		"icon": "./assets/images/icon.png",
+		"scheme": "myapp",
+		"userInterfaceStyle": "automatic",
+		"splash": {
+			"image": "./assets/images/splash.png",
+			"resizeMode": "contain",
+			"backgroundColor": "#F3EDE2"
+		},
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.toxic87.invoice",
+			"userInterfaceStyle": "automatic",
+			"splash": {
+				"image": "./assets/images/splash.png",
+				"backgroundColor": "#F3EDE2",
+				"resizeMode": "contain"
+			}
+		},
+		"android": {
+			"userInterfaceStyle": "automatic",
+			"adaptiveIcon": {
+				"foregroundImage": "./assets/images/icon.png",
+				"backgroundColor": "#F3EDE2"
+			},
+			"permissions": ["WRITE_EXTERNAL_STORAGE", "READ_EXTERNAL_STORAGE", "MEDIA_LIBRARY", "ACCESS_MEDIA_LOCATION"],
+			"package": "com.toxic87.invoice"
+		},
+		"web": {
+			"bundler": "metro",
+			"output": "static",
+			"favicon": "./assets/images/icon.png",
+			"build": {
+				"babel": {
+					"include": ["deprecated-react-native-listview"]
+				}
+			}
+		},
+		"plugins": [
+			"expo-router",
+			"expo-build-properties",
+			[
+				"@sentry/react-native/expo",
+				{
+					"organization": "mk-3c",
+					"project": "invoiceapp",
+					"url": "https://sentry.io/"
+				}
+			],
+			[
+				"expo-media-library",
+				{
+					"photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+					"savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+					"isAccessMediaLocationEnabled": true
+				}
+			],
+			"expo-asset",
+			"expo-font",
+			[
+				"expo-quick-actions",
+				{
+					"androidIcons": {
+						"icon_one": {
+							"foregroundImage": "./assets/images/invoice.png",
+							"backgroundColor": "#F5F5F5"
+						}
+					}
+				}
+			]
+		],
+		"experiments": {
+			"typedRoutes": true
+		},
+		"extra": {
+			"router": {
+				"origin": false
+			},
+			"eas": {
+				"projectId": "548c8736-a95c-482f-9a6d-bcae3ea4131a"
+			}
+		},
+		"owner": "toxic87",
+		"runtimeVersion": {
+			"policy": "appVersion"
+		},
+		"updates": {
+			"url": "https://u.expo.dev/548c8736-a95c-482f-9a6d-bcae3ea4131a"
+		}
+	}
+}
