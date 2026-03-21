@@ -24,6 +24,7 @@ import { estimateTax } from '@/utils/mtdTaxCalc';
 import {
   NewMtdTransaction,
   ExpenseCategory,
+  TaxRates,
   EXPENSE_CATEGORIES,
   QuarterAggregates,
 } from '@/types/mtd';
@@ -57,11 +58,13 @@ export async function addMtdTransaction(
 function quarterForDateValue(date: Date): 1 | 2 | 3 | 4 {
   const m = date.getMonth(); // 0-indexed
   const d = date.getDate();
-  // UK tax year: Q1 Apr-Jun, Q2 Jul-Sep, Q3 Oct-Dec, Q4 Jan-Mar
-  if (m === 3 && d >= 6 || m === 4 || m === 5) return 1;       // Apr 6 - Jul 5
-  if (m === 6 && d >= 6 || m === 7 || m === 8) return 2;       // Jul 6 - Oct 5
-  if (m === 9 && d >= 6 || m === 10 || m === 11) return 3;     // Oct 6 - Jan 5
-  return 4;                                                      // Jan 6 - Apr 5
+  // UK tax year: Q1 Apr 6 - Jul 5, Q2 Jul 6 - Oct 5, Q3 Oct 6 - Jan 5, Q4 Jan 6 - Apr 5
+  // Parentheses required — && binds tighter than ||, but explicit grouping prevents
+  // bugs if someone adds conditions without remembering precedence rules.
+  if ((m === 3 && d >= 6) || m === 4 || (m === 5 && d <= 5)) return 1;
+  if ((m === 6 && d >= 6) || m === 7 || (m === 8 && d <= 5)) return 2;
+  if ((m === 9 && d >= 6) || m === 10 || m === 11) return 3;
+  return 4; // Jan 6 - Apr 5
 }
 
 // ─── Get transactions ────────────────────────────────────────────────────────
@@ -299,7 +302,8 @@ export async function getQuarterlySummaries(
 
 export async function refreshAnnualSummary(
   taxYear: string,
-  userId: string
+  userId: string,
+  rates?: TaxRates
 ): Promise<void> {
   // Ensure all 4 quarters are refreshed first
   for (let q = 1; q <= 4; q++) {
@@ -321,7 +325,7 @@ export async function refreshAnnualSummary(
   }
 
   const startYear = parseInt(taxYear);
-  const estimate = estimateTax(totalTurnover, totalAllowableExpenses);
+  const estimate = estimateTax(totalTurnover, totalAllowableExpenses, rates);
 
   const existing = await db
     .select({ id: MtdAnnualSummary.id })
@@ -381,8 +385,8 @@ export async function getAnnualSummary(
 
 // ─── Refresh current year ────────────────────────────────────────────────────
 
-export async function refreshCurrentYear(userId: string): Promise<void> {
+export async function refreshCurrentYear(userId: string, rates?: TaxRates): Promise<void> {
   const year = taxYearForDate(new Date());
   const tyLabel = `${year}-${String(year + 1).slice(-2)}`;
-  await refreshAnnualSummary(tyLabel, userId);
+  await refreshAnnualSummary(tyLabel, userId, rates);
 }
