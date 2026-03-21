@@ -195,27 +195,6 @@ export default function Home() {
             <TouchableOpacity
               className="rounded-lg p-4 mb-3 flex-row items-center gap-4"
               style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-              onPress={() => router.push('/(stack)/(user)/userInfo')}
-            >
-              <View
-                className="rounded-xl p-3"
-                style={{ backgroundColor: isDark ? colors.primary : colors.text }}
-              >
-                <Ionicons name="person-outline" size={28} color={isDark ? colors.text : '#f1fcfa'} />
-              </View>
-              <View className="flex-1">
-                <Text className="text-base font-bold" style={{ color: colors.text }}>
-                  Your Information
-                </Text>
-                <Text className="text-xs" style={{ color: colors.noActive }}>
-                  Manage your personal details
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="rounded-lg p-4 mb-3 flex-row items-center gap-4"
-              style={{ backgroundColor: isDark ? colors.nav : colors.card }}
               onPress={() => router.push('/(stack)/clientInfo')}
             >
               <View
@@ -230,27 +209,6 @@ export default function Home() {
                 </Text>
                 <Text className="text-xs" style={{ color: colors.noActive }}>
                   Manage client details
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="rounded-lg p-4 mb-3 flex-row items-center gap-4"
-              style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-              onPress={() => router.push('/(drawer)/settings')}
-            >
-              <View
-                className="rounded-xl p-3"
-                style={{ backgroundColor: isDark ? colors.primary : colors.text }}
-              >
-                <Ionicons name="settings-outline" size={28} color={isDark ? colors.text : '#f1fcfa'} />
-              </View>
-              <View className="flex-1">
-                <Text className="text-base font-bold" style={{ color: colors.text }}>
-                  Settings
-                </Text>
-                <Text className="text-xs" style={{ color: colors.noActive }}>
-                  App preferences and financial year
                 </Text>
               </View>
             </TouchableOpacity>
