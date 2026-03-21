@@ -34,10 +34,12 @@ import {
   EXPENSE_ONLY_CATEGORIES,
   isAllowable,
 } from '@/utils/mtdCategories';
-import { quarterForDate, toISO } from '@/utils/mtdDates';
+import { toISO, fromISO, quarterForDate } from '@/utils/mtdDates';
 import { ExpenseCategory } from '@/types/mtd';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import DatePicker from '@/components/DatePicker';
+import { useCameraScanner } from '@/hooks/useCameraScanner';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AddMtdTransactionScreen() {
   const { colors, isDark } = useTheme();
@@ -45,6 +47,7 @@ export default function AddMtdTransactionScreen() {
   const { settings } = useAppSettings();
   const userId = settings?.userId ?? '';
   const { addTransaction, isLoading } = useMtdTransaction(userId);
+  const { scannedData, handleScan, isLoading: isScanning } = useCameraScanner();
 
   const {
     control,
@@ -185,15 +188,10 @@ export default function AddMtdTransactionScreen() {
             name="date"
             render={({ field: { value, onChange } }) => (
               <View>
-                <DateTimePicker
+                <DatePicker
+                  name=""
                   value={value ? new Date(value) : new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(_, selectedDate) => {
-                    if (selectedDate) {
-                      onChange(toISO(selectedDate));
-                    }
-                  }}
+                  onChange={(date) => onChange(toISO(date))}
                 />
                 {errors.date && (
                   <Text className="text-xs mt-1" style={{ color: '#ee1c1c' }}>
@@ -389,6 +387,30 @@ export default function AddMtdTransactionScreen() {
             )}
           />
         </View>
+
+        {/* Scan receipt button */}
+        <TouchableOpacity
+          className="p-4 rounded-lg flex-row items-center justify-center gap-2"
+          style={{
+            backgroundColor: isDark ? colors.nav : colors.card,
+            borderWidth: 1,
+            borderColor: isDark ? '#4f46e5' : '#4338ca',
+          }}
+          onPress={() => handleScan()}
+          disabled={isScanning}
+        >
+          <Ionicons
+            name={isScanning ? 'hourglass-outline' : 'scan-outline'}
+            size={20}
+            color={isDark ? '#a5b4fc' : '#4f46e5'}
+          />
+          <Text
+            className="font-bold text-sm"
+            style={{ color: isDark ? '#a5b4fc' : '#4f46e5' }}
+          >
+            {isScanning ? 'Scanning...' : scannedData ? 'Receipt scanned' : 'Scan Receipt'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Submit */}
         <TouchableOpacity
