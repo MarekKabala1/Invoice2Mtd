@@ -1,26 +1,32 @@
 /**
  * mtdQuarterlySummary.tsx
  *
- * Per-quarter summary screen. Horizontal Q1–Q4 tabs show income, allowable
+ * Per-quarter summary screen. Horizontal Q1-Q4 tabs show income, allowable
  * expenses (per HMRC category), disallowable expenses, net profit, and a
- * quarterly tax estimate. Uses useMtdData hook.
+ * quarterly tax estimate. Shows individual MTD transactions with delete.
  *
- * Depends on: hooks/useMtdData.ts, utils/mtdCategories.ts, utils/mtdTaxCalc.ts
+ * Depends on: hooks/useMtdData.ts, hooks/useMtdTransaction.ts,
+ *             utils/mtdCategories.ts, utils/mtdTaxCalc.ts, db/mtdOperations.ts
  * Used by: app/(drawer)/(tabs)/tax.tsx (nav tile)
  */
 
-import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
+import { useMtdTransaction } from '@/hooks/useMtdTransaction';
 import { EXPENSE_CATEGORY_LABELS, isAllowable } from '@/utils/mtdCategories';
 import { currentTaxYearStart, taxYearLabel } from '@/utils/mtdDates';
 import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { ExpenseCategory, EXPENSE_CATEGORIES } from '@/types/mtd';
+import { getMtdTransactions } from '@/db/mtdOperations';
 import { Ionicons } from '@expo/vector-icons';
+import { db } from '@/db/config';
+import { Transactions } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [
   { num: 1, label: 'Q1' },
@@ -40,12 +46,62 @@ export default function MtdQuarterlySummaryScreen() {
   const tyLabel = taxYearLabel(startYear);
 
   const [selectedQuarter, setSelectedQuarter] = useState<1 | 2 | 3 | 4>(1);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [txLoading, setTxLoading] = useState(false);
 
   const { aggregates, isLoading, error, refresh } = useMtdData({
     taxYear: tyLabel,
     quarter: selectedQuarter,
     userId,
   });
+  const { deleteTransaction } = useMtdTransaction(userId);
+
+  // Fetch individual MTD transactions for the selected quarter
+  const fetchTransactions = useCallback(async () => {
+    setTxLoading(true);
+    try {
+      const txns = await getMtdTransactions(tyLabel, selectedQuarter);
+      setTransactions(txns);
+    } catch (err) {
+      console.error('Failed to fetch MTD transactions:', err);
+    } finally {
+      setTxLoading(false);
+    }
+  }, [tyLabel, selectedQuarter]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions();
+    }, [fetchTransactions])
+  );
+
+  // Delete MTD transaction and its linked budget entry
+  const handleDelete = (tx: any) => {
+    Alert.alert(
+      'Delete Record',
+      `Delete "${tx.description}" (${formatGBP(tx.amount)})?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteTransaction(tx.id);
+              // Also delete linked budget transaction if one exists
+              if (tx.transactionId) {
+                await db.delete(Transactions).where(eq(Transactions.id, tx.transactionId));
+              }
+              fetchTransactions();
+              refresh();
+            } catch (err) {
+              Alert.alert('Error', 'Failed to delete record');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // Build expense rows from aggregates
   const expenseRows = useMemo(() => {
@@ -321,6 +377,52 @@ export default function MtdQuarterlySummaryScreen() {
           >
             <Text className="text-white font-bold">Add Record to Q{selectedQuarter}</Text>
           </TouchableOpacity>
+
+          {/* Transaction list */}
+          {transactions.length > 0 && (
+            <View className="mt-4">
+              <Text
+                className="text-xs font-bold uppercase tracking-widest mb-3"
+                style={{ color: colors.noActive }}
+              >
+                Records ({transactions.length})
+              </Text>
+              {txLoading ? (
+                <ActivityIndicator size="small" color={colors.text} />
+              ) : (
+                transactions.map((tx) => (
+                  <View
+                    key={tx.id}
+                    className="flex-row items-center justify-between p-3 rounded-lg mb-2 border-l-4"
+                    style={{
+                      backgroundColor: isDark ? colors.nav : colors.card,
+                      borderLeftColor: tx.type === 'income' ? '#39AD6A' : '#ee1c1c',
+                    }}
+                  >
+                    <View className="flex-1 mr-3">
+                      <Text className="text-sm font-bold" style={{ color: colors.text }}>
+                        {tx.description}
+                      </Text>
+                      <Text className="text-xs" style={{ color: colors.noActive }}>
+                        {tx.date} · {EXPENSE_CATEGORY_LABELS[tx.category as ExpenseCategory] ?? tx.category}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-3">
+                      <Text
+                        className="text-sm font-bold tabular-nums"
+                        style={{ color: tx.type === 'income' ? '#39AD6A' : '#ee1c1c' }}
+                      >
+                        {tx.type === 'income' ? '+' : '-'}{formatGBP(tx.amount)}
+                      </Text>
+                      <TouchableOpacity onPress={() => handleDelete(tx)}>
+                        <Ionicons name="trash-outline" size={18} color="#ee1c1c" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
         </>
       )}
     </ScrollView>
