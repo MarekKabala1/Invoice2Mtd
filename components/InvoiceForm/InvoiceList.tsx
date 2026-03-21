@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, SectionList, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -197,8 +197,14 @@ export default function InvoiceList() {
 		return sections;
 	}, [memoizedInvoices, settings]);
 
+	const hasInitialized = useRef(false);
+
 	useEffect(() => {
-		if (sectionedInvoices.length > 0) {
+		// Only collapse sections on first load — not on every data change.
+		// Without this guard, any action (mark paid, delete, etc.) causes
+		// all quarter sections to fold back up automatically.
+		if (sectionedInvoices.length > 0 && !hasInitialized.current) {
+			hasInitialized.current = true;
 			const allSectionKeys = new Set(sectionedInvoices.map((section) => section.key));
 			setCollapsedSections(allSectionKeys);
 		}
@@ -324,14 +330,14 @@ export default function InvoiceList() {
 			<View className='flex-row justify-between p-4'>
 				<ThemeToggle size={24} />
 				{activeTab === 'invoices' ? (
-					<TouchableOpacity onPress={() => router.push('/createInvoice')} className='flex-row gap-1 items-center'>
+					<TouchableOpacity onPress={() => router.push('/(stack)/createInvoice')} className='flex-row gap-1 items-center'>
 						<View>
 							<Ionicons name='add-circle-outline' size={24} color={colors.text} />
 						</View>
 						<Text className='text-light-text dark:text-dark-text text-xs font-bold'>Create Invoice</Text>
 					</TouchableOpacity>
 				) : (
-					<TouchableOpacity onPress={() => router.push('/createEstimate')} className='flex-row gap-1 items-center'>
+					<TouchableOpacity onPress={() => router.push('/(stack)/createEstimate')} className='flex-row gap-1 items-center'>
 						<View>
 							<Ionicons name='add-circle-outline' size={24} color={colors.text} />
 						</View>
@@ -402,7 +408,7 @@ export default function InvoiceList() {
 			<View className='flex-1 bg-light-primary dark:bg-dark-primary'>
 				<View className='flex-row justify-between p-4'>
 					<ThemeToggle size={24} />
-					<TouchableOpacity onPress={() => router.push('/createEstimate')} className='flex-row gap-1 items-center'>
+					<TouchableOpacity onPress={() => router.push('/(stack)/createEstimate')} className='flex-row gap-1 items-center'>
 						<View>
 							<Ionicons name='add-circle-outline' size={24} color={colors.text} />
 						</View>
