@@ -157,6 +157,9 @@ export const appSettings = sqliteTable('app_settings', {
 	logoUrl: text('logo_url'),
 	applyTaxByDefault: integer('apply_tax_by_default', { mode: 'boolean' }).default(true),
 	defaultNotes: text('default_notes'),
+	// HMRC tax rates stored as JSON string — allows user to update when rates change each April
+	// Parsed via JSON.parse() into TaxRates type from types/mtd.ts
+	taxRatesJson: text('tax_rates_json'),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });

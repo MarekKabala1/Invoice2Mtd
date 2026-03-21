@@ -1,0 +1,1 @@
+ALTER TABLE `app_settings` ADD `tax_rates_json` text;

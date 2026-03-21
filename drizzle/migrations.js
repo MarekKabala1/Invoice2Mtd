@@ -8,6 +8,7 @@ import m0003 from './0003_daffy_bromley.sql';
 import m0004 from './0004_oval_human_fly.sql';
 import m0005 from './0005_wandering_supernaut.sql';
 import m0006 from './0006_slow_the_professor.sql';
+import m0007 from './0007_mean_mister_fear.sql';
 
   export default {
     journal,
@@ -18,7 +19,8 @@ m0002,
 m0003,
 m0004,
 m0005,
-m0006
+m0006,
+m0007
     }
   }
   

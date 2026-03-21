@@ -167,6 +167,7 @@ export const appSettingsSchema = z.object({
 	logoUrl: z.string().optional(),
 	applyTaxByDefault: z.boolean().default(true),
 	defaultNotes: z.string().optional(),
+	taxRatesJson: z.string().optional(),
 	createdAt: z.string().optional(),
 	updatedAt: z.string().optional(),
 });
