@@ -5,15 +5,14 @@
  * navigation items (Home, Settings, Info, Charts), theme toggle,
  * and app version.
  *
- * Depends on: context/ThemeContext, utils/theme, expo-constants
+ * Depends on: context/ThemeContext, utils/theme, expo-constants,
+ *             @react-navigation/drawer
  * Used by: app/(drawer)/_layout.tsx (drawerContent prop)
- *
- * Note: @react-navigation/drawer is not installed. We use expo-router's
- * usePathname and router.push for navigation instead.
  */
 
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { usePathname, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -33,7 +32,7 @@ const DRAWER_ITEMS: DrawerItem[] = [
   { label: 'Charts & Analytics', route: '/(drawer)/charts', icon: 'bar-chart-outline' },
 ];
 
-export default function DrawerContent() {
+export default function DrawerContent(props: DrawerContentComponentProps) {
   const { colors, isDark } = useTheme();
   const pathname = usePathname();
   const version = Constants.expoConfig?.version ?? '1.0.0';
@@ -78,6 +77,7 @@ export default function DrawerContent() {
                     : 'transparent',
                 }}
                 onPress={() => {
+                  props.navigation.closeDrawer();
                   router.push(item.route as any);
                 }}
               >

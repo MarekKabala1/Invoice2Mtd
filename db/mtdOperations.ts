@@ -1,0 +1,388 @@
+/**
+ * mtdOperations.ts
+ *
+ * All database operations for the three MTD tables: MtdTransactions,
+ * MtdQuarterlySummary, MtdAnnualSummary.
+ *
+ * IMPORTANT: aggregateQuarter() pulls from THREE sources — MtdTransactions
+ * (manual records), Invoice (paid invoices as turnover), and Transactions
+ * (budget expenses mapped to HMRC categories). Do not remove any source
+ * without updating the QuarterAggregates sources breakdown field.
+ *
+ * Depends on: db/config.ts (db instance), db/schema.ts (all tables),
+ *             utils/mtdDates.ts, utils/mtdTaxCalc.ts, utils/mtdCategories.ts,
+ *             utils/generateUuid.ts
+ */
+
+import { eq, and, gte, lte, sql as sqlFn } from 'drizzle-orm';
+import { db } from './config';
+import { MtdTransactions, MtdQuarterlySummary, MtdAnnualSummary, Invoice, Transactions, Categories } from './schema';
+import { generateId } from '@/utils/generateUuid';
+import { quartersForTaxYear, taxYearForDate, toISO } from '@/utils/mtdDates';
+import { mapCategoryToHmrc } from '@/utils/mtdCategories';
+import { estimateTax } from '@/utils/mtdTaxCalc';
+import {
+  NewMtdTransaction,
+  ExpenseCategory,
+  EXPENSE_CATEGORIES,
+  QuarterAggregates,
+} from '@/types/mtd';
+
+// ─── Add manual MTD transaction ──────────────────────────────────────────────
+
+export async function addMtdTransaction(
+  tx: NewMtdTransaction,
+  userId: string
+): Promise<void> {
+  const date = new Date(tx.date);
+  const ty = taxYearForDate(date);
+  const tyLabel = `${ty}-${String(ty + 1).slice(-2)}`;
+  const quarter = quarterForDateValue(date);
+
+  await db.insert(MtdTransactions).values({
+    id: await generateId(),
+    userId,
+    date: tx.date,
+    description: tx.description,
+    amount: tx.amount,
+    type: tx.type,
+    category: tx.category,
+    taxYear: tyLabel,
+    quarter,
+    receiptRef: tx.receiptRef,
+    notes: tx.notes,
+  });
+}
+
+function quarterForDateValue(date: Date): 1 | 2 | 3 | 4 {
+  const m = date.getMonth(); // 0-indexed
+  const d = date.getDate();
+  // UK tax year: Q1 Apr-Jun, Q2 Jul-Sep, Q3 Oct-Dec, Q4 Jan-Mar
+  if (m === 3 && d >= 6 || m === 4 || m === 5) return 1;       // Apr 6 - Jul 5
+  if (m === 6 && d >= 6 || m === 7 || m === 8) return 2;       // Jul 6 - Oct 5
+  if (m === 9 && d >= 6 || m === 10 || m === 11) return 3;     // Oct 6 - Jan 5
+  return 4;                                                      // Jan 6 - Apr 5
+}
+
+// ─── Get transactions ────────────────────────────────────────────────────────
+
+export async function getMtdTransactions(
+  taxYear: string,
+  quarter?: number
+): Promise<(typeof MtdTransactions.$inferSelect)[]> {
+  if (quarter) {
+    return await db
+      .select()
+      .from(MtdTransactions)
+      .where(
+        and(
+          eq(MtdTransactions.taxYear, taxYear),
+          eq(MtdTransactions.quarter, quarter)
+        )
+      );
+  }
+  return await db
+    .select()
+    .from(MtdTransactions)
+    .where(eq(MtdTransactions.taxYear, taxYear));
+}
+
+// ─── Delete transaction ──────────────────────────────────────────────────────
+
+export async function deleteMtdTransaction(id: string): Promise<void> {
+  await db.delete(MtdTransactions).where(eq(MtdTransactions.id, id));
+}
+
+// ─── Aggregate quarter (THREE sources) ───────────────────────────────────────
+
+function emptyAggregates(): QuarterAggregates {
+  const zero: Record<ExpenseCategory, number> = {} as Record<ExpenseCategory, number>;
+  for (const cat of EXPENSE_CATEGORIES) zero[cat] = 0;
+  return {
+    totalTurnover: 0,
+    costOfGoodsAllowable: 0,
+    employeeCosts: 0,
+    premisesRunningCosts: 0,
+    maintenanceCosts: 0,
+    advertisingCosts: 0,
+    businessEntertainmentCosts: 0,
+    interestOnBankLoans: 0,
+    professionalFees: 0,
+    depreciation: 0,
+    otherAllowableExpenses: 0,
+    otherDisallowableExpenses: 0,
+    totalAllowableExpenses: 0,
+    netProfit: 0,
+    sources: {
+      invoiceTurnover: 0,
+      budgetExpenses: { ...zero },
+      manualTurnover: 0,
+      manualExpenses: { ...zero },
+    },
+  };
+}
+
+export async function aggregateQuarter(
+  taxYear: string,
+  quarter: 1 | 2 | 3 | 4,
+  userId: string
+): Promise<QuarterAggregates> {
+  const quarters = quartersForTaxYear(parseInt(taxYear));
+  const q = quarters.find((q) => q.quarter === quarter);
+  if (!q) return emptyAggregates();
+
+  const agg = emptyAggregates();
+
+  // Source 1: Manual MTD transactions
+  const manualTxns = await db
+    .select()
+    .from(MtdTransactions)
+    .where(
+      and(
+        eq(MtdTransactions.userId, userId),
+        eq(MtdTransactions.taxYear, taxYear),
+        eq(MtdTransactions.quarter, quarter)
+      )
+    );
+
+  for (const tx of manualTxns) {
+    const cat = tx.category as ExpenseCategory;
+    if (tx.type === 'income') {
+      agg.sources.manualTurnover += tx.amount;
+      agg.totalTurnover += tx.amount;
+    } else {
+      agg.sources.manualExpenses[cat] = (agg.sources.manualExpenses[cat] || 0) + tx.amount;
+      (agg as any)[cat] = ((agg as any)[cat] || 0) + tx.amount;
+    }
+  }
+
+  // Source 2: Paid invoices → turnover
+  const paidInvoices = await db
+    .select()
+    .from(Invoice)
+    .where(
+      and(
+        eq(Invoice.userId, userId),
+        eq(Invoice.isPayed, true),
+        gte(Invoice.invoiceDate, q.periodStart),
+        lte(Invoice.invoiceDate, q.periodEnd)
+      )
+    );
+
+  for (const inv of paidInvoices) {
+    const amount = inv.amountAfterTax || 0;
+    agg.sources.invoiceTurnover += amount;
+    agg.totalTurnover += amount;
+  }
+
+  // Source 3: Budget transactions → expenses (mapped to HMRC categories)
+  const budgetTxns = await db
+    .select({
+      amount: Transactions.amount,
+      categoryId: Transactions.categoryId,
+      categoryName: Categories.name,
+    })
+    .from(Transactions)
+    .leftJoin(Categories, eq(Transactions.categoryId, Categories.id))
+    .where(
+      and(
+        eq(Transactions.userId, userId),
+        eq(Transactions.type, 'EXPENSE'),
+        gte(Transactions.date, q.periodStart),
+        lte(Transactions.date, q.periodEnd)
+      )
+    );
+
+  for (const bt of budgetTxns) {
+    const hmrcCat = mapCategoryToHmrc(bt.categoryId || '');
+    const amt = bt.amount || 0;
+    agg.sources.budgetExpenses[hmrcCat] = (agg.sources.budgetExpenses[hmrcCat] || 0) + amt;
+    (agg as any)[hmrcCat] = ((agg as any)[hmrcCat] || 0) + amt;
+  }
+
+  // Compute totals
+  agg.totalAllowableExpenses =
+    agg.costOfGoodsAllowable +
+    agg.employeeCosts +
+    agg.premisesRunningCosts +
+    agg.maintenanceCosts +
+    agg.advertisingCosts +
+    agg.interestOnBankLoans +
+    agg.professionalFees +
+    agg.depreciation +
+    agg.otherAllowableExpenses;
+
+  agg.netProfit = agg.totalTurnover - agg.totalAllowableExpenses;
+
+  return agg;
+}
+
+// ─── Refresh quarterly summary ───────────────────────────────────────────────
+
+export async function refreshQuarterlySummary(
+  taxYear: string,
+  quarter: 1 | 2 | 3 | 4,
+  userId: string
+): Promise<void> {
+  const agg = await aggregateQuarter(taxYear, quarter, userId);
+  const quarters = quartersForTaxYear(parseInt(taxYear));
+  const q = quarters.find((q) => q.quarter === quarter);
+  if (!q) return;
+
+  const existing = await db
+    .select({ id: MtdQuarterlySummary.id })
+    .from(MtdQuarterlySummary)
+    .where(
+      and(
+        eq(MtdQuarterlySummary.userId, userId),
+        eq(MtdQuarterlySummary.taxYear, taxYear),
+        eq(MtdQuarterlySummary.quarter, quarter)
+      )
+    );
+
+  const values = {
+    taxYear,
+    quarter,
+    periodStart: q.periodStart,
+    periodEnd: q.periodEnd,
+    submissionDeadline: q.submissionDeadline,
+    totalTurnover: agg.totalTurnover,
+    costOfGoodsAllowable: agg.costOfGoodsAllowable,
+    employeeCosts: agg.employeeCosts,
+    premisesRunningCosts: agg.premisesRunningCosts,
+    maintenanceCosts: agg.maintenanceCosts,
+    advertisingCosts: agg.advertisingCosts,
+    interestOnBankLoans: agg.interestOnBankLoans,
+    professionalFees: agg.professionalFees,
+    depreciation: agg.depreciation,
+    otherAllowableExpenses: agg.otherAllowableExpenses,
+    businessEntertainmentCosts: agg.businessEntertainmentCosts,
+    otherDisallowableExpenses: agg.otherDisallowableExpenses,
+    totalAllowableExpenses: agg.totalAllowableExpenses,
+    netProfit: agg.netProfit,
+    status: agg.totalTurnover > 0 || agg.totalAllowableExpenses > 0 ? 'in_progress' : 'not_started',
+    lastCalculatedAt: toISO(new Date()),
+  };
+
+  if (existing.length > 0) {
+    await db
+      .update(MtdQuarterlySummary)
+      .set(values)
+      .where(eq(MtdQuarterlySummary.id, existing[0].id));
+  } else {
+    await db.insert(MtdQuarterlySummary).values({
+      id: await generateId(),
+      userId,
+      ...values,
+    });
+  }
+}
+
+// ─── Get quarterly summaries ─────────────────────────────────────────────────
+
+export async function getQuarterlySummaries(
+  taxYear: string,
+  userId: string
+): Promise<(typeof MtdQuarterlySummary.$inferSelect)[]> {
+  return await db
+    .select()
+    .from(MtdQuarterlySummary)
+    .where(
+      and(
+        eq(MtdQuarterlySummary.userId, userId),
+        eq(MtdQuarterlySummary.taxYear, taxYear)
+      )
+    );
+}
+
+// ─── Refresh annual summary ──────────────────────────────────────────────────
+
+export async function refreshAnnualSummary(
+  taxYear: string,
+  userId: string
+): Promise<void> {
+  // Ensure all 4 quarters are refreshed first
+  for (let q = 1; q <= 4; q++) {
+    await refreshQuarterlySummary(taxYear, q as 1 | 2 | 3 | 4, userId);
+  }
+
+  const summaries = await getQuarterlySummaries(taxYear, userId);
+
+  let totalTurnover = 0;
+  let totalAllowableExpenses = 0;
+  let netProfit = 0;
+  let quartersWithData = 0;
+
+  for (const s of summaries) {
+    totalTurnover += s.totalTurnover;
+    totalAllowableExpenses += s.totalAllowableExpenses;
+    netProfit += s.netProfit;
+    if (s.totalTurnover > 0 || s.totalAllowableExpenses > 0) quartersWithData++;
+  }
+
+  const startYear = parseInt(taxYear);
+  const estimate = estimateTax(totalTurnover, totalAllowableExpenses);
+
+  const existing = await db
+    .select({ id: MtdAnnualSummary.id })
+    .from(MtdAnnualSummary)
+    .where(
+      and(
+        eq(MtdAnnualSummary.userId, userId),
+        eq(MtdAnnualSummary.taxYear, taxYear)
+      )
+    );
+
+  const values = {
+    taxYear,
+    finalDeclarationDeadline: `${startYear + 2}-01-31`,
+    totalTurnover,
+    totalAllowableExpenses,
+    netProfit,
+    estimatedTaxableProfit: estimate.taxableProfit,
+    estimatedIncomeTax: estimate.totalIncomeTax,
+    estimatedNI: estimate.totalNI,
+    estimatedTotalTax: estimate.totalTaxAndNI,
+    personalAllowanceUsed: estimate.personalAllowanceUsed,
+    status: quartersWithData === 4 ? 'ready' : 'in_progress',
+  };
+
+  if (existing.length > 0) {
+    await db
+      .update(MtdAnnualSummary)
+      .set(values)
+      .where(eq(MtdAnnualSummary.id, existing[0].id));
+  } else {
+    await db.insert(MtdAnnualSummary).values({
+      id: await generateId(),
+      userId,
+      ...values,
+    });
+  }
+}
+
+// ─── Get annual summary ──────────────────────────────────────────────────────
+
+export async function getAnnualSummary(
+  taxYear: string,
+  userId: string
+): Promise<typeof MtdAnnualSummary.$inferSelect | null> {
+  const rows = await db
+    .select()
+    .from(MtdAnnualSummary)
+    .where(
+      and(
+        eq(MtdAnnualSummary.userId, userId),
+        eq(MtdAnnualSummary.taxYear, taxYear)
+      )
+    );
+  return rows.length > 0 ? rows[0] : null;
+}
+
+// ─── Refresh current year ────────────────────────────────────────────────────
+
+export async function refreshCurrentYear(userId: string): Promise<void> {
+  const year = taxYearForDate(new Date());
+  const tyLabel = `${year}-${String(year + 1).slice(-2)}`;
+  await refreshAnnualSummary(tyLabel, userId);
+}

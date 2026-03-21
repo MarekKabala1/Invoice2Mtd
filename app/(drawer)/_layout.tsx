@@ -15,7 +15,7 @@ import DrawerContent from '@/components/DrawerContent';
 export default function DrawerLayout() {
   return (
     <Drawer
-      drawerContent={() => <DrawerContent />}
+      drawerContent={(props) => <DrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
       }}
