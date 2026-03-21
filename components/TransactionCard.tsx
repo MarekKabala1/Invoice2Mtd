@@ -16,53 +16,52 @@ const TransactionCard = ({
 	onDelete: (id: string) => void;
 	onUpdate: (transaction: any) => void;
 }) => {
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
+	const isIncome = transaction.type === 'INCOME';
+	const accentColor = isIncome ? '#39AD6A' : '#ee1c1c';
+
 	return (
-		<>
-			<TouchableOpacity
-				onLongPress={() => onDelete(transaction.id)}
-				className='flex-row justify-between items-center p-4 border-b border-light-text dark:border-dark-text mx-2'>
-				<View className='flex-row items-center'>
-					<Text className='mr-2 text-xl'>
-						{getCategoryEmoji(transaction.categoryId)}
-					</Text>
-					<View>
-						<Text className='font-bold text-light-text dark:text-dark-text'>
-							{getCategoryById(transaction.categoryId)?.name ||
-								transaction.description}
+		<View className='mb-2'>
+			<BaseCard accentColor={accentColor}>
+				<TouchableOpacity
+					onLongPress={() => onDelete(transaction.id)}
+					className='flex-row justify-between items-center p-2'
+				>
+					<View className='flex-row items-center flex-1 mr-3'>
+						<Text className='mr-2 text-lg'>
+							{getCategoryEmoji(transaction.categoryId)}
 						</Text>
-						<Text className='text-xs text-light-text/50 dark:text-dark-text/50'>
-							{format(new Date(transaction.date), 'dd MMM yyyy')}
-						</Text>
+						<View className='flex-1'>
+							<Text className='font-bold text-sm' style={{ color: colors.text }}>
+								{getCategoryById(transaction.categoryId)?.name || transaction.description}
+							</Text>
+							<Text className='text-xs' style={{ color: colors.noActive }}>
+								{format(new Date(transaction.date), 'dd/MM/yyyy')}
+							</Text>
+						</View>
 					</View>
-				</View>
-				<View className='flex-row items-center gap-2'>
-					<View className='justify-center items-end'>
-						<Text
-							className={`${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'} font-semibold`}>
-							{transaction.type === 'INCOME' ? '+' : '-'}
-							{getCurrencySymbol(transaction.currency)}
-							{transaction.amount.toFixed(2)}
-						</Text>
-						<Text className='text-light-text/50 dark:text-dark-text/50 text-xs'>
-							{transaction.description}
-						</Text>
+					<View className='flex-row items-center gap-2'>
+						<View className='items-end'>
+							<Text className='font-bold text-sm tabular-nums' style={{ color: accentColor }}>
+								{isIncome ? '+' : '-'}{getCurrencySymbol(transaction.currency)}{transaction.amount.toFixed(2)}
+							</Text>
+							{transaction.description && transaction.description !== getCategoryById(transaction.categoryId)?.name && (
+								<Text className='text-xs' style={{ color: colors.noActive }}>
+									{transaction.description}
+								</Text>
+							)}
+						</View>
+						<TouchableOpacity
+							onPress={() => onUpdate(transaction)}
+							className='p-2 rounded-lg'
+							style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+						>
+							<MaterialCommunityIcons name='pencil' size={16} color={colors.noActive} />
+						</TouchableOpacity>
 					</View>
-					<TouchableOpacity
-						onPress={() => onUpdate(transaction)}
-						className='border border-light-text dark:border-dark-text rounded-md p-1'>
-						<MaterialCommunityIcons
-							name='update'
-							size={16}
-							color={colors.text}
-						/>
-					</TouchableOpacity>
-				</View>
-			</TouchableOpacity>
-			<Text className='text-xs text-light-text/50 dark:text-dark-text/50 text-center'>
-				*Press and hold to delete Transaction
-			</Text>
-		</>
+				</TouchableOpacity>
+			</BaseCard>
+		</View>
 	);
 };
 

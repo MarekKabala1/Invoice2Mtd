@@ -41,7 +41,7 @@ interface BudgetDataType {
 }
 
 const TransactionList = ({ budget }: { budget: BudgetDataType }) => {
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 
 	const handleUpdateTransaction = (transaction: TransactionType) => {
 		router.push({
@@ -86,86 +86,96 @@ const TransactionList = ({ budget }: { budget: BudgetDataType }) => {
 
 	return (
 		<View style={{ flex: 1 }} {...panResponder.panHandlers}>
-			<View className='flex-row justify-between items-center mb-2'>
+			<View className='flex-row justify-between items-center mb-2 px-1'>
 				<TouchableOpacity
 					onPress={budget.openSearch}
-					className='flex-row gap-1 items-center'>
-					<Ionicons name='search' size={24} color={colors.text} />
-					<Text className='text-light-text dark:text-dark-text text-xs font-bold'>
+					className='flex-row gap-1 items-center py-2 px-3 rounded-lg'
+					style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+				>
+					<Ionicons name='search' size={20} color={colors.text} />
+					<Text className='text-xs font-bold' style={{ color: colors.text }}>
 						Search
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
-					onPress={() => router.push('/addTransaction')}
-					className='flex-row gap-1 items-center'>
-					<Ionicons name='add-circle-outline' size={24} color={colors.text} />
-					<Text className='text-light-text dark:text-dark-text text-xs font-bold'>
+					onPress={() => router.push('/(stack)/addTransaction')}
+					className='flex-row gap-1 items-center py-2 px-3 rounded-lg'
+					style={{
+						backgroundColor: isDark ? '#4f46e5' : '#4338ca',
+						shadowColor: '#4f46e5',
+						shadowOffset: { width: 0, height: 2 },
+						shadowOpacity: 0.3,
+						shadowRadius: 4,
+						elevation: 4,
+					}}
+				>
+					<Ionicons name='add-circle-outline' size={20} color='white' />
+					<Text className='text-xs font-bold text-white'>
 						Add Budget
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					onPress={budget.handleToday}
-					className='flex-row gap-1 items-center'>
-					<MaterialCommunityIcons
-						name='calendar-today'
-						size={24}
-						color={colors.text}
-					/>
-					<Text className='text-light-text dark:text-dark-text text-xs font-bold'>
+					className='flex-row gap-1 items-center py-2 px-3 rounded-lg'
+					style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+				>
+					<MaterialCommunityIcons name='calendar-today' size={20} color={colors.text} />
+					<Text className='text-xs font-bold' style={{ color: colors.text }}>
 						Today
 					</Text>
 				</TouchableOpacity>
 			</View>
 
 			{budget.openSearchInput && (
-				<View className='gap-2'>
+				<View className='gap-2 mb-2'>
 					<View className='flex-row items-center gap-2'>
-						<BaseCard className='flex-row items-center gap-2'>
-							{budget.filterByTransactionType === 'INCOME' ? (
-								<TouchableOpacity
-									className='flex-row items-center gap-2'
-									onPress={() => budget.handleFilterChange('')}>
-									<Text className='text-light-text dark:text-dark-text font-bold text-xs'>
-										Income
-									</Text>
-									<Ionicons name='close-sharp' size={16} color={colors.text} />
-								</TouchableOpacity>
-							) : (
-								<TouchableOpacity
-									onPress={() => budget.handleFilterChange('INCOME')}>
-									<Text className='text-light-text dark:text-dark-text font-bold text-xs'>
-										Income
-									</Text>
-								</TouchableOpacity>
+						<TouchableOpacity
+							className='flex-row items-center gap-1 px-3 py-2 rounded-lg'
+							style={{
+								backgroundColor: budget.filterByTransactionType === 'INCOME'
+									? '#39AD6A'
+									: isDark ? colors.nav : colors.card,
+							}}
+							onPress={() => budget.handleFilterChange(budget.filterByTransactionType === 'INCOME' ? '' : 'INCOME')}
+						>
+							<Text
+								className='font-bold text-xs'
+								style={{ color: budget.filterByTransactionType === 'INCOME' ? 'white' : colors.text }}
+							>
+								Income
+							</Text>
+							{budget.filterByTransactionType === 'INCOME' && (
+								<Ionicons name='close-sharp' size={14} color='white' />
 							)}
-						</BaseCard>
-						<BaseCard className='flex-row items-center gap-2'>
-							{budget.filterByTransactionType === 'EXPENSE' ? (
-								<TouchableOpacity
-									className='flex-row items-center gap-2'
-									onPress={() => budget.handleFilterChange('')}>
-									<Text className='text-light-text dark:text-dark-text font-bold text-xs'>
-										Expenses
-									</Text>
-									<Ionicons name='close-sharp' size={16} color={colors.text} />
-								</TouchableOpacity>
-							) : (
-								<TouchableOpacity
-									onPress={() => budget.handleFilterChange('EXPENSE')}>
-									<Text className='text-light-text dark:text-dark-text font-bold text-xs'>
-										Expenses
-									</Text>
-								</TouchableOpacity>
+						</TouchableOpacity>
+						<TouchableOpacity
+							className='flex-row items-center gap-1 px-3 py-2 rounded-lg'
+							style={{
+								backgroundColor: budget.filterByTransactionType === 'EXPENSE'
+									? '#ee1c1c'
+									: isDark ? colors.nav : colors.card,
+							}}
+							onPress={() => budget.handleFilterChange(budget.filterByTransactionType === 'EXPENSE' ? '' : 'EXPENSE')}
+						>
+							<Text
+								className='font-bold text-xs'
+								style={{ color: budget.filterByTransactionType === 'EXPENSE' ? 'white' : colors.text }}
+							>
+								Expenses
+							</Text>
+							{budget.filterByTransactionType === 'EXPENSE' && (
+								<Ionicons name='close-sharp' size={14} color='white' />
 							)}
-						</BaseCard>
+						</TouchableOpacity>
 					</View>
-					<View className='flex-row items-center gap-2 w-full bg-light-nav dark:bg-dark-nav p-2 rounded text-light-text dark:text-dark-text text-sm'>
+					<View className='flex-row items-center gap-2 w-full p-2 rounded' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
 						<TextInput
 							onChangeText={budget.filterTransaction}
 							value={budget.searchQuery}
-							className='w-[90%]'
-							placeholder='Search'
-							placeholderTextColor={colors.text}
+							className='flex-1'
+							style={{ color: colors.text }}
+							placeholder='Search transactions'
+							placeholderTextColor={colors.noActive}
 						/>
 						<TouchableOpacity onPress={() => budget.setOpenSearchInput(false)}>
 							<Ionicons name='close-sharp' size={20} color={colors.text} />
@@ -185,7 +195,7 @@ const TransactionList = ({ budget }: { budget: BudgetDataType }) => {
 					/>
 				)}
 				ListEmptyComponent={
-					<Text className='text-center text-light-text dark:text-dark-text mt-8'>
+					<Text className='text-center mt-8' style={{ color: colors.noActive }}>
 						No transactions found.
 					</Text>
 				}
