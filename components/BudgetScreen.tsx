@@ -11,13 +11,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 const BudgetScreen: React.FC = () => {
 	const insets = useSafeAreaInsets();
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	const budget = useBudgetData();
 
 	return (
 		<View
-			className='flex-1 bg-light-primary dark:bg-dark-primary'
-			style={{ paddingTop: insets.top }}>
+			className='flex-1'
+			style={{ backgroundColor: colors.primary, paddingTop: insets.top }}
+		>
 			<View className='flex-1 gap-2 p-2 mb-20'>
 				<View className='w-full items-end'>
 					<ThemeToggle size={30} />
@@ -29,7 +30,7 @@ const BudgetScreen: React.FC = () => {
 							className='p-2'>
 							<Ionicons name='chevron-back' size={24} color={colors.text} />
 						</TouchableOpacity>
-						<Text className='text-lg font-semibold text-light-text dark:text-dark-text'>
+						<Text className='text-lg font-semibold' style={{ color: colors.text }}>
 							{format(budget.currentDate, 'MMMM yyyy')}
 						</Text>
 						<TouchableOpacity onPress={budget.handleNextMonth} className='p-2'>
@@ -37,18 +38,18 @@ const BudgetScreen: React.FC = () => {
 						</TouchableOpacity>
 					</View>
 					<View className='flex-row justify-between items-center mb-2'>
-						<Text className='text-success font-semibold'>
+						<Text className='font-semibold' style={{ color: '#39AD6A' }}>
 							Income: £{budget.totalIncomeForTheMonth.toFixed(2)}
 						</Text>
-						<Text className='text-danger font-semibold'>
+						<Text className='font-semibold' style={{ color: '#ee1c1c' }}>
 							Expenses: £{budget.totalExpensesForTheMonth.toFixed(2)}
 						</Text>
 					</View>
 					<View className='flex-col justify-between items-start mb-2'>
-						<Text className='text-light-text dark:text-dark-text font-bold text-xl'>
+						<Text className='font-bold text-xl tabular-nums' style={{ color: colors.text }}>
 							Total: £{budget.monthlyBalance.toFixed(2)}
 						</Text>
-						<Text className='text-light-text dark:text-dark-text font-bold text-xs pl-1'>
+						<Text className='font-bold text-xs pl-1' style={{ color: colors.noActive }}>
 							Balance: £{budget.previousBalance.toFixed(2)}
 						</Text>
 					</View>
