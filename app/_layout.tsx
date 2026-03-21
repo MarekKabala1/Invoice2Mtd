@@ -217,7 +217,78 @@ function StackLayout() {
 					},
 				}}
 			/>
-	
+			<Stack.Screen
+				name='(stack)/addMtdTransaction'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'Add MTD Record',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdDeadlines'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'MTD Deadlines',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdQuarterlySummary'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'Quarterly Summary',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdAnnualEstimate'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'Annual Tax Estimate',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
 		</Stack>
 	);
 }
