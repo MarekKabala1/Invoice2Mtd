@@ -3,10 +3,12 @@
  *
  * ESTIMATES ONLY — not official HMRC calculations.
  * Update RATES_2025_26 each April when rates change.
+ * Users can also update rates via Settings → Tax Rates.
  *
  * Depends on: types/mtd.ts (TaxRates, TaxEstimate)
  * Used by: db/mtdOperations.ts (refreshAnnualSummary),
- *          app/(stack)/mtdAnnualEstimate.tsx, app/(drawer)/info.tsx
+ *          app/(stack)/mtdAnnualEstimate.tsx, app/(drawer)/info.tsx,
+ *          app/(drawer)/settings.tsx
  */
 
 import { TaxRates, TaxEstimate } from '@/types/mtd';
@@ -25,6 +27,36 @@ export const RATES_2025_26: TaxRates = {
   ni2WeeklyRate: 3.45,
   ni2SmallEarningsException: 12570,
 };
+
+/**
+ * Parses a JSON string from appSettings into TaxRates.
+ * Falls back to RATES_2025_26 if null or invalid.
+ */
+export function parseTaxRates(json: string | null | undefined): TaxRates {
+  if (!json) return { ...RATES_2025_26 };
+  try {
+    const parsed = JSON.parse(json) as Partial<TaxRates>;
+    // Validate all required fields exist and are numbers
+    const required: (keyof TaxRates)[] = [
+      'personalAllowance', 'basicRateThreshold', 'higherRateThreshold',
+      'basicRate', 'higherRate', 'additionalRate',
+      'ni4LowerProfitsLimit', 'ni4UpperProfitsLimit',
+      'ni4LowerRate', 'ni4UpperRate',
+      'ni2WeeklyRate', 'ni2SmallEarningsException',
+    ];
+    for (const key of required) {
+      if (typeof parsed[key] !== 'number') return { ...RATES_2025_26 };
+    }
+    return parsed as TaxRates;
+  } catch {
+    return { ...RATES_2025_26 };
+  }
+}
+
+/** Serializes TaxRates to a JSON string for storing in appSettings. */
+export function serializeTaxRates(rates: TaxRates): string {
+  return JSON.stringify(rates);
+}
 
 export const estimateTax = (
   grossIncome: number,
