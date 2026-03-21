@@ -2,9 +2,9 @@ import { Linking } from 'react-native';
 import { emailReminderTemplate } from '@/templates/emailRemaiderTemplate';
 import {
 	getUserAndBankDetails,
-	getCustomerDetails,
 	getUsers,
 } from './invoiceFormOperations';
+import { getCustomerDetails } from './customerOperations';
 import { InvoiceType, CustomerType, UserType } from '@/db/zodSchema';
 import { convertHtmlToText } from './textHelpers';
 
