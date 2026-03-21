@@ -1,19 +1,18 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CustomerType, InvoiceType, UserType } from '@/db/zodSchema';
 import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
 import { useEffect, useState } from 'react';
 import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
-import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
-import AddToBudgetModal from '../AddToBudgetModal';
 import { sendPaymentReminder } from '@/utils/emailOperations';
 import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoiceFormOperations';
-import { addMtdTransaction } from '@/db/mtdOperations';
-import { toISO } from '@/utils/mtdDates';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoiceSync';
+import { toISO, quarterForDate } from '@/utils/mtdDates';
 import { router } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { EXPENSE_CATEGORY_LABELS } from '@/utils/mtdCategories';
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -44,101 +43,73 @@ export default function InvoiceSettingsModal({
 	const { colors, isDark } = useTheme();
 	const { isPayed } = useIsInvoicePaid(localInvoice);
 
-	const {
-		isCategoryModalVisible,
-		selectedCategory,
-		showCategoryModal,
-		hideCategoryModal,
-		setSelectedCategory,
-		handleAddInvoicesToBudget,
-		incomeCategories,
-	} = useAddInvoiceToBudget();
+	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [paymentDate, setPaymentDate] = useState(invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date()));
 
 	useEffect(() => {
 		setLocalInvoice(invoice);
 	}, [invoice.id]);
 
 	const handleMarkAsPayed = async () => {
-		const newPayedStatus = !isPayed;
-		setIsPayedOptimistic(newPayedStatus);
-
-		if (newPayedStatus) {
+		if (isPayed) {
+			// Mark as UNPAID — warn about linked records
 			Alert.alert(
-				'Mark as Paid',
-				'Would you like to add this paid invoice to your transactions/budget?',
+				'Mark as Unpaid',
+				'This will also delete the linked budget entry and MTD record. Continue?',
 				[
+					{ text: 'Cancel', style: 'cancel' },
 					{
-						text: 'No, just mark as paid',
-						style: 'cancel',
+						text: 'Mark Unpaid',
+						style: 'destructive',
 						onPress: async () => {
-							setLocalInvoice((prev) => ({ ...prev, isPayed: newPayedStatus }));
-							setIsPayedOptimistic(newPayedStatus);
 							try {
-								onUpdate(invoice.id, { isPayed: newPayedStatus });
+								await markInvoiceAsUnpaid(invoice.id!);
+								setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
+								setIsPayedOptimistic(false);
 							} catch (error) {
-								setLocalInvoice((prev) => ({
-									...prev,
-									isPayed: !newPayedStatus,
-								}));
-								setIsPayedOptimistic(!newPayedStatus);
+								Alert.alert('Error', 'Failed to mark as unpaid.');
 							}
 						},
-					},
-					{
-						text: 'Yes, add to budget',
-						onPress: showCategoryModal,
 					},
 				]
 			);
 		} else {
-			setLocalInvoice((prev) => ({ ...prev, isPayed: newPayedStatus }));
-			setIsPayedOptimistic(newPayedStatus);
-			try {
-				onUpdate(invoice.id, { isPayed: newPayedStatus });
-			} catch (error) {
-				setLocalInvoice((prev) => ({ ...prev, isPayed: !newPayedStatus }));
-				setIsPayedOptimistic(!newPayedStatus);
-			}
+			// Mark as PAID — show date picker
+			setShowDatePicker(true);
 		}
 	};
 
-	const handleConfirmAddToBudget = async () => {
-		setLocalInvoice((prev) => ({ ...prev, isPayed: true }));
-		setIsPayedOptimistic(true);
-		try {
-			onUpdate(invoice.id, { isPayed: true });
-			await handleAddInvoicesToBudget([
+	const handleConfirmPaid = async () => {
+		setShowDatePicker(false);
+		const q = quarterForDate(new Date(paymentDate));
+		Alert.alert(
+			'Confirm Payment',
+			`Date: ${new Date(paymentDate).toLocaleDateString()}\n` +
+			`Amount: ${getCurrencySymbol(invoice.currency)}${invoice.amountAfterTax?.toFixed(2)}\n` +
+			`Budget category: Turnover / Sales\n` +
+			`MTD quarter: Q${q.quarter} (${q.label})`,
+			[
+				{ text: 'Cancel', style: 'cancel' },
 				{
-					...invoice,
-					customer: customer!,
-					payments: [],
-					notes: [],
-					workItems: [],
-				},
-			]);
-
-			// Also create MTD income record linked to this invoice
-			// so it shows in the Tax tab immediately
-			const mtdUserId = await getCurrentUserId();
-			if (mtdUserId) {
-				const invoiceDate = new Date(invoice.invoiceDate!);
-				await addMtdTransaction(
-					{
-						date: toISO(invoiceDate),
-						description: `Invoice from ${customer?.name ?? 'customer'}`,
-						amount: invoice.amountAfterTax!,
-						type: 'income',
-						category: 'turnover',
-						notes: `Linked to invoice #${invoice.id}`,
-						invoiceId: invoice.id!,
+					text: 'Confirm',
+					onPress: async () => {
+						try {
+							await markInvoiceAsPaid(
+								invoice.id!,
+								invoice.amountAfterTax!,
+								invoice.currency,
+								paymentDate,
+								customer?.name ?? 'customer'
+							);
+							setLocalInvoice((prev) => ({ ...prev, isPayed: true }));
+							setIsPayedOptimistic(true);
+						} catch (error) {
+							Alert.alert('Error', 'Failed to mark invoice as paid.');
+						}
 					},
-					mtdUserId
-				);
-			}
-		} catch (error) {
-			setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
-			setIsPayedOptimistic(false);
-		}
+				},
+			]
+		);
 	};
 
 	const howManyDaysOverdue = () => {
@@ -418,16 +389,51 @@ export default function InvoiceSettingsModal({
 					</View>
 				</View>
 			</Modal>
-			<AddToBudgetModal
-				isVisible={isCategoryModalVisible}
-				onClose={hideCategoryModal}
-				onConfirm={handleConfirmAddToBudget}
-				selectedCategory={selectedCategory}
-				onSelectCategory={setSelectedCategory}
-				incomeCategories={incomeCategories}
-				title='Add Invoice to Budget'
-				confirmText='Mark as Paid & Add to Budget'
-			/>
+
+			{/* Payment date picker modal */}
+			{showDatePicker && (
+				<Modal
+					visible={showDatePicker}
+					transparent={true}
+					animationType='slide'
+					onRequestClose={() => setShowDatePicker(false)}
+				>
+					<View className='flex-1 justify-center items-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+						<View
+							className='p-5 rounded-lg w-11/12'
+							style={{ backgroundColor: isDark ? colors.nav : colors.card }}
+						>
+							<Text className='text-lg font-bold text-center mb-4' style={{ color: colors.text }}>
+								Payment Date
+							</Text>
+							<DateTimePicker
+								value={new Date(paymentDate)}
+								mode='date'
+								onChange={(_, date) => {
+									if (date) setPaymentDate(toISO(date));
+								}}
+								display={Platform.OS === 'ios' ? 'inline' : 'default'}
+							/>
+							<View className='flex-row gap-3 mt-4'>
+								<TouchableOpacity
+									onPress={() => setShowDatePicker(false)}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+								>
+									<Text className='font-bold' style={{ color: colors.text }}>Cancel</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={handleConfirmPaid}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: '#39AD6A' }}
+								>
+									<Text className='font-bold text-white'>Confirm</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					</View>
+				</Modal>
+			)}
 		</>
 	);
 }
