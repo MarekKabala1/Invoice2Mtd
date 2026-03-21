@@ -11,9 +11,9 @@ import AddToBudgetModal from '../AddToBudgetModal';
 import { sendPaymentReminder } from '@/utils/emailOperations';
 import { handleSendInvoice } from '@/utils/invoiceFormOperations';
 import { addMtdTransaction } from '@/db/mtdOperations';
-import { useAppSettings } from '@/context/AppSettingsContext';
-import { toISO, quarterForDate } from '@/utils/mtdDates';
+import { toISO } from '@/utils/mtdDates';
 import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { router } from 'expo-router';
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -149,7 +149,14 @@ export default function InvoiceSettingsModal({
 		return diffDays;
 	};
 	const handleEditInvoice = () => {
-		onUpdate(invoice.id);
+		setShowSettings(false);
+		router.push('/(stack)/createInvoice');
+	};
+
+	const handlePreview = () => {
+		// Navigate to edit mode where preview is available
+		setShowSettings(false);
+		router.push('/(stack)/createInvoice');
 	};
 
 	const handleSendPaymentReminder = async () => {
@@ -314,50 +321,37 @@ export default function InvoiceSettingsModal({
 									)}
 								</TouchableOpacity>
 							</View>
-							<TouchableOpacity
-								onPress={handleEditInvoice}
-								className='flex-row w-full items-center justify-between pb-2'
-								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-							>
-								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='pencil'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm' style={{ color: colors.text }}>
-										Edit Invoice
-									</Text>
-								</View>
-								<MaterialCommunityIcons
-									name='chevron-right'
-									size={30}
-									color={colors.noActive}
-								/>
-							</TouchableOpacity>
-							<TouchableOpacity
-								onPress={handleShareInvoice}
-								className='flex-row w-full items-center justify-between pb-2'
-								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-							>
-								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='share-variant'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm' style={{ color: colors.text }}>
-										Share Invoice
-									</Text>
-								</View>
-								<MaterialCommunityIcons
-									name='chevron-right'
-									size={30}
-									color={colors.noActive}
-								/>
-							</TouchableOpacity>
 						</View>
-						{!isPayed && customer?.emailAddress && (
+
+						{/* Save and Preview buttons */}
+					<View className='flex-row gap-3 mt-2'>
+						<TouchableOpacity
+							onPress={handleEditInvoice}
+							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+							style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+						>
+							<MaterialCommunityIcons name="pencil" size={18} color="white" />
+							<Text className='font-bold text-white text-sm'>Edit</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={handlePreview}
+							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+							style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+						>
+							<MaterialCommunityIcons name="eye-outline" size={18} color={colors.text} />
+							<Text className='font-bold text-sm' style={{ color: colors.text }}>Preview</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={handleShareInvoice}
+							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+							style={{ backgroundColor: '#39AD6A' }}
+						>
+							<MaterialCommunityIcons name="share-variant" size={18} color="white" />
+							<Text className='font-bold text-white text-sm'>Share</Text>
+						</TouchableOpacity>
+					</View>
+
+					{!isPayed && customer?.emailAddress && (
 							<TouchableOpacity
 								onPress={handleSendPaymentReminder}
 								className='flex-row w-full items-center justify-between pb-2'
