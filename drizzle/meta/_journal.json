@@ -1,68 +1,12 @@
 {
-  "version": "1",
+  "version": "7",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1730900392673,
-      "tag": "0000_Sqlite_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1748582927212,
-      "tag": "0001_far_alex_wilder",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1748952548743,
-      "tag": "0002_volatile_gamora",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1748953220521,
-      "tag": "0003_daffy_bromley",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1752122223433,
-      "tag": "0004_oval_human_fly",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1753246804895,
-      "tag": "0005_wandering_supernaut",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1774079030646,
-      "tag": "0006_slow_the_professor",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1774089227958,
-      "tag": "0007_mean_mister_fear",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "6",
-      "when": 1774102565809,
-      "tag": "0008_far_stick",
+      "when": 1774200164108,
+      "tag": "0000_narrow_wolf_cub",
       "breakpoints": true
     }
   ]
