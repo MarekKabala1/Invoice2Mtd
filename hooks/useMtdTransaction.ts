@@ -85,6 +85,34 @@ export const useMtdTransaction = () => {
     }
   }, []);
 
+  /**
+   * Adds an MTD row pointing at an existing budget Transactions row (e.g. after
+   * Add Transaction saved the budget entry first). Does not insert into budget.
+   */
+  const addMtdLinkedToBudget = useCallback(
+    async (tx: NewMtdTransaction, budgetTransactionId: string): Promise<boolean> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const userId = await getCurrentUserId();
+        if (!userId) {
+          throw new Error('No user found. Please set up your profile first.');
+        }
+        await addMtdTransaction({ ...tx, transactionId: budgetTransactionId }, userId);
+        await refreshCurrentYear(userId);
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to add MTD record';
+        setError(msg);
+        Alert.alert('Error', msg);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   const deleteTransaction = useCallback(async (id: string) => {
     setIsLoading(true);
     setError(null);
@@ -104,6 +132,7 @@ export const useMtdTransaction = () => {
 
   return {
     addTransaction,
+    addMtdLinkedToBudget,
     deleteTransaction,
     isLoading,
     error,

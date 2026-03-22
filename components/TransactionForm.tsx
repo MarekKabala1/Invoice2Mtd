@@ -5,7 +5,7 @@
  * screen — same input styling, toggle colours, and submit button.
  *
  * Depends on: context/ThemeContext, db/zodSchema, utils/categories,
- *             hooks/useTransaction
+ *             hooks/useTransaction, hooks/useMtdTransaction
  * Used by: app/(stack)/addTransaction.tsx
  */
 
@@ -20,10 +20,9 @@ import PickerWithTouchableOpacity from '@/components/Picker';
 import { useTheme } from '@/context/ThemeContext';
 import DatePicker from '@/components/DatePicker';
 import { useTransaction } from '@/hooks/useTransaction';
+import { useMtdTransaction } from '@/hooks/useMtdTransaction';
 import { handleSaveTransaction } from '@/utils/transactionOperations';
 import { mapCategoryToHmrc } from '@/utils/mtdCategories';
-import { addMtdTransaction } from '@/db/mtdOperations';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
 
 const transactionTypes = [
 	{ id: 'EXPENSE', label: 'Expense' },
@@ -37,6 +36,7 @@ interface TransactionFormProps {
 
 const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false, transactionData }) => {
 	const { users } = useTransaction();
+	const { addMtdLinkedToBudget } = useMtdTransaction();
 	const { colors, isDark } = useTheme();
 	const MAX_LENGTH = 20;
 	const [alsoAddToMtd, setAlsoAddToMtd] = useState(false);
@@ -63,30 +63,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 	const type = watch('type', 'EXPENSE');
 
 	const onSubmit = async (data: TransactionType) => {
-		await handleSaveTransaction(data, isUpdateMode, transactionData);
+		const result = await handleSaveTransaction(data, isUpdateMode, transactionData);
+		if (!result.saved) return;
 
-		// Also add to MTD if the switch is on (for new transactions only)
-		if (alsoAddToMtd && !isUpdateMode) {
-			try {
-				const mtdUserId = await getCurrentUserId();
-				if (mtdUserId) {
-					const hmrcCategory = mapCategoryToHmrc(data.categoryId || '');
-					const mtdType = data.type === 'INCOME' ? 'income' : 'expense';
-					const amount = parseFloat(data.amount as unknown as string);
-					await addMtdTransaction(
-						{
-							date: data.date ? new Date(data.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
-							description: data.description || '',
-							amount: isNaN(amount) ? 0 : amount,
-							type: mtdType as 'income' | 'expense',
-							category: hmrcCategory,
-						},
-						mtdUserId
-					);
-				}
-			} catch (err) {
-				console.error('Failed to add MTD record:', err);
-			}
+		if (alsoAddToMtd && !isUpdateMode && result.mode === 'insert') {
+			const hmrcCategory = mapCategoryToHmrc(data.categoryId || '');
+			const mtdType = data.type === 'INCOME' ? 'income' : 'expense';
+			const amount = parseFloat(data.amount as unknown as string);
+			const dateStr = data.date
+				? new Date(data.date).toISOString().slice(0, 10)
+				: new Date().toISOString().slice(0, 10);
+			const ok = await addMtdLinkedToBudget(
+				{
+					date: dateStr,
+					description: data.description || '',
+					amount: Number.isNaN(amount) ? 0 : amount,
+					type: mtdType as 'income' | 'expense',
+					category: hmrcCategory,
+				},
+				result.transactionId
+			);
+			if (!ok) return;
 		}
 
 		reset();
