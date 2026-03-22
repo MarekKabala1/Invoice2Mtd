@@ -32,10 +32,10 @@ import {
 // ─── Add manual MTD transaction ──────────────────────────────────────────────
 
 export async function addMtdTransaction(
-  tx: NewMtdTransaction & { invoiceId?: string; transactionId?: string },
+  data: NewMtdTransaction & { invoiceId?: string; transactionId?: string },
   userId: string
 ): Promise<void> {
-  const date = new Date(tx.date);
+  const date = new Date(data.date);
   const ty = taxYearForDate(date);
   const tyLabel = `${ty}-${String(ty + 1).slice(-2)}`;
   const quarter = quarterForDateValue(date);
@@ -43,17 +43,17 @@ export async function addMtdTransaction(
   await db.insert(MtdTransactions).values({
     id: await generateId(),
     userId,
-    invoiceId: tx.invoiceId ?? null,
-    transactionId: tx.transactionId ?? null,
-    date: tx.date,
-    description: tx.description,
-    amount: tx.amount,
-    type: tx.type,
-    category: tx.category,
+    invoiceId: data.invoiceId ?? null,
+    transactionId: data.transactionId ?? null,
+    date: data.date,
+    description: data.description,
+    amount: data.amount,
+    type: data.type,
+    category: data.category,
     taxYear: tyLabel,
     quarter,
-    receiptRef: tx.receiptRef,
-    notes: tx.notes,
+    receiptRef: data.receiptRef,
+    notes: data.notes,
   });
 }
 

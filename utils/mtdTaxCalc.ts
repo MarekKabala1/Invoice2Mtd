@@ -63,7 +63,8 @@ export const estimateTax = (
   totalAllowableExpenses: number,
   rates: TaxRates = RATES_2025_26
 ): TaxEstimate => {
-  const taxableProfit = grossIncome - totalAllowableExpenses;
+  // Net profit cannot be negative — if expenses exceed income, profit is 0
+  const taxableProfit = Math.max(0, grossIncome - totalAllowableExpenses);
   const personalAllowanceUsed = Math.min(rates.personalAllowance, taxableProfit);
   const taxableAfterAllowance = Math.max(0, taxableProfit - personalAllowanceUsed);
 
