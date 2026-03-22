@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AppSettingsType } from '@/db/zodSchema';
-import { getAppSettingsFromDb, updateAppSettingsInDb, insertAppSettingsInDb, deleteAppSettingsInDb } from '@/utils/settingsOperations';
+import { getAppSettingsFromDb, updateAppSettingsInDb, insertAppSettingsInDb } from '@/utils/settingsOperations';
 
 type AppSettingsContextType = {
 	settings: AppSettingsType | null;
@@ -14,8 +14,20 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 	const [settings, setSettings] = useState<AppSettingsType | null>(null);
 
 	const loadSettings = async () => {
-		const settings = await getAppSettingsFromDb();
-		setSettings(settings);
+		try {
+			const existing = await getAppSettingsFromDb();
+			if (existing) {
+				setSettings(existing);
+			} else {
+				// First run — create default settings row
+				await insertAppSettingsInDb({});
+				const created = await getAppSettingsFromDb();
+				setSettings(created);
+			}
+		} catch {
+			// Database may not be ready yet (before migrations)
+			setSettings(null);
+		}
 	};
 
 	const refresh = async () => {
