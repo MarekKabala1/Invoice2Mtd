@@ -13,7 +13,6 @@ import { calculateInvoiceTotal, calculateMonthlyTotals } from '@/utils/invoiceCa
 import { format, parseISO } from 'date-fns';
 import BaseCard from '@/components/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
 
 type ViewMode = 'all' | 'monthly';
 
@@ -184,9 +183,6 @@ export default function Charts() {
 	return (
 		<View style={{ paddingTop: insets.top }} className='flex-1 bg-light-primary dark:bg-dark-primary p-4 w-screen'>
 			<ScrollView>
-				<View className='w-full items-end'>
-					<ThemeToggle size={30} />
-				</View>
 				<View className='gap-4'>
 					<Text className='text-center font-bold text-light-text dark:text-dark-text'>Pick User to display charts</Text>
 					<Controller

@@ -9,7 +9,6 @@ import { InvoiceType, WorkInformationType, PaymentType, NoteType, CustomerType }
 import { InvoiceForUpdate } from '@/types';
 import { eq } from 'drizzle-orm';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '../ThemeToggle';
 import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoiceFinancialGrouping';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
@@ -368,7 +367,6 @@ export default function InvoiceList() {
 	const ListHeaderComponent = () => (
 		<>
 			<View className='flex-row justify-between p-4'>
-				<ThemeToggle size={24} />
 				{activeTab === 'invoices' ? (
 					<TouchableOpacity onPress={() => router.push('/(stack)/createInvoice')} className='flex-row gap-1 items-center'>
 						<View>
@@ -447,7 +445,6 @@ export default function InvoiceList() {
 		return (
 			<View className='flex-1 bg-light-primary dark:bg-dark-primary'>
 				<View className='flex-row justify-between p-4'>
-					<ThemeToggle size={24} />
 					<TouchableOpacity onPress={() => router.push('/(stack)/createEstimate')} className='flex-row gap-1 items-center'>
 						<View>
 							<Ionicons name='add-circle-outline' size={24} color={colors.text} />

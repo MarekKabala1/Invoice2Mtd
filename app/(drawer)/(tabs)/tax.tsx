@@ -366,7 +366,7 @@ export default function TaxScreen() {
             {/* Mini expense breakdown */}
             {topExpenses.length > 0 && (
               <View
-                className="rounded-lg p-4"
+                className="rounded-lg p-4 mb-20"
                 style={{ backgroundColor: isDark ? colors.nav : colors.card }}
               >
                 <Text className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: colors.noActive }}>
@@ -395,7 +395,7 @@ export default function TaxScreen() {
             {/* Refresh button when auto-calc is off */}
             {!autoCalc && (
               <TouchableOpacity
-                className="rounded-lg p-3 items-center"
+                className="rounded-lg p-3 items-center "
                 style={{ backgroundColor: isDark ? colors.nav : colors.card }}
                 onPress={refresh}
               >
