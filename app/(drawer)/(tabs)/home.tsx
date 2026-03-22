@@ -53,10 +53,7 @@ export default function Home() {
 	} = useHomeInsights(userId);
 
 	const activityPageWidth = windowWidth - 40;
-	const activityPages = useMemo(
-		() => chunkIntoPages(recentActivity, ACTIVITY_PAGE_SIZE),
-		[recentActivity]
-	);
+	const activityPages = useMemo(() => chunkIntoPages(recentActivity, ACTIVITY_PAGE_SIZE), [recentActivity]);
 
 	const [activityPageIndex, setActivityPageIndex] = useState(0);
 	useEffect(() => {
@@ -191,10 +188,9 @@ export default function Home() {
 									nestedScrollEnabled
 									showsHorizontalScrollIndicator={false}
 									onMomentumScrollEnd={onActivityScrollEnd}
-									style={{ width: activityPageWidth, alignSelf: 'center' }}
-								>
+									style={{ width: activityPageWidth, alignSelf: 'center' }}>
 									{activityPages.map((page, pageIndex) => (
-										<View key={`activity-page-${pageIndex}`} style={{ width: activityPageWidth }}>
+										<View key={`activity-page-${pageIndex} `} className='mb-2' style={{ width: activityPageWidth }}>
 											{page.map((item) => {
 												const icon =
 													item.module === 'mtd' ? (
@@ -230,7 +226,7 @@ export default function Home() {
 									))}
 								</ScrollView>
 								{activityPages.length > 1 ? (
-									<View className='flex-row justify-center gap-1.5 mt-2'>
+									<View className='flex-row justify-center gap-1.5'>
 										{activityPages.map((_, i) => (
 											<View
 												key={`dot-${i}`}
@@ -252,7 +248,7 @@ export default function Home() {
 						<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
 							Quick Actions
 						</Text>
-						<View className='flex-row gap-3 mb-6'>
+						<View className='flex-row gap-3 mb-20'>
 							<TouchableOpacity
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
