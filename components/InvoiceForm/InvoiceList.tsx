@@ -60,15 +60,26 @@ export default function InvoiceList() {
 
 	const loadData = useCallback(async () => {
 		setIsLoading(true);
+		let invoicesData: any[] = [];
+		let paymentsData: any[] = [];
+		let notesData: any[] = [];
+		let workItemsData: any[] = [];
+		let customersData: any[] = [];
+
 		try {
-			const [invoicesData, paymentsData, notesData, workItemsData, customersData] = await Promise.all([
+			[invoicesData, paymentsData, notesData, workItemsData, customersData] = await Promise.all([
 				db.select().from(Invoice),
 				db.select().from(Payment),
 				db.select().from(Note),
 				db.select().from(WorkInformation),
 				db.select().from(Customer),
 			]);
+		} catch (e) {
+			console.error('Failed to load invoice tables:', e);
+			// Tables may not exist yet — use empty arrays
+		}
 
+		try {
 			setData({
 				invoices: invoicesData.map((invoice) => ({
 					...invoice,
