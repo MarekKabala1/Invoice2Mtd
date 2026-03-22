@@ -1,8 +1,8 @@
 /**
  * home.tsx
  *
- * Unified home dashboard. Shows invoicing and MTD data together with
- * cross-module insights. Quick actions for the three most common tasks.
+ * Unified home dashboard (MASTER_PLAN Phase 5): unpaid invoices + Q net profit,
+ * MTD gap banner, next deadline, recent activity, quick actions.
  *
  * Depends on: hooks/useHomeInsights.ts, context/AppSettingsContext.tsx,
  *             context/ThemeContext.tsx
@@ -33,10 +33,15 @@ export default function Home() {
   const userId = settings?.userId ?? '';
 
   const {
-    currentQuarterTurnover,
+    unpaidInvoicesTotal,
+    unpaidInvoicesCount,
     currentQuarterNetProfit,
+    currentQuarter,
+    turnoverNotYetRecorded,
     nextDeadline,
+    recentActivity,
     isLoading,
+    error,
   } = useHomeInsights(userId);
 
   return (
@@ -61,7 +66,13 @@ export default function Home() {
           </View>
         ) : (
           <>
-            {/* Today at a glance */}
+            {error ? (
+              <Text className="text-sm mb-4 text-center" style={{ color: '#ee1c1c' }}>
+                {error}
+              </Text>
+            ) : null}
+
+            {/* Today at a glance — unpaid invoices + Q net profit */}
             <View className="flex-row gap-3 mb-4">
               <TouchableOpacity
                 className="flex-1 rounded-lg p-4"
@@ -70,10 +81,10 @@ export default function Home() {
               >
                 <Ionicons name="document-text-outline" size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
                 <Text className="text-xs mt-2" style={{ color: colors.noActive }}>
-                  Q{nextDeadline ? 'Quarter' : '—'} turnover
+                  Unpaid invoices
                 </Text>
                 <Text className="text-lg font-bold tabular-nums mt-1" style={{ color: colors.text }}>
-                  {formatGBP(currentQuarterTurnover)}
+                  {unpaidInvoicesCount} · {formatGBP(unpaidInvoicesTotal)}
                 </Text>
               </TouchableOpacity>
 
@@ -84,7 +95,7 @@ export default function Home() {
               >
                 <Ionicons name="calculator-outline" size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
                 <Text className="text-xs mt-2" style={{ color: colors.noActive }}>
-                  Net profit
+                  Q{currentQuarter} net profit
                 </Text>
                 <Text
                   className="text-lg font-bold tabular-nums mt-1"
@@ -94,6 +105,26 @@ export default function Home() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Cross-module insight — paid invoice turnover not linked to MTD */}
+            {turnoverNotYetRecorded > 0 && nextDeadline ? (
+              <TouchableOpacity
+                className="rounded-lg p-4 mb-4 border-l-4"
+                style={{
+                  backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.15)',
+                  borderLeftColor: '#f59e0b',
+                }}
+                onPress={() => router.push('/(stack)/addMtdTransaction')}
+              >
+                <Text className="text-sm font-bold mb-1" style={{ color: colors.text }}>
+                  MTD records gap
+                </Text>
+                <Text className="text-xs leading-5" style={{ color: colors.text }}>
+                  You have {formatGBP(turnoverNotYetRecorded)} in paid invoices not yet linked in your MTD
+                  records — add them before {nextDeadline.deadlineFormatted}.
+                </Text>
+              </TouchableOpacity>
+            ) : null}
 
             {/* Next deadline row */}
             {nextDeadline && (
@@ -142,6 +173,48 @@ export default function Home() {
                 </Text>
               </TouchableOpacity>
             )}
+
+            {/* Recent activity */}
+            {recentActivity.length > 0 ? (
+              <View className="mb-6">
+                <Text
+                  className="text-xs font-bold uppercase tracking-widest mb-3"
+                  style={{ color: colors.noActive }}
+                >
+                  Recent activity
+                </Text>
+                {recentActivity.map((item) => {
+                  const icon =
+                    item.module === 'mtd' ? (
+                      <Ionicons name="calculator-outline" size={20} color={colors.noActive} />
+                    ) : item.module === 'budget' ? (
+                      <Ionicons name="wallet-outline" size={20} color={colors.noActive} />
+                    ) : (
+                      <Ionicons name="document-text-outline" size={20} color={colors.noActive} />
+                    );
+                  return (
+                    <View
+                      key={item.id}
+                      className="flex-row items-center gap-3 py-2.5 border-b"
+                      style={{ borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
+                    >
+                      {icon}
+                      <View className="flex-1">
+                        <Text className="text-sm" style={{ color: colors.text }} numberOfLines={1}>
+                          {item.description}
+                        </Text>
+                        <Text className="text-xs" style={{ color: colors.noActive }}>
+                          {item.date ? String(item.date).slice(0, 10) : '—'}
+                        </Text>
+                      </View>
+                      <Text className="text-sm font-bold tabular-nums" style={{ color: colors.text }}>
+                        {formatGBP(item.amount)}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
 
             {/* Quick actions row */}
             <Text
