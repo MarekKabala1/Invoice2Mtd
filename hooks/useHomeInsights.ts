@@ -60,7 +60,7 @@ export function useHomeInsights(_userId: string): UseHomeInsightsResult {
         aggregateQuarter(tyLabel, q.quarter, ''),
         getUnpaidInvoicesTotals(),
         getPaidInvoiceTurnoverMissingMtd(tyLabel, q.quarter),
-        getRecentActivity(5),
+        getRecentActivity(20),
       ]);
 
       setCurrentQuarterTurnover(agg.totalTurnover);

@@ -13,7 +13,8 @@ import { db } from './config';
 import { Invoice, Estimate, MtdTransactions, Transactions } from './schema';
 import { ActivityItem } from '@/types/mtd';
 
-const PER_SOURCE = 8;
+// Fetch enough per table so merged + sorted feed can fill home limit (e.g. 20).
+const PER_SOURCE = 20;
 
 function sortKey(dateStr: string | null | undefined, fallback: string | null | undefined): number {
   const a = Date.parse(dateStr ?? '');
