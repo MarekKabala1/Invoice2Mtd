@@ -26,7 +26,7 @@ const HeaderLeft = () => {
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 
 Sentry.init({
-	dsn: 'https://d28491e1b8f26b6a29beefe0093c6d02@o4508151262347264.ingest.de.sentry.io/4508158889689168',
+	dsn: 'https://73c7209d913226b700df16950fd41f83@o4508151262347264.ingest.de.sentry.io/4511077837504592',
 
 	debug: true,
 	integrations: [
