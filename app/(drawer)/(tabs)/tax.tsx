@@ -10,18 +10,21 @@
  * Used by: app/(drawer)/(tabs)/_layout.tsx (tab entry)
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
 import { useMtdDeadlines } from '@/hooks/useMtdDeadlines';
-import { currentTaxYearStart, taxYearLabel, currentTaxYear } from '@/utils/mtdDates';
+import { currentTaxYearStart, taxYearLabel, currentTaxYear, quartersForTaxYear, quarterForDate } from '@/utils/mtdDates';
 import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtdCategories';
 import { Ionicons } from '@expo/vector-icons';
+import { db } from '@/db/config';
+import { Invoice } from '@/db/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 export default function TaxScreen() {
   const { colors, isDark } = useTheme();
@@ -57,6 +60,35 @@ export default function TaxScreen() {
 
   const { nextDeadline } = useMtdDeadlines(2);
   const rates = useTaxRates();
+
+  // Unpaid invoices for current quarter
+  const [unpaidCount, setUnpaidCount] = useState(0);
+  const [unpaidTotal, setUnpaidTotal] = useState(0);
+
+  const fetchUnpaidInvoices = useCallback(async () => {
+    try {
+      const q = quartersForTaxYear(currentTaxYearStart());
+      const currentQ = quarterForDate(new Date());
+      const quarter = q.find((x) => x.quarter === currentQ.quarter);
+      if (!quarter) return;
+      const rows = await db
+        .select({ amountAfterTax: Invoice.amountAfterTax })
+        .from(Invoice)
+        .where(
+          and(
+            eq(Invoice.isPayed, false),
+            gte(Invoice.invoiceDate, quarter.periodStart),
+            lte(Invoice.invoiceDate, quarter.periodEnd + 'T23:59:59.999Z')
+          )
+        );
+      setUnpaidCount(rows.length);
+      setUnpaidTotal(rows.reduce((sum, r) => sum + (r.amountAfterTax ?? 0), 0));
+    } catch {
+      // Table may not exist yet
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { fetchUnpaidInvoices(); }, [fetchUnpaidInvoices]));
 
   // Yearly turnover — fetch all 4 quarters
   const q1 = useMtdData({ taxYear: tyLabel, quarter: 1, userId });
@@ -182,6 +214,26 @@ export default function TaxScreen() {
           </View>
         ) : (
           <>
+            {/* Unpaid invoices banner */}
+            {unpaidCount > 0 && (
+              <TouchableOpacity
+                className="rounded-lg p-3 mb-2 flex-row items-center gap-2"
+                style={{ backgroundColor: isDark ? 'rgba(238,28,28,0.15)' : 'rgba(238,28,28,0.08)' }}
+                onPress={() => router.push('/(drawer)/(tabs)/invoices')}
+              >
+                <Ionicons name="alert-circle-outline" size={20} color="#ee1c1c" />
+                <View className="flex-1">
+                  <Text className="text-sm font-bold" style={{ color: '#ee1c1c' }}>
+                    {unpaidCount} unpaid invoice{unpaidCount > 1 ? 's' : ''}
+                  </Text>
+                  <Text className="text-xs" style={{ color: isDark ? '#fca5a5' : '#991b1b' }}>
+                    Total: {formatGBP(unpaidTotal)} — not yet in MTD records
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#ee1c1c" />
+              </TouchableOpacity>
+            )}
+
             {/* Quick stats row */}
             <View className="flex-row gap-3">
               <View
