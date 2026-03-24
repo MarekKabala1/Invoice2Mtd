@@ -492,12 +492,73 @@ export default function SettingsScreen() {
 					value={formState.autoCalculateQuarters ?? true}
 					onToggle={(val) => setFormState({ ...formState, autoCalculateQuarters: val })}
 				/>
-				<SettingsInputRow
-					label='Quarter start months (comma-separated, e.g. 1,4,7,10)'
-					value={formState.quarterStartMonths ?? '1,4,7,10'}
-					onChangeText={(text) => setFormState({ ...formState, quarterStartMonths: text })}
-					placeholder='1,4,7,10'
-				/>
+
+				{/* Quarter Start Months Selector */}
+				<View className='py-3 px-4 rounded-lg mb-1' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+					<Text className='text-xs mb-2' style={{ color: colors.noActive }}>
+						Quarter start months
+					</Text>
+					<View className='flex-row gap-1 mb-2 flex-wrap'>
+						{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(
+							(month, idx) => {
+								const monthNum = idx + 1;
+								const selectedMonths = (formState.quarterStartMonths ?? '1,4,7,10')
+									.split(',')
+									.map((m) => parseInt(m));
+								const isSelected = selectedMonths.includes(monthNum);
+								return (
+									<TouchableOpacity
+										key={month}
+										className='py-2 px-3 rounded-lg flex-1'
+										style={{
+											backgroundColor: isSelected ? (isDark ? '#4f46e5' : '#4338ca') : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+											minWidth: '30%',
+										}}
+										onPress={() => {
+											const selected = selectedMonths.includes(monthNum)
+												? selectedMonths.filter((m) => m !== monthNum)
+												: [...selectedMonths, monthNum].sort((a, b) => a - b);
+											setFormState({ ...formState, quarterStartMonths: selected.join(',') });
+										}}>
+										<Text className='text-xs font-bold text-center' style={{ color: isSelected ? 'white' : colors.text }}>
+											{month}
+										</Text>
+										<Text className='text-xs text-center' style={{ color: isSelected ? 'white' : colors.noActive }}>
+											({monthNum})
+										</Text>
+									</TouchableOpacity>
+								);
+							}
+						)}
+					</View>
+
+					{/* Quick Presets */}
+					<View className='flex-row gap-1'>
+						<TouchableOpacity
+							className='flex-1 py-2 rounded-lg items-center border'
+							style={{
+								backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+								borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+							}}
+							onPress={() => setFormState({ ...formState, quarterStartMonths: '4,7,10,1' })}>
+							<Text className='text-xs font-bold' style={{ color: colors.text }}>
+								Standard UK
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							className='flex-1 py-2 rounded-lg items-center border'
+							style={{
+								backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+								borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+							}}
+							onPress={() => setFormState({ ...formState, quarterStartMonths: '1,4,7,10' })}>
+							<Text className='text-xs font-bold' style={{ color: colors.text }}>
+								Calendar
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+
 				<SettingsInputRow
 					label='Deadline reminder (days)'
 					value={String(formState.quarterlyTaxReminderDays ?? 7)}
