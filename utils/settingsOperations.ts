@@ -5,10 +5,10 @@ import { eq } from 'drizzle-orm';
 
 export async function getAppSettingsFromDb(userId?: string): Promise<AppSettingsType | null> {
   try {
-    let query = db.select().from(appSettings);
-    if (userId) {
-      query = query.where(eq(appSettings.userId, userId)) as any;
-    }
+    const baseQuery = db.select().from(appSettings);
+    const query = userId
+      ? baseQuery.where(eq(appSettings.userId, userId))
+      : baseQuery;
     const rows = await query.limit(1);
     if (rows && rows.length > 0) return rows[0] as AppSettingsType;
     return null;

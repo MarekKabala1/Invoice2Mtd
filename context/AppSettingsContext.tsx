@@ -24,7 +24,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 				if (userId) setSelectedUserId(userId);
 			} else {
 				// First run — create default settings row with userId if provided
-				const valuesObj: any = {};
+				const valuesObj: Partial<AppSettingsType> = {};
 				if (userId) valuesObj.userId = userId;
 				await insertAppSettingsInDb(valuesObj);
 				const created = await getAppSettingsFromDb(userId);
@@ -61,11 +61,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 		loadSettings();
 	}, []);
 
-	return (
-		<AppSettingsContext.Provider value={{ settings, selectedUserId, refresh, loadUserSettings, update }}>
-			{children}
-		</AppSettingsContext.Provider>
-	);
+	return <AppSettingsContext.Provider value={{ settings, selectedUserId, refresh, loadUserSettings, update }}>{children}</AppSettingsContext.Provider>;
 }
 
 export function useAppSettings(): AppSettingsContextType {

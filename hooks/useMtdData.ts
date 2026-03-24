@@ -14,6 +14,7 @@ import { useFocusEffect } from 'expo-router';
 import { aggregateQuarter, getAnnualSummary, refreshCurrentYear } from '@/db/mtdOperations';
 import { QuarterAggregates } from '@/types/mtd';
 import { currentTaxYearStart } from '@/utils/mtdDates';
+import { MtdAnnualSummary } from '@/db/schema';
 
 interface UseMtdDataParams {
   taxYear: string;
@@ -23,7 +24,7 @@ interface UseMtdDataParams {
 
 export const useMtdData = ({ taxYear, quarter, userId = '' }: UseMtdDataParams) => {
   const [aggregates, setAggregates] = useState<QuarterAggregates | null>(null);
-  const [annualSummary, setAnnualSummary] = useState<any | null>(null);
+  const [annualSummary, setAnnualSummary] = useState<typeof MtdAnnualSummary.$inferSelect | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

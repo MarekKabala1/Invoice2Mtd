@@ -21,6 +21,7 @@ import { currentTaxYearStart, taxYearLabel, currentTaxYear, quartersForTaxYear, 
 import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtdCategories';
+import { QuarterAggregates } from '@/types/mtd';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@/db/config';
 import { Invoice } from '@/db/schema';
@@ -114,7 +115,7 @@ export default function TaxScreen() {
       .map((cat) => ({
         category: cat,
         label: EXPENSE_CATEGORY_LABELS[cat],
-        amount: (aggregates as any)[cat] as number,
+        amount: aggregates[cat as keyof QuarterAggregates] as number,
       }))
       .filter((e) => e.amount > 0)
       .sort((a, b) => b.amount - a.amount)

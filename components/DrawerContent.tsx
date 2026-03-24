@@ -100,11 +100,11 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
         }}
         onPress={() => {
           props.navigation.closeDrawer();
-          router.push(item.route as any);
+          router.push(item.route as unknown as Parameters<typeof router.push>[0]);
         }}
       >
         <Ionicons
-          name={item.icon as any}
+          name={item.icon as keyof typeof Ionicons.glyphMap}
           size={20}
           color={focused ? colors.text : colors.noActive}
         />

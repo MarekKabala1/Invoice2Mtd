@@ -196,7 +196,7 @@ export async function aggregateQuarter(
       agg.totalTurnover += tx.amount;
     } else {
       agg.sources.manualExpenses[cat] = (agg.sources.manualExpenses[cat] || 0) + tx.amount;
-      (agg as any)[cat] = ((agg as any)[cat] || 0) + tx.amount;
+      (agg[cat as keyof QuarterAggregates] as number) = ((agg[cat as keyof QuarterAggregates] as number) || 0) + tx.amount;
     }
   }
 
@@ -239,7 +239,7 @@ export async function aggregateQuarter(
     const hmrcCat = mapCategoryToHmrc(bt.categoryId || '');
     const amt = bt.amount || 0;
     agg.sources.budgetExpenses[hmrcCat] = (agg.sources.budgetExpenses[hmrcCat] || 0) + amt;
-    (agg as any)[hmrcCat] = ((agg as any)[hmrcCat] || 0) + amt;
+    (agg[hmrcCat as keyof QuarterAggregates] as number) = ((agg[hmrcCat as keyof QuarterAggregates] as number) || 0) + amt;
   }
 
   // Source 3b: Budget income transactions → turnover
