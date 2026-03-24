@@ -1,16 +1,28 @@
 import { db } from '@/db/config';
-import { appSettings } from '@/db/schema';
+import { appSettings, User } from '@/db/schema';
 import { AppSettingsType } from '@/db/zodSchema';
 import { eq } from 'drizzle-orm';
 
-export async function getAppSettingsFromDb(): Promise<AppSettingsType | null> {
+export async function getAppSettingsFromDb(userId?: string): Promise<AppSettingsType | null> {
   try {
-    const rows = await db.select().from(appSettings).limit(1);
+    let query = db.select().from(appSettings);
+    if (userId) {
+      query = query.where(eq(appSettings.userId, userId)) as any;
+    }
+    const rows = await query.limit(1);
     if (rows && rows.length > 0) return rows[0] as AppSettingsType;
     return null;
   } catch {
     // Table may not exist yet before migrations run
     return null;
+  }
+}
+
+export async function getAllUsers() {
+  try {
+    return await db.select().from(User);
+  } catch {
+    return [];
   }
 }
 
