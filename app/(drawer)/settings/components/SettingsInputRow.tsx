@@ -40,6 +40,7 @@ export const SettingsInputRow: React.FC<SettingsInputRowProps> = ({ label, value
 				maxLength={maxLength}
 				placeholder={placeholder}
 				placeholderTextColor={colors.noActive}
+				selectTextOnFocus={true}
 			/>
 		</View>
 	);
