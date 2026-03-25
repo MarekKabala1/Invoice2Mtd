@@ -34,7 +34,7 @@ export interface UseHomeInsightsResult {
   refresh: () => Promise<void>;
 }
 
-export function useHomeInsights(_userId: string): UseHomeInsightsResult {
+export function useHomeInsights(userId: string): UseHomeInsightsResult {
   const [unpaidInvoicesTotal, setUnpaidInvoicesTotal] = useState(0);
   const [unpaidInvoicesCount, setUnpaidInvoicesCount] = useState(0);
   const [currentQuarterTurnover, setCurrentQuarterTurnover] = useState(0);
@@ -57,7 +57,7 @@ export function useHomeInsights(_userId: string): UseHomeInsightsResult {
       const q = quarterForDate(today);
 
       const [agg, unpaid, gap, activity] = await Promise.all([
-        aggregateQuarter(tyLabel, q.quarter, ''),
+        aggregateQuarter(tyLabel, q.quarter, userId),
         getUnpaidInvoicesTotals(),
         getPaidInvoiceTurnoverMissingMtd(tyLabel, q.quarter),
         getRecentActivity(20),
