@@ -60,6 +60,31 @@ const options = {
     label: `${i + 1}`,
     value: `${i + 1}`,
   })),
+  financialYearPresets: [
+    {
+      label: 'Standard UK Tax Year',
+      value: 'uk',
+      description: '6 Apr – 5 Apr (HMRC standard)',
+      startMonth: 4,
+      startDay: 6,
+      endMonth: 4,
+      endDay: 5,
+      quarterMonths: '4,7,10,1',
+    },
+    {
+      label: 'Calendar Year',
+      value: 'calendar',
+      description: '1 Jan – 31 Dec',
+      startMonth: 1,
+      startDay: 1,
+      endMonth: 12,
+      endDay: 31,
+      quarterMonths: '1,4,7,10',
+    },
+    { label: 'Custom', value: 'custom', description: 'Set your own dates' },
+  ],
 };
+
+export type FinancialYearPreset = (typeof options.financialYearPresets)[number];
 
 export default options;
