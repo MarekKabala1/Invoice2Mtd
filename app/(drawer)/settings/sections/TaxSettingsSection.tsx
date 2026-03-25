@@ -17,10 +17,7 @@ interface TaxSettingsSectionProps {
 	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
 }
 
-export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({
-	formState,
-	onFieldChange,
-}) => {
+export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({ formState, onFieldChange }) => {
 	const { colors, isDark } = useTheme();
 	const scheme = (formState.taxScheme ?? 'standard') as string;
 	const rate = formState.defaultVatRate ?? 20;
@@ -33,71 +30,52 @@ export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({
 
 	return (
 		<>
-			<SectionHeader title="Tax Defaults" />
+			<SectionHeader title='Tax Defaults' />
 
 			<SettingsInputRow
-				label="Default tax rate (%)"
+				label='Default tax rate (%)'
 				value={String(rate)}
 				onChangeText={(text) => {
 					const num = parseFloat(text);
 					if (!isNaN(num)) onFieldChange('defaultVatRate', num);
 				}}
-				placeholder="20"
-				keyboardType="decimal-pad"
+				placeholder='20'
+				keyboardType='decimal-pad'
 			/>
 
 			{/* Tax scheme toggle with live preview */}
-			<View
-				className="py-3 px-4 rounded-lg mb-1"
-				style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-			>
-				<Text className="text-xs mb-2" style={{ color: colors.noActive }}>
+			<View className='py-3 px-4 rounded-lg mb-1' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+				<Text className='text-xs mb-2' style={{ color: colors.noActive }}>
 					Tax calculation mode
 				</Text>
-				<View className="flex-row gap-2">
+				<View className='flex-row gap-2'>
 					<TouchableOpacity
-						className="flex-1 py-2 rounded-lg items-center"
+						className='flex-1 py-2 rounded-lg items-center'
 						style={{
 							backgroundColor:
-								scheme === 'standard'
-									? isDark
-										? 'rgba(37, 99, 235, 0.8)'
-										: 'rgba(29, 78, 216, 0.8)'
-									: isDark
-									? 'rgba(255,255,255,0.1)'
-									: 'rgba(0,0,0,0.05)',
+								scheme === 'standard' ? (isDark ? 'rgba(37, 99, 235, 0.8)' : 'rgba(29, 78, 216, 0.8)') : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
 						}}
-						onPress={() => onFieldChange('taxScheme', 'standard')}
-					>
+						onPress={() => onFieldChange('taxScheme', 'standard')}>
 						<Text
-							className="text-xs font-bold"
+							className='text-xs font-bold'
 							style={{
 								color: scheme === 'standard' ? 'white' : colors.text,
-							}}
-						>
+							}}>
 							Add on top
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
-						className="flex-1 py-2 rounded-lg items-center"
+						className='flex-1 py-2 rounded-lg items-center'
 						style={{
 							backgroundColor:
-								scheme === 'inclusive'
-									? isDark
-										? 'rgba(37, 99, 235, 0.8)'
-										: 'rgba(29, 78, 216, 0.8)'
-									: isDark
-									? 'rgba(255,255,255,0.1)'
-									: 'rgba(0,0,0,0.05)',
+								scheme === 'inclusive' ? (isDark ? 'rgba(37, 99, 235, 0.8)' : 'rgba(29, 78, 216, 0.8)') : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
 						}}
-						onPress={() => onFieldChange('taxScheme', 'inclusive')}
-					>
+						onPress={() => onFieldChange('taxScheme', 'inclusive')}>
 						<Text
-							className="text-xs font-bold"
+							className='text-xs font-bold'
 							style={{
 								color: scheme === 'inclusive' ? 'white' : colors.text,
-							}}
-						>
+							}}>
 							Inclusive
 						</Text>
 					</TouchableOpacity>
@@ -105,33 +83,27 @@ export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({
 
 				{/* Live preview */}
 				<View
-					className="mt-3 p-3 rounded-lg"
+					className='mt-3 p-3 rounded-lg'
 					style={{
 						backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-					}}
-				>
-					<Text className="text-xs" style={{ color: colors.noActive }}>
-						Invoice for {formatGBP(sampleNet)} → Tax {formatGBP(sampleTax)} →
-						Total {formatGBP(sampleTotal)}
+					}}>
+					<Text className='text-xs' style={{ color: colors.noActive }}>
+						Invoice for {formatGBP(sampleNet)} → Tax {formatGBP(sampleTax)} → Total {formatGBP(sampleTotal)}
 					</Text>
 				</View>
 			</View>
 
-			<SettingsToggleRow
-				label="Apply tax by default"
-				value={formState.applyTaxByDefault ?? true}
-				onToggle={(val) => onFieldChange('applyTaxByDefault', val)}
-			/>
+			<SettingsToggleRow label='Apply tax by default' value={formState.applyTaxByDefault ?? true} onToggle={(val) => onFieldChange('applyTaxByDefault', val)} />
 
 			<SettingsInputRow
-				label="Default payment terms (days)"
+				label='Default payment terms (days)'
 				value={String(formState.defaultPaymentTerms ?? 30)}
 				onChangeText={(text) => {
 					const num = parseInt(text);
 					if (!isNaN(num)) onFieldChange('defaultPaymentTerms', num);
 				}}
-				placeholder="30"
-				keyboardType="numeric"
+				placeholder='30'
+				keyboardType='numeric'
 			/>
 		</>
 	);

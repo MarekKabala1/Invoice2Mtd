@@ -17,10 +17,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title }) => {
 	const { colors } = useTheme();
 
 	return (
-		<Text
-			className="text-xs font-bold uppercase tracking-widest mt-6 mb-3"
-			style={{ color: colors.noActive }}
-		>
+		<Text className='text-xs font-bold uppercase tracking-widest mt-6 mb-3' style={{ color: colors.noActive }}>
 			{title}
 		</Text>
 	);

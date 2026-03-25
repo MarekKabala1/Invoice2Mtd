@@ -13,29 +13,26 @@ interface RemindersSectionProps {
 	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
 }
 
-export const RemindersSection: React.FC<RemindersSectionProps> = ({
-	formState,
-	onFieldChange,
-}) => {
+export const RemindersSection: React.FC<RemindersSectionProps> = ({ formState, onFieldChange }) => {
 	return (
 		<>
-			<SectionHeader title="Reminders" />
+			<SectionHeader title='Reminders' />
 
 			<SettingsToggleRow
-				label="Invoice payment reminders"
+				label='Invoice payment reminders'
 				value={formState.reminderEmailEnabled ?? true}
 				onToggle={(val) => onFieldChange('reminderEmailEnabled', val)}
 			/>
 
 			<SettingsInputRow
-				label="Remind days before due"
+				label='Remind days before due'
 				value={String(formState.reminderDaysBeforeDue ?? 3)}
 				onChangeText={(text) => {
 					const num = parseInt(text);
 					if (!isNaN(num)) onFieldChange('reminderDaysBeforeDue', num);
 				}}
-				placeholder="3"
-				keyboardType="decimal-pad"
+				placeholder='3'
+				keyboardType='decimal-pad'
 				maxLength={3}
 			/>
 		</>

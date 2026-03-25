@@ -15,19 +15,16 @@ interface FinancialYearSectionProps {
 	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
 }
 
-export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({
-	formState,
-	onFieldChange,
-}) => {
+export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ formState, onFieldChange }) => {
 	return (
 		<>
-			<SectionHeader title="Financial Year" />
+			<SectionHeader title='Financial Year' />
 
 			{/* Start date: month and day */}
-			<View className="flex-row gap-2">
-				<View className="flex-1">
+			<View className='flex-row gap-2'>
+				<View className='flex-1'>
 					<SettingsInputRow
-						label="Start month"
+						label='Start month'
 						value={String(formState.financialYearStartMonth ?? 1)}
 						onChangeText={(text) => {
 							const num = parseInt(text);
@@ -35,14 +32,14 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({
 								onFieldChange('financialYearStartMonth', num);
 							}
 						}}
-						placeholder="1"
-						keyboardType="numeric"
+						placeholder='1'
+						keyboardType='numeric'
 						maxLength={2}
 					/>
 				</View>
-				<View className="flex-1">
+				<View className='flex-1'>
 					<SettingsInputRow
-						label="Start day"
+						label='Start day'
 						value={String(formState.financialYearStartDay ?? 1)}
 						onChangeText={(text) => {
 							const num = parseInt(text);
@@ -50,18 +47,18 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({
 								onFieldChange('financialYearStartDay', num);
 							}
 						}}
-						placeholder="1"
-						keyboardType="numeric"
+						placeholder='1'
+						keyboardType='numeric'
 						maxLength={2}
 					/>
 				</View>
 			</View>
 
 			{/* End date: month and day */}
-			<View className="flex-row gap-2">
-				<View className="flex-1">
+			<View className='flex-row gap-2'>
+				<View className='flex-1'>
 					<SettingsInputRow
-						label="End month"
+						label='End month'
 						value={String(formState.financialYearEndMonth ?? 12)}
 						onChangeText={(text) => {
 							const num = parseInt(text);
@@ -69,14 +66,14 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({
 								onFieldChange('financialYearEndMonth', num);
 							}
 						}}
-						placeholder="12"
-						keyboardType="numeric"
+						placeholder='12'
+						keyboardType='numeric'
 						maxLength={2}
 					/>
 				</View>
-				<View className="flex-1">
+				<View className='flex-1'>
 					<SettingsInputRow
-						label="End day"
+						label='End day'
 						value={String(formState.financialYearEndDay ?? 31)}
 						onChangeText={(text) => {
 							const num = parseInt(text);
@@ -84,8 +81,8 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({
 								onFieldChange('financialYearEndDay', num);
 							}
 						}}
-						placeholder="31"
-						keyboardType="numeric"
+						placeholder='31'
+						keyboardType='numeric'
 						maxLength={2}
 					/>
 				</View>

@@ -15,19 +15,12 @@ interface SettingsToggleRowProps {
 	onToggle: (val: boolean) => void;
 }
 
-export const SettingsToggleRow: React.FC<SettingsToggleRowProps> = ({
-	label,
-	value,
-	onToggle,
-}) => {
+export const SettingsToggleRow: React.FC<SettingsToggleRowProps> = ({ label, value, onToggle }) => {
 	const { colors, isDark } = useTheme();
 
 	return (
-		<View
-			className="flex-row items-center justify-between py-3 px-4 rounded-lg mb-1"
-			style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-		>
-			<Text className="text-sm flex-1" style={{ color: colors.text }}>
+		<View className='flex-row items-center justify-between py-3 px-4 rounded-lg mb-1' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+			<Text className='text-sm flex-1' style={{ color: colors.text }}>
 				{label}
 			</Text>
 			<Switch

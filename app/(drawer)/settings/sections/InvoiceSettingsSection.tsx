@@ -16,10 +16,7 @@ interface InvoiceSettingsSectionProps {
 	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
 }
 
-export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({
-	formState,
-	onFieldChange,
-}) => {
+export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({ formState, onFieldChange }) => {
 	const { colors, isDark } = useTheme();
 
 	// WHY: Show preview of what the next invoice number will look like
@@ -31,51 +28,48 @@ export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({
 
 	return (
 		<>
-			<SectionHeader title="Invoice & Estimate Numbers" />
+			<SectionHeader title='Invoice & Estimate Numbers' />
 
 			<SettingsInputRow
-				label="Invoice prefix"
+				label='Invoice prefix'
 				value={formState.invoicePrefix ?? 'INV'}
 				onChangeText={(text) => onFieldChange('invoicePrefix', text)}
-				placeholder="INV"
+				placeholder='INV'
 			/>
 
 			<SettingsInputRow
-				label="Next invoice number"
+				label='Next invoice number'
 				value={String(invoiceNextNum)}
 				onChangeText={(text) => {
 					const num = parseInt(text);
 					if (!isNaN(num)) onFieldChange('nextInvoiceNumber', num);
 				}}
-				placeholder="1"
-				keyboardType="numeric"
+				placeholder='1'
+				keyboardType='numeric'
 			/>
 
-			<View
-				className="py-3 px-4 rounded-lg mb-1"
-				style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-			>
-				<Text className="text-xs" style={{ color: colors.noActive }}>
+			<View className='py-3 px-4 rounded-lg mb-1' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+				<Text className='text-xs' style={{ color: colors.noActive }}>
 					Next invoice: {formState.invoicePrefix || 'INV'}-{invoicePaddedNum}
 				</Text>
 			</View>
 
 			<SettingsInputRow
-				label="Estimate prefix"
+				label='Estimate prefix'
 				value={formState.estimatePrefix ?? 'EST'}
 				onChangeText={(text) => onFieldChange('estimatePrefix', text)}
-				placeholder="EST"
+				placeholder='EST'
 			/>
 
 			<SettingsInputRow
-				label="Next estimate number"
+				label='Next estimate number'
 				value={String(estimateNextNum)}
 				onChangeText={(text) => {
 					const num = parseInt(text);
 					if (!isNaN(num)) onFieldChange('nextEstimateNumber', num);
 				}}
-				placeholder="1"
-				keyboardType="numeric"
+				placeholder='1'
+				keyboardType='numeric'
 			/>
 		</>
 	);

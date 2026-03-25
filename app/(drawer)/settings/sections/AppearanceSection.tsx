@@ -15,11 +15,8 @@ export const AppearanceSection: React.FC = () => {
 
 	return (
 		<>
-			<SectionHeader title="Appearance" />
-			<View
-				className="py-3 px-4 rounded-lg mb-1"
-				style={{ backgroundColor: isDark ? colors.nav : colors.card }}
-			>
+			<SectionHeader title='Appearance' />
+			<View className='py-3 px-4 rounded-lg mb-1' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
 				<ThemeToggle size={24} />
 			</View>
 		</>
