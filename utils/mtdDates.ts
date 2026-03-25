@@ -24,10 +24,13 @@ export const fromISO = (s: string): Date => parseISO(s);
 // ─── Tax year ────────────────────────────────────────────────────────────────
 
 export const taxYearForDate = (date: Date): number => {
-  const year = date.getFullYear();
-  // UK tax year starts 6 April. Before that date = previous tax year.
-  const taxYearStart = new Date(year, 3, 6); // April is month 3 (0-indexed)
-  return date < taxYearStart ? year - 1 : year;
+	const year = date.getFullYear();
+	// WHY: UK tax year starts 6 April because of historical tax collection.
+	// April 6 was originally the start of the "year of account" for tax purposes.
+	// Important: This is NOT a calendar year. Tax years are always Apr 6 → Apr 5.
+	// Example: 2025-06-15 is in tax year 2025 (which runs Apr 6 2025 to Apr 5 2026).
+	const taxYearStart = new Date(year, 3, 6); // April is month 3 (0-indexed)
+	return date < taxYearStart ? year - 1 : year;
 };
 
 export const taxYearLabel = (startYear: number): string =>
@@ -37,6 +40,11 @@ export const currentTaxYearStart = (): number => taxYearForDate(new Date());
 
 // ─── Quarters ────────────────────────────────────────────────────────────────
 
+// WHY: Fixed quarter boundaries (April 6, July 6, Oct 6, Jan 6) are set by HMRC
+// for MTD quarterly reporting. These are NOT calendar quarters, but rather
+// 3-month reporting periods that align with the UK tax year structure.
+// Submission deadlines are approximately 1 month after each quarter ends (HMRC rule).
+// Deadlines do NOT shift for weekends or holidays — the dates are absolute.
 export const quartersForTaxYear = (startYear: number): TaxQuarter[] => {
   const year2 = startYear + 1;
   const ty = taxYearLabel(startYear);
@@ -134,42 +142,49 @@ export const upcomingDeadlines = (lookAheadYears = 2): DeadlineItem[] => {
   for (let offset = 0; offset < lookAheadYears; offset++) {
     const ty = buildTaxYear(startYear + offset);
 
-    // Quarterly deadlines
-    for (const q of ty.quarters) {
-      const days = daysUntil(q.submissionDeadline);
-      if (days > -90) {
-        items.push({
-          type: 'quarterly',
-          label: q.label,
-          deadline: q.submissionDeadline,
-          deadlineFormatted: formatDeadline(q.submissionDeadline),
-          daysUntil: days,
-          status: deadlineStatus(q.submissionDeadline),
-          taxYear: ty.label,
-          quarter: q.quarter,
-        });
-      }
-    }
+	// Quarterly deadlines
+	for (const q of ty.quarters) {
+		const days = daysUntil(q.submissionDeadline);
+		// WHY: Show deadlines up to 90 days past due. This helps users notice if they've
+		// missed a deadline so they can file late (with potential penalties). Hiding old
+		// deadlines creates a false sense that they're not required (they are).
+		if (days > -90) {
+			items.push({
+				type: 'quarterly',
+				label: q.label,
+				deadline: q.submissionDeadline,
+				deadlineFormatted: formatDeadline(q.submissionDeadline),
+				daysUntil: days,
+				status: deadlineStatus(q.submissionDeadline),
+				taxYear: ty.label,
+				quarter: q.quarter,
+			});
+		}
+	}
 
-    // Final declaration — visible from the start of Q4 (Jan 6 the year after start)
-    // For tax year 2025-26 (startYear=2025): Q4 starts Jan 6 2026, final declaration
-    // becomes visible then. Deadline is Jan 31 2027.
-    const today = toISO(new Date());
-    const q4 = ty.quarters[3]; // Q4 starts Jan 6 year after start
-    if (q4 && today >= q4.periodStart) {
-      const fdDays = daysUntil(ty.finalDeclarationDeadline);
-      if (fdDays > -90) {
-        items.push({
-          type: 'final_declaration',
-          label: `Final declaration — ${ty.label}`,
-          deadline: ty.finalDeclarationDeadline,
-          deadlineFormatted: formatDeadline(ty.finalDeclarationDeadline),
-          daysUntil: fdDays,
-          status: deadlineStatus(ty.finalDeclarationDeadline),
-          taxYear: ty.label,
-        });
-      }
-    }
+		// WHY: Final declaration becomes visible and actionable from Q4 start (Jan 6).
+		// Users complete their tax year at April 5, but HMRC requires final return by Jan 31
+		// the next year. We only show this deadline after Q4 begins (Jan 6), giving users
+		// time to finalize numbers after year-end. Before Q4, it's too early.
+		// Why Jan 31? It's 9 months after tax year end (Apr 5) — HMRC standard deadline.
+		const today = toISO(new Date());
+		const q4 = ty.quarters[3]; // Q4 starts Jan 6 year after start
+		if (q4 && today >= q4.periodStart) {
+			const fdDays = daysUntil(ty.finalDeclarationDeadline);
+			// Why -90 lookback? Include overdue deadlines up to 3 months past.
+			// Users may not have filed, so we show them even if late.
+			if (fdDays > -90) {
+				items.push({
+					type: 'final_declaration',
+					label: `Final declaration — ${ty.label}`,
+					deadline: ty.finalDeclarationDeadline,
+					deadlineFormatted: formatDeadline(ty.finalDeclarationDeadline),
+					daysUntil: fdDays,
+					status: deadlineStatus(ty.finalDeclarationDeadline),
+					taxYear: ty.label,
+				});
+			}
+		}
   }
 
   return items.sort((a, b) => a.daysUntil - b.daysUntil);
