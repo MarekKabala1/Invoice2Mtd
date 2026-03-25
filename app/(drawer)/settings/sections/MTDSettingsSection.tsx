@@ -126,8 +126,12 @@ export const MTDSettingsSection: React.FC<MTDSettingsSectionProps> = ({ formStat
 				label='Deadline reminder (days)'
 				value={String(formState.quarterlyTaxReminderDays ?? 7)}
 				onChangeText={(text) => {
-					const num = parseInt(text);
-					if (!isNaN(num)) onFieldChange('quarterlyTaxReminderDays', num);
+					if (text === '') {
+						onFieldChange('quarterlyTaxReminderDays', 7);
+					} else {
+						const num = parseInt(text);
+						if (!isNaN(num)) onFieldChange('quarterlyTaxReminderDays', num);
+					}
 				}}
 				placeholder='7'
 				keyboardType='numeric'

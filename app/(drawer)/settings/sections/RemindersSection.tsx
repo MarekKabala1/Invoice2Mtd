@@ -28,8 +28,12 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ formState, o
 				label='Remind days before due'
 				value={String(formState.reminderDaysBeforeDue ?? 3)}
 				onChangeText={(text) => {
-					const num = parseInt(text);
-					if (!isNaN(num)) onFieldChange('reminderDaysBeforeDue', num);
+					if (text === '') {
+						onFieldChange('reminderDaysBeforeDue', 3);
+					} else {
+						const num = parseInt(text);
+						if (!isNaN(num)) onFieldChange('reminderDaysBeforeDue', num);
+					}
 				}}
 				placeholder='3'
 				keyboardType='decimal-pad'

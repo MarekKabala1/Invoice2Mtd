@@ -27,9 +27,13 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ form
 						label='Start month'
 						value={String(formState.financialYearStartMonth ?? 1)}
 						onChangeText={(text) => {
-							const num = parseInt(text);
-							if (!isNaN(num) && num >= 1 && num <= 12) {
-								onFieldChange('financialYearStartMonth', num);
+							if (text === '') {
+								onFieldChange('financialYearStartMonth', 1);
+							} else {
+								const num = parseInt(text);
+								if (!isNaN(num) && num >= 1 && num <= 12) {
+									onFieldChange('financialYearStartMonth', num);
+								}
 							}
 						}}
 						placeholder='1'
@@ -42,9 +46,13 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ form
 						label='Start day'
 						value={String(formState.financialYearStartDay ?? 1)}
 						onChangeText={(text) => {
-							const num = parseInt(text);
-							if (!isNaN(num) && num >= 1 && num <= 31) {
-								onFieldChange('financialYearStartDay', num);
+							if (text === '') {
+								onFieldChange('financialYearStartDay', 1);
+							} else {
+								const num = parseInt(text);
+								if (!isNaN(num) && num >= 1 && num <= 31) {
+									onFieldChange('financialYearStartDay', num);
+								}
 							}
 						}}
 						placeholder='1'
@@ -61,9 +69,13 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ form
 						label='End month'
 						value={String(formState.financialYearEndMonth ?? 12)}
 						onChangeText={(text) => {
-							const num = parseInt(text);
-							if (!isNaN(num) && num >= 1 && num <= 12) {
-								onFieldChange('financialYearEndMonth', num);
+							if (text === '') {
+								onFieldChange('financialYearEndMonth', 12);
+							} else {
+								const num = parseInt(text);
+								if (!isNaN(num) && num >= 1 && num <= 12) {
+									onFieldChange('financialYearEndMonth', num);
+								}
 							}
 						}}
 						placeholder='12'
@@ -76,9 +88,13 @@ export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ form
 						label='End day'
 						value={String(formState.financialYearEndDay ?? 31)}
 						onChangeText={(text) => {
-							const num = parseInt(text);
-							if (!isNaN(num) && num >= 1 && num <= 31) {
-								onFieldChange('financialYearEndDay', num);
+							if (text === '') {
+								onFieldChange('financialYearEndDay', 31);
+							} else {
+								const num = parseInt(text);
+								if (!isNaN(num) && num >= 1 && num <= 31) {
+									onFieldChange('financialYearEndDay', num);
+								}
 							}
 						}}
 						placeholder='31'

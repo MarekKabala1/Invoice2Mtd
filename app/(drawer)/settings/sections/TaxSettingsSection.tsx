@@ -36,8 +36,12 @@ export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({ formStat
 				label='Default tax rate (%)'
 				value={String(rate)}
 				onChangeText={(text) => {
-					const num = parseFloat(text);
-					if (!isNaN(num)) onFieldChange('defaultVatRate', num);
+					if (text === '') {
+						onFieldChange('defaultVatRate', 20);
+					} else {
+						const num = parseFloat(text);
+						if (!isNaN(num)) onFieldChange('defaultVatRate', num);
+					}
 				}}
 				placeholder='20'
 				keyboardType='decimal-pad'
@@ -99,8 +103,12 @@ export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({ formStat
 				label='Default payment terms (days)'
 				value={String(formState.defaultPaymentTerms ?? 30)}
 				onChangeText={(text) => {
-					const num = parseInt(text);
-					if (!isNaN(num)) onFieldChange('defaultPaymentTerms', num);
+					if (text === '') {
+						onFieldChange('defaultPaymentTerms', 30);
+					} else {
+						const num = parseInt(text);
+						if (!isNaN(num)) onFieldChange('defaultPaymentTerms', num);
+					}
 				}}
 				placeholder='30'
 				keyboardType='numeric'

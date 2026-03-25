@@ -41,8 +41,12 @@ export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({ 
 				label='Next invoice number'
 				value={String(invoiceNextNum)}
 				onChangeText={(text) => {
-					const num = parseInt(text);
-					if (!isNaN(num)) onFieldChange('nextInvoiceNumber', num);
+					if (text === '') {
+						onFieldChange('nextInvoiceNumber', 1);
+					} else {
+						const num = parseInt(text);
+						if (!isNaN(num)) onFieldChange('nextInvoiceNumber', num);
+					}
 				}}
 				placeholder='1'
 				keyboardType='numeric'
@@ -65,8 +69,12 @@ export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({ 
 				label='Next estimate number'
 				value={String(estimateNextNum)}
 				onChangeText={(text) => {
-					const num = parseInt(text);
-					if (!isNaN(num)) onFieldChange('nextEstimateNumber', num);
+					if (text === '') {
+						onFieldChange('nextEstimateNumber', 1);
+					} else {
+						const num = parseInt(text);
+						if (!isNaN(num)) onFieldChange('nextEstimateNumber', num);
+					}
 				}}
 				placeholder='1'
 				keyboardType='numeric'
