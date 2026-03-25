@@ -13,7 +13,7 @@ import { AppSettingsType } from '@/db/zodSchema';
 
 interface InvoiceSettingsSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const InvoiceSettingsSection: React.FC<InvoiceSettingsSectionProps> = ({ formState, onFieldChange }) => {

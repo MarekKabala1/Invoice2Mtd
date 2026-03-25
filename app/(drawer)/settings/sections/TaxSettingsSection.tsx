@@ -14,7 +14,7 @@ import { formatGBP } from '@/utils/mtdTaxCalc';
 
 interface TaxSettingsSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({ formState, onFieldChange }) => {

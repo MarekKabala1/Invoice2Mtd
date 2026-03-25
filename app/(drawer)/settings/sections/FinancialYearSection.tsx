@@ -12,7 +12,7 @@ import { AppSettingsType } from '@/db/zodSchema';
 
 interface FinancialYearSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const FinancialYearSection: React.FC<FinancialYearSectionProps> = ({ formState, onFieldChange }) => {

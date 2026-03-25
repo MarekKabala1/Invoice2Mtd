@@ -23,13 +23,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { getAllUsers } from '@/utils/settingsOperations';
-import { AppSettingsType } from '@/db/zodSchema';
+import { AppSettingsType, appSettingsSchema } from '@/db/zodSchema';
 import { User } from '@/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
-import { applyDefaults } from './settings/utils';
+import { getChangedFields } from '@/utils/diffSettings';
 import {
-	ProfileSection,
-	BankDetailsSection,
 	TaxSettingsSection,
 	InvoiceSettingsSection,
 	MTDSettingsSection,
@@ -39,9 +37,10 @@ import {
 	RemindersSection,
 	AboutSection,
 } from './settings/sections';
-import { parseTaxRates, serializeTaxRates } from '@/utils/mtdTaxCalc';
 
 type UserType = InferSelectModel<typeof User>;
+
+const SETTINGS_KEYS = Object.keys(appSettingsSchema.shape) as (keyof AppSettingsType)[];
 
 export default function SettingsScreen() {
 	const { colors, isDark } = useTheme();
@@ -53,9 +52,6 @@ export default function SettingsScreen() {
 	const [loadingUsers, setLoadingUsers] = useState(true);
 	const [showUserPicker, setShowUserPicker] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
-
-	// Compute derived state with defaults applied for safety
-	const safeSettings = useMemo(() => applyDefaults(settings), [settings]);
 
 	// Check for unsaved changes
 	const hasChanges = useMemo(() => {
@@ -70,34 +66,7 @@ export default function SettingsScreen() {
 	// Initialize form state when settings change
 	useEffect(() => {
 		if (settings) {
-			setFormState({
-				defaultVatRate: settings.defaultVatRate,
-				taxScheme: settings.taxScheme,
-				applyTaxByDefault: settings.applyTaxByDefault,
-				defaultPaymentTerms: settings.defaultPaymentTerms,
-				invoicePrefix: settings.invoicePrefix,
-				nextInvoiceNumber: settings.nextInvoiceNumber,
-				estimatePrefix: settings.estimatePrefix,
-				nextEstimateNumber: settings.nextEstimateNumber,
-				quarterlyTaxEnabled: settings.quarterlyTaxEnabled,
-				autoCalculateQuarters: settings.autoCalculateQuarters,
-				quarterlyTaxReminderDays: settings.quarterlyTaxReminderDays,
-				quarterStartMonths: settings.quarterStartMonths,
-				reminderEmailEnabled: settings.reminderEmailEnabled,
-				reminderDaysBeforeDue: settings.reminderDaysBeforeDue,
-				currency: settings.currency,
-				dateFormat: settings.dateFormat,
-				numberFormat: settings.numberFormat,
-				language: settings.language,
-				theme: settings.theme,
-				logoUrl: settings.logoUrl,
-				defaultNotes: settings.defaultNotes,
-				financialYearStartMonth: settings.financialYearStartMonth,
-				financialYearStartDay: settings.financialYearStartDay,
-				financialYearEndMonth: settings.financialYearEndMonth,
-				financialYearEndDay: settings.financialYearEndDay,
-				taxRatesJson: settings.taxRatesJson,
-			});
+			setFormState({ ...settings });
 		}
 	}, [settings]);
 
@@ -109,7 +78,7 @@ export default function SettingsScreen() {
 			if (allUsers.length > 0 && !selectedUserId) {
 				await loadUserSettings(allUsers[0].id);
 			}
-		} catch (err) {
+		} catch {
 			Alert.alert('Error', 'Failed to load users');
 		} finally {
 			setLoadingUsers(false);
@@ -135,56 +104,24 @@ export default function SettingsScreen() {
 		}
 	};
 
-	// WHY: Batch all changes into single database update to minimize writes
+	// WHY: Batch all changes into single database update to minimize writes.
+	// Uses getChangedFields to compute only the fields that actually changed.
 	const handleSave = async () => {
 		if (!settings) return;
 
 		setIsSaving(true);
 		try {
-			const updatePayload: Partial<AppSettingsType> = {};
-
-			// Only include fields that changed
-			if (formState.defaultVatRate !== settings.defaultVatRate) updatePayload.defaultVatRate = formState.defaultVatRate;
-			if (formState.taxScheme !== settings.taxScheme) updatePayload.taxScheme = formState.taxScheme;
-			if (formState.applyTaxByDefault !== settings.applyTaxByDefault) updatePayload.applyTaxByDefault = formState.applyTaxByDefault;
-			if (formState.defaultPaymentTerms !== settings.defaultPaymentTerms) updatePayload.defaultPaymentTerms = formState.defaultPaymentTerms;
-			if (formState.invoicePrefix !== settings.invoicePrefix) updatePayload.invoicePrefix = formState.invoicePrefix;
-			if (formState.nextInvoiceNumber !== settings.nextInvoiceNumber) updatePayload.nextInvoiceNumber = formState.nextInvoiceNumber;
-			if (formState.estimatePrefix !== settings.estimatePrefix) updatePayload.estimatePrefix = formState.estimatePrefix;
-			if (formState.nextEstimateNumber !== settings.nextEstimateNumber) updatePayload.nextEstimateNumber = formState.nextEstimateNumber;
-			if (formState.quarterlyTaxEnabled !== settings.quarterlyTaxEnabled) updatePayload.quarterlyTaxEnabled = formState.quarterlyTaxEnabled;
-			if (formState.autoCalculateQuarters !== settings.autoCalculateQuarters) updatePayload.autoCalculateQuarters = formState.autoCalculateQuarters;
-			if (formState.quarterlyTaxReminderDays !== settings.quarterlyTaxReminderDays) updatePayload.quarterlyTaxReminderDays = formState.quarterlyTaxReminderDays;
-			if (formState.quarterStartMonths !== settings.quarterStartMonths) updatePayload.quarterStartMonths = formState.quarterStartMonths;
-			if (formState.reminderEmailEnabled !== settings.reminderEmailEnabled) updatePayload.reminderEmailEnabled = formState.reminderEmailEnabled;
-			if (formState.reminderDaysBeforeDue !== settings.reminderDaysBeforeDue) updatePayload.reminderDaysBeforeDue = formState.reminderDaysBeforeDue;
-			if (formState.currency !== settings.currency) updatePayload.currency = formState.currency;
-			if (formState.dateFormat !== settings.dateFormat) updatePayload.dateFormat = formState.dateFormat;
-			if (formState.numberFormat !== settings.numberFormat) updatePayload.numberFormat = formState.numberFormat;
-			if (formState.language !== settings.language) updatePayload.language = formState.language;
-			if (formState.theme !== settings.theme) updatePayload.theme = formState.theme;
-			if (formState.logoUrl !== settings.logoUrl) updatePayload.logoUrl = formState.logoUrl;
-			if (formState.defaultNotes !== settings.defaultNotes) updatePayload.defaultNotes = formState.defaultNotes;
-			if (formState.financialYearStartMonth !== settings.financialYearStartMonth) updatePayload.financialYearStartMonth = formState.financialYearStartMonth;
-			if (formState.financialYearStartDay !== settings.financialYearStartDay) updatePayload.financialYearStartDay = formState.financialYearStartDay;
-			if (formState.financialYearEndMonth !== settings.financialYearEndMonth) updatePayload.financialYearEndMonth = formState.financialYearEndMonth;
-			if (formState.financialYearEndDay !== settings.financialYearEndDay) updatePayload.financialYearEndDay = formState.financialYearEndDay;
-			if (formState.taxRatesJson !== settings.taxRatesJson) updatePayload.taxRatesJson = formState.taxRatesJson;
+			const updatePayload = getChangedFields<AppSettingsType>(formState, settings, SETTINGS_KEYS);
 
 			if (Object.keys(updatePayload).length > 0) {
 				await update(updatePayload);
-
-				// WHY: Merge updates into formState immediately to clear unsaved changes
-				// while context updates settings asynchronously
-				const mergedState = { ...formState, ...updatePayload };
-				setFormState(mergedState);
-
-				Alert.alert('✅ Success', 'Your settings have been saved');
+				setFormState((prev) => ({ ...prev, ...updatePayload }));
+				Alert.alert('Success', 'Your settings have been saved');
 			} else {
-				Alert.alert('ℹ️ No Changes', 'No settings were modified');
+				Alert.alert('No Changes', 'No settings were modified');
 			}
-		} catch (err) {
-			Alert.alert('❌ Error', 'Failed to save settings. Please try again.');
+		} catch {
+			Alert.alert('Error', 'Failed to save settings. Please try again.');
 		} finally {
 			setIsSaving(false);
 		}
@@ -197,9 +134,8 @@ export default function SettingsScreen() {
 				{
 					text: 'Discard',
 					onPress: () => {
-						// Reset form state to database values
 						if (settings) {
-							setFormState(settings);
+							setFormState({ ...settings });
 						}
 					},
 					style: 'destructive',
@@ -208,7 +144,7 @@ export default function SettingsScreen() {
 		}
 	};
 
-	const handleFieldChange = (field: keyof AppSettingsType, value: any) => {
+	const handleFieldChange = (field: keyof AppSettingsType, value: string | number | boolean | undefined) => {
 		setFormState((prev) => ({ ...prev, [field]: value }));
 	};
 
@@ -276,9 +212,7 @@ export default function SettingsScreen() {
 						</View>
 					</Modal>
 
-					{/* All settings sections */}
-					{/* <ProfileSection selectedUserId={selectedUserId} />
-					<BankDetailsSection selectedUserId={selectedUserId} /> */}
+					{/* Settings sections */}
 					<TaxSettingsSection formState={formState} onFieldChange={handleFieldChange} />
 					<InvoiceSettingsSection formState={formState} onFieldChange={handleFieldChange} />
 					<MTDSettingsSection formState={formState} onFieldChange={handleFieldChange} />

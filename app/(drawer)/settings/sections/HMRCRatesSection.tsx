@@ -16,7 +16,7 @@ import { RATES_2025_26, parseTaxRates, serializeTaxRates } from '@/utils/mtdTaxC
 
 interface HMRCRatesSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const HMRCRatesSection: React.FC<HMRCRatesSectionProps> = ({ formState, onFieldChange }) => {

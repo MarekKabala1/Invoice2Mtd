@@ -17,7 +17,7 @@ import { AppSettingsType } from '@/db/zodSchema';
 
 interface MTDSettingsSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const MTDSettingsSection: React.FC<MTDSettingsSectionProps> = ({ formState, onFieldChange }) => {

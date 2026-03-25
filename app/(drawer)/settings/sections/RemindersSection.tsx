@@ -10,7 +10,7 @@ import { AppSettingsType } from '@/db/zodSchema';
 
 interface RemindersSectionProps {
 	formState: Partial<AppSettingsType>;
-	onFieldChange: (field: keyof AppSettingsType, value: any) => void;
+	onFieldChange: (field: keyof AppSettingsType, value: string | number | boolean | undefined) => void;
 }
 
 export const RemindersSection: React.FC<RemindersSectionProps> = ({ formState, onFieldChange }) => {
