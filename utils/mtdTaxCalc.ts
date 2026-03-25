@@ -59,95 +59,95 @@ export function serializeTaxRates(rates: TaxRates): string {
 }
 
 export const estimateTax = (
-	grossIncome: number,
-	totalAllowableExpenses: number,
-	rates: TaxRates = RATES_2025_26
+  grossIncome: number,
+  totalAllowableExpenses: number,
+  rates: TaxRates = RATES_2025_26
 ): TaxEstimate => {
-	// WHY: Net profit cannot be negative. If expenses exceed income, profit is 0.
-	// HMRC cannot tax a loss in this context — loss relief rules are complex and apply
-	// across multiple years, so we simplify to 0 for quarterly estimates.
-	const taxableProfit = Math.max(0, grossIncome - totalAllowableExpenses);
+  // WHY: Net profit cannot be negative. If expenses exceed income, profit is 0.
+  // HMRC cannot tax a loss in this context — loss relief rules are complex and apply
+  // across multiple years, so we simplify to 0 for quarterly estimates.
+  const taxableProfit = Math.max(0, grossIncome - totalAllowableExpenses);
 
-	// WHY: Personal allowance reduces taxable income pound-for-pound.
-	// Limited to actual profit — can't get a tax refund for unused allowance.
-	const personalAllowanceUsed = Math.min(rates.personalAllowance, taxableProfit);
-	const taxableAfterAllowance = Math.max(0, taxableProfit - personalAllowanceUsed);
+  // WHY: Personal allowance reduces taxable income pound-for-pound.
+  // Limited to actual profit — can't get a tax refund for unused allowance.
+  const personalAllowanceUsed = Math.min(rates.personalAllowance, taxableProfit);
+  const taxableAfterAllowance = Math.max(0, taxableProfit - personalAllowanceUsed);
 
-	// WHY: Income tax bands apply in order: basic (20%), higher (40%), additional (45%).
-	// Each band only applies to income within its range, calculated as:
-	// amount in band = min(remaining income, band limit - previous limit) * rate
+  // WHY: Income tax bands apply in order: basic (20%), higher (40%), additional (45%).
+  // Each band only applies to income within its range, calculated as:
+  // amount in band = min(remaining income, band limit - previous limit) * rate
 
-	// Basic rate: £0 to £50,270 at 20%
-	// Math.min(...) prevents counting income twice if it's also in higher band.
-	const basicRateTax = Math.min(
-		taxableAfterAllowance,
-		rates.basicRateThreshold - rates.personalAllowance
-	) * rates.basicRate;
+  // Basic rate: £0 to £50,270 at 20%
+  // Math.min(...) prevents counting income twice if it's also in higher band.
+  const basicRateTax = Math.min(
+    taxableAfterAllowance,
+    rates.basicRateThreshold - rates.personalAllowance
+  ) * rates.basicRate;
 
-	// Higher rate: £50,270 to £125,140 at 40%
-	// Math.max(0, ...) ensures we don't apply negative income amounts.
-	const higherRateTax = Math.min(
-		Math.max(0, taxableAfterAllowance - (rates.basicRateThreshold - rates.personalAllowance)),
-		rates.higherRateThreshold - rates.basicRateThreshold
-	) * rates.higherRate;
+  // Higher rate: £50,270 to £125,140 at 40%
+  // Math.max(0, ...) ensures we don't apply negative income amounts.
+  const higherRateTax = Math.min(
+    Math.max(0, taxableAfterAllowance - (rates.basicRateThreshold - rates.personalAllowance)),
+    rates.higherRateThreshold - rates.basicRateThreshold
+  ) * rates.higherRate;
 
-	// Additional rate: above £125,140 at 45%
-	const additionalRateTax = Math.max(
-		0,
-		taxableAfterAllowance - (rates.higherRateThreshold - rates.personalAllowance)
-	) * rates.additionalRate;
+  // Additional rate: above £125,140 at 45%
+  const additionalRateTax = Math.max(
+    0,
+    taxableAfterAllowance - (rates.higherRateThreshold - rates.personalAllowance)
+  ) * rates.additionalRate;
 
-	const totalIncomeTax = basicRateTax + higherRateTax + additionalRateTax;
+  const totalIncomeTax = basicRateTax + higherRateTax + additionalRateTax;
 
-	// WHY: Class 4 NI is profit-based (self-employed tax), not income-based.
-	// It has two bands: lower (6% on £12,570–£50,270) and upper (2% on income above £50,270).
-	// Different from income tax — uses profit directly (no personal allowance deduction).
+  // WHY: Class 4 NI is profit-based (self-employed tax), not income-based.
+  // It has two bands: lower (6% on £12,570–£50,270) and upper (2% on income above £50,270).
+  // Different from income tax — uses profit directly (no personal allowance deduction).
 
-	// Class 4 NI — lower band (6% between lower and upper limits)
-	const ni4LowerBand = Math.max(
-		0,
-		Math.min(taxableProfit, rates.ni4UpperProfitsLimit) - rates.ni4LowerProfitsLimit
-	) * rates.ni4LowerRate;
+  // Class 4 NI — lower band (6% between lower and upper limits)
+  const ni4LowerBand = Math.max(
+    0,
+    Math.min(taxableProfit, rates.ni4UpperProfitsLimit) - rates.ni4LowerProfitsLimit
+  ) * rates.ni4LowerRate;
 
-	// Class 4 NI — upper band (2% on profits above upper limit)
-	const ni4UpperBand = Math.max(0, taxableProfit - rates.ni4UpperProfitsLimit) * rates.ni4UpperRate;
+  // Class 4 NI — upper band (2% on profits above upper limit)
+  const ni4UpperBand = Math.max(0, taxableProfit - rates.ni4UpperProfitsLimit) * rates.ni4UpperRate;
 
-	const totalClass4NI = ni4LowerBand + ni4UpperBand;
+  const totalClass4NI = ni4LowerBand + ni4UpperBand;
 
-	// WHY: Class 2 NI is a fixed weekly pay (£3.45/week = £179.40/year) if profits ≥ £12,570.
-	// Called "small earnings exception" — no NI if profit below this threshold.
-	// Calculated as weekly rate × 52 weeks, even though paid quarterly to HMRC.
-	const class2NI = taxableProfit >= rates.ni2SmallEarningsException
-		? rates.ni2WeeklyRate * 52
-		: 0;
+  // WHY: Class 2 NI is a fixed weekly pay (£3.45/week = £179.40/year) if profits ≥ £12,570.
+  // Called "small earnings exception" — no NI if profit below this threshold.
+  // Calculated as weekly rate × 52 weeks, even though paid quarterly to HMRC.
+  const class2NI = taxableProfit >= rates.ni2SmallEarningsException
+    ? rates.ni2WeeklyRate * 52
+    : 0;
 
-	const totalNI = totalClass4NI + class2NI;
-	const totalTaxAndNI = totalIncomeTax + totalNI;
-	const effectiveRate = grossIncome > 0 ? (totalTaxAndNI / grossIncome) * 100 : 0;
+  const totalNI = totalClass4NI + class2NI;
+  const totalTaxAndNI = totalIncomeTax + totalNI;
+  const effectiveRate = grossIncome > 0 ? (totalTaxAndNI / grossIncome) * 100 : 0;
 
-	// WHY: Quarterly set-aside is simple: divide annual estimate by 4.
-	// Users often set aside money each quarter to avoid a tax bill shock at year-end.
-	const quarterlySetAside = totalTaxAndNI / 4;
+  // WHY: Quarterly set-aside is simple: divide annual estimate by 4.
+  // Users often set aside money each quarter to avoid a tax bill shock at year-end.
+  const quarterlySetAside = totalTaxAndNI / 4;
 
-	return {
-		grossIncome,
-		totalAllowableExpenses,
-		taxableProfit,
-		personalAllowanceUsed,
-		taxableAfterAllowance,
-		basicRateTax,
-		higherRateTax,
-		additionalRateTax,
-		totalIncomeTax,
-		ni4LowerBand,
-		ni4UpperBand,
-		totalClass4NI,
-		class2NI,
-		totalNI,
-		totalTaxAndNI,
-		effectiveRate,
-		quarterlySetAside,
-	};
+  return {
+    grossIncome,
+    totalAllowableExpenses,
+    taxableProfit,
+    personalAllowanceUsed,
+    taxableAfterAllowance,
+    basicRateTax,
+    higherRateTax,
+    additionalRateTax,
+    totalIncomeTax,
+    ni4LowerBand,
+    ni4UpperBand,
+    totalClass4NI,
+    class2NI,
+    totalNI,
+    totalTaxAndNI,
+    effectiveRate,
+    quarterlySetAside,
+  };
 };
 
 export const projectFullYearTax = (
