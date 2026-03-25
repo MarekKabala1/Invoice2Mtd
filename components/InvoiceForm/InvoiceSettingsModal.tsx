@@ -345,8 +345,8 @@ export default function InvoiceSettingsModal({
 							onPress={handleEditInvoice}
 							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
 							style={{
-								backgroundColor: isDark ? '#4f46e5' : '#4338ca',
-								shadowColor: '#4f46e5',
+								backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+								shadowColor: '#2563eb',
 								shadowOffset: { width: 0, height: 2 },
 								shadowOpacity: 0.3,
 								shadowRadius: 4,
@@ -360,8 +360,8 @@ export default function InvoiceSettingsModal({
 							onPress={handleSavePdf}
 							className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
 							style={{
-								backgroundColor: isDark ? '#7c3aed' : '#6d28d9',
-								shadowColor: '#7c3aed',
+								backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+								shadowColor: '#2563eb',
 								shadowOffset: { width: 0, height: 2 },
 								shadowOpacity: 0.3,
 								shadowRadius: 4,
@@ -438,7 +438,7 @@ export default function InvoiceSettingsModal({
 									className='flex-row items-center p-3 rounded-lg mb-2'
 									style={{
 										backgroundColor: selectedIncomeCategory === cat.id
-											? isDark ? '#4f46e5' : '#4338ca'
+											? isDark ? '#2563eb' : '#1d4ed8'
 											: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
 									}}
 								>

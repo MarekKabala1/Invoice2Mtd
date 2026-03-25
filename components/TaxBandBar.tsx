@@ -59,7 +59,7 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({ netProfit, totalTurnover
 				<Rect x={0} y={0} width={Math.min(paWidth, barWidth)} height={barHeight} rx={barHeight / 2} ry={barHeight / 2} fill='#39AD6A' />
 
 				{/* Basic rate segment (blue) */}
-				{basicWidth > 0 && <Rect x={paWidth} y={0} width={Math.min(basicWidth, barWidth - paWidth)} height={barHeight} fill={isDark ? '#a5b4fc' : '#4f46e5'} />}
+				{basicWidth > 0 && <Rect x={paWidth} y={0} width={Math.min(basicWidth, barWidth - paWidth)} height={barHeight} fill={isDark ? '#93c5fd' : '#2563eb'} />}
 
 				{/* Higher rate segment (amber) */}
 				{higherWidth > 0 && (
@@ -97,7 +97,7 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({ netProfit, totalTurnover
 							width: 12,
 							height: 12,
 							borderRadius: 2,
-							backgroundColor: isDark ? '#a5b4fc' : '#4f46e5',
+							backgroundColor: isDark ? '#93c5fd' : '#2563eb',
 						}}
 					/>
 					<Text className='text-xs' style={{ color: colors.noActive }}>

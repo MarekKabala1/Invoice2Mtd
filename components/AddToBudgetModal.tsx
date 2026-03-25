@@ -73,7 +73,7 @@ const AddToBudgetModal: React.FC<AddToBudgetModalProps> = ({
 									className='px-4 py-2.5 rounded-lg'
 									style={{
 										backgroundColor: isSelected
-											? isDark ? '#4f46e5' : '#4338ca'
+											? isDark ? '#2563eb' : '#1d4ed8'
 											: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
 									}}
 								>
@@ -109,7 +109,7 @@ const AddToBudgetModal: React.FC<AddToBudgetModalProps> = ({
 							className='flex-1 py-3 rounded-lg items-center'
 							style={{
 								backgroundColor: selectedCategory
-									? isDark ? '#4f46e5' : '#4338ca'
+									? isDark ? '#2563eb' : '#1d4ed8'
 									: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
 								opacity: selectedCategory ? 1 : 0.5,
 							}}

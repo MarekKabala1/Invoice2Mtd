@@ -263,7 +263,7 @@ export default function MtdAnnualEstimateScreen() {
 
 			{/* Summary card — the hero */}
 			{taxEstimate && (
-				<View className='rounded-lg p-6 mb-4' style={{ backgroundColor: isDark ? '#312e81' : '#4338ca' }}>
+				<View className='rounded-lg p-6 mb-4' style={{ backgroundColor: isDark ? '#1e3a8a' : '#1d4ed8' }}>
 					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: 'rgba(255,255,255,0.7)' }}>
 						Annual Summary
 					</Text>
@@ -300,7 +300,7 @@ export default function MtdAnnualEstimateScreen() {
 					ESTIMATES ONLY — not official HMRC calculations. Update rates each April. Consult an accountant for actual tax filing.
 				</Text>
 				<TouchableOpacity className='mt-2' onPress={() => Linking.openURL('https://www.gov.uk/government/collections/making-tax-digital-for-income-tax')}>
-					<Text className='text-xs font-bold' style={{ color: isDark ? '#a5b4fc' : '#4f46e5' }}>
+					<Text className='text-xs font-bold' style={{ color: isDark ? '#93c5fd' : '#2563eb' }}>
 						GOV.UK — Making Tax Digital
 					</Text>
 				</TouchableOpacity>

@@ -304,7 +304,7 @@ export default function InvoiceList() {
 				<View className='flex-row justify-between items-center'>
 					<View className='flex-1'>
 						<View className='flex-row items-center'>
-							<Text className='text-xl font-bold' style={{ color: isDark ? '#a5b4fc' : '#486581' }}>
+							<Text className='text-xl font-bold' style={{ color: isDark ? '#93c5fd' : '#486581' }}>
 								{section.title}
 							</Text>
 							{section.hasUnpaid && (

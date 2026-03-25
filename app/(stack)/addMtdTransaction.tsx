@@ -216,7 +216,7 @@ export default function AddMtdTransactionScreen() {
             >
               <Text
                 className="text-xs"
-                style={{ color: isDark ? '#a5b4fc' : '#4f46e5' }}
+                style={{ color: isDark ? '#93c5fd' : '#2563eb' }}
               >
                 This falls in Q{quarterInfo.quarter} — {quarterInfo.label}
               </Text>
@@ -397,7 +397,7 @@ export default function AddMtdTransactionScreen() {
           style={{
             backgroundColor: isDark ? colors.nav : colors.card,
             borderWidth: 1,
-            borderColor: isDark ? '#4f46e5' : '#4338ca',
+            borderColor: isDark ? '#2563eb' : '#1d4ed8',
           }}
           onPress={() => handleScan()}
           disabled={isScanning}
@@ -405,11 +405,11 @@ export default function AddMtdTransactionScreen() {
           <Ionicons
             name={isScanning ? 'hourglass-outline' : 'scan-outline'}
             size={20}
-            color={isDark ? '#a5b4fc' : '#4f46e5'}
+            color={isDark ? '#93c5fd' : '#2563eb'}
           />
           <Text
             className="font-bold text-sm"
-            style={{ color: isDark ? '#a5b4fc' : '#4f46e5' }}
+            style={{ color: isDark ? '#93c5fd' : '#2563eb' }}
           >
             {isScanning ? 'Scanning...' : scannedData ? 'Receipt scanned' : 'Scan Receipt'}
           </Text>
@@ -419,7 +419,7 @@ export default function AddMtdTransactionScreen() {
         <TouchableOpacity
           className="p-4 rounded-lg mt-2"
           style={{
-            backgroundColor: isDark ? '#4f46e5' : '#4338ca',
+            backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
             opacity: isLoading ? 0.6 : 1,
           }}
           onPress={handleSubmit(onSubmit)}

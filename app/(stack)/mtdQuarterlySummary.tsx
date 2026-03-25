@@ -152,7 +152,7 @@ export default function MtdQuarterlySummaryScreen() {
               className="flex-1 py-2 rounded-lg items-center"
               style={{
                 backgroundColor: isSelected
-                  ? isDark ? '#4f46e5' : '#4338ca'
+                  ? isDark ? '#2563eb' : '#1d4ed8'
                   : isDark ? colors.nav : colors.card,
               }}
               onPress={() => setSelectedQuarter(q.num)}
@@ -194,7 +194,7 @@ export default function MtdQuarterlySummaryScreen() {
           </Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-lg"
-            style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+            style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
             onPress={() => router.push('/(stack)/addMtdTransaction')}
           >
             <Text className="text-white font-bold">Add Record</Text>
@@ -239,12 +239,12 @@ export default function MtdQuarterlySummaryScreen() {
             className="rounded-lg p-4 mb-4 border-l-4"
             style={{
               backgroundColor: isDark ? colors.nav : colors.card,
-              borderLeftColor: isDark ? '#a5b4fc' : '#4f46e5',
+              borderLeftColor: isDark ? '#93c5fd' : '#2563eb',
             }}
           >
             <Text
               className="text-xs font-bold uppercase tracking-widest mb-2"
-              style={{ color: isDark ? '#a5b4fc' : '#4f46e5' }}
+              style={{ color: isDark ? '#93c5fd' : '#2563eb' }}
             >
               Allowable Expenses
             </Text>
@@ -360,7 +360,7 @@ export default function MtdQuarterlySummaryScreen() {
           {/* Add record button */}
           <TouchableOpacity
             className="p-4 rounded-lg items-center"
-            style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+            style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
             onPress={() => router.push('/(stack)/addMtdTransaction')}
           >
             <Text className="text-white font-bold">Add Record to Q{selectedQuarter}</Text>

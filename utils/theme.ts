@@ -62,7 +62,7 @@ export const darkColors = {
   primary: 'rgb(15, 23, 42)',
   text: 'rgb(241, 245, 249)',
   textOpacity: 'rgba(241, 245, 249, 0.5)',
-  secondary: 'rgb(99, 102, 241)',
+  secondary: 'rgb(59, 130, 246)',
   card: 'rgb(30, 41, 59)',
   nav: 'rgb(30, 41, 59)',
   noActive: 'rgb(148, 163, 184)',

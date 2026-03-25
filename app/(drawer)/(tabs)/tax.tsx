@@ -143,7 +143,7 @@ export default function TaxScreen() {
 					</View>
 					<TouchableOpacity
 						className='mt-6 px-8 py-4 rounded-lg'
-						style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+						style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
 						onPress={() => update({ quarterlyTaxEnabled: true })}>
 						<Text className='text-white font-bold text-base'>Enable MTD</Text>
 					</TouchableOpacity>
@@ -156,7 +156,7 @@ export default function TaxScreen() {
 	return (
 		<ScrollView className='flex-1' style={{ backgroundColor: colors.primary }}>
 			{/* Header — mtd-accent-600 full-bleed */}
-			<View className='px-5 pt-6 pb-8' style={{ backgroundColor: isDark ? '#312e81' : '#4f46e5' }}>
+			<View className='px-5 pt-6 pb-8' style={{ backgroundColor: isDark ? '#1e3a8a' : '#2563eb' }}>
 				<View className='flex-row items-center justify-between'>
 					<Text className='text-2xl font-bold text-white'>Tax</Text>
 					<View className='px-3 py-1 rounded-full' style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.15)' }}>
@@ -279,7 +279,7 @@ export default function TaxScreen() {
 								className='w-[47%] rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/addMtdTransaction')}>
-								<Ionicons name='add-circle-outline' size={32} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='add-circle-outline' size={32} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-sm font-bold mt-2' style={{ color: colors.text }}>
 									Add Record
 								</Text>
@@ -289,7 +289,7 @@ export default function TaxScreen() {
 								className='w-[47%] rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/mtdQuarterlySummary')}>
-								<Ionicons name='bar-chart-outline' size={32} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='bar-chart-outline' size={32} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-sm font-bold mt-2' style={{ color: colors.text }}>
 									Quarter Detail
 								</Text>
@@ -299,7 +299,7 @@ export default function TaxScreen() {
 								className='w-[47%] rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/mtdAnnualEstimate')}>
-								<Ionicons name='calculator-outline' size={32} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='calculator-outline' size={32} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-sm font-bold mt-2' style={{ color: colors.text }}>
 									Annual Estimate
 								</Text>
@@ -309,7 +309,7 @@ export default function TaxScreen() {
 								className='w-[47%] rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/mtdDeadlines')}>
-								<Ionicons name='calendar-outline' size={32} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='calendar-outline' size={32} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-sm font-bold mt-2' style={{ color: colors.text }}>
 									All Deadlines
 								</Text>

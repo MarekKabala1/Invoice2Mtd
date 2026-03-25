@@ -71,7 +71,7 @@ function DeadlineCard({
           <Text className="font-bold text-base" style={{ color: isDark ? '#F3EDE2' : '#1a1a2e' }}>
             {item.label}
           </Text>
-          <Text className="text-sm mt-1" style={{ color: isDark ? '#a5b4fc' : '#64748b' }}>
+          <Text className="text-sm mt-1" style={{ color: isDark ? '#93c5fd' : '#64748b' }}>
             {item.deadlineFormatted}
           </Text>
         </View>
@@ -179,7 +179,7 @@ export default function MtdDeadlinesScreen() {
           {/* End of year — final declaration */}
           {endOfYear.length > 0 && (
             <View>
-              <SectionHeader title="End of Year Declaration" color={isDark ? '#a5b4fc' : '#6d28d9'} />
+              <SectionHeader title="End of Year Declaration" color={isDark ? '#93c5fd' : '#1d4ed8'} />
               {endOfYear.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
@@ -194,7 +194,7 @@ export default function MtdDeadlinesScreen() {
           {/* Upcoming — future quarters only */}
           {upcoming.length > 0 && (
             <View>
-              <SectionHeader title="Upcoming" color={isDark ? '#a5b4fc' : '#4f46e5'} />
+              <SectionHeader title="Upcoming" color={isDark ? '#93c5fd' : '#2563eb'} />
               {upcoming.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}

@@ -101,8 +101,8 @@ const TransactionList = ({ budget }: { budget: BudgetDataType }) => {
 					onPress={() => router.push('/(stack)/addTransaction')}
 					className='flex-row gap-1 items-center py-2 px-3 rounded-lg'
 					style={{
-						backgroundColor: isDark ? '#4f46e5' : '#4338ca',
-						shadowColor: '#4f46e5',
+						backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+						shadowColor: '#2563eb',
 						shadowOffset: { width: 0, height: 2 },
 						shadowOpacity: 0.3,
 						shadowRadius: 4,

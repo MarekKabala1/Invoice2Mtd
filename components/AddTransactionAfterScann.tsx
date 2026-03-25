@@ -148,7 +148,7 @@ const AddTransactionAfterScan = ({ closeModal }: AddTransactionAfterScanProps) =
 										className='mr-2 px-4 py-2.5 rounded-lg'
 										style={{
 											backgroundColor: value === cat.id
-												? isDark ? '#4f46e5' : '#4338ca'
+												? isDark ? '#2563eb' : '#1d4ed8'
 												: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
 										}}
 									>
@@ -245,7 +245,7 @@ const AddTransactionAfterScan = ({ closeModal }: AddTransactionAfterScanProps) =
 						<TouchableOpacity
 							onPress={handleSubmit(addDataToBudget)}
 							className='flex-1 py-3 rounded-lg items-center'
-							style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+							style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
 						>
 							<Text className='font-bold text-white'>Add Transaction</Text>
 						</TouchableOpacity>

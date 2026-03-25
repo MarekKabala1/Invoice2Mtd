@@ -245,7 +245,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 										className='mr-2 px-4 py-2.5 rounded-lg'
 										style={{
 											backgroundColor: value === category.id
-												? isDark ? '#4f46e5' : '#4338ca'
+												? isDark ? '#2563eb' : '#1d4ed8'
 												: isDark ? colors.nav : colors.card,
 										}}
 									>
@@ -282,7 +282,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 							onValueChange={setAlsoAddToMtd}
 							trackColor={{
 								false: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-								true: '#4f46e5',
+								true: '#2563eb',
 							}}
 							thumbColor={alsoAddToMtd ? 'white' : isDark ? '#F3EDE2' : '#8B5E3C'}
 						/>
@@ -293,7 +293,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isUpdateMode = false,
 				<TouchableOpacity
 					onPress={handleSubmit(onSubmit)}
 					className='p-4 rounded-lg mt-2'
-					style={{ backgroundColor: isDark ? '#4f46e5' : '#4338ca' }}
+					style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
 				>
 					<Text className='text-center font-bold text-white text-base'>
 						{isUpdateMode ? 'Update Transaction' : 'Add Transaction'}

@@ -92,7 +92,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(drawer)/(tabs)/invoices')}>
-								<Ionicons name='document-text-outline' size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='document-text-outline' size={24} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-xs mt-2' style={{ color: colors.noActive }}>
 									Unpaid invoices
 								</Text>
@@ -105,7 +105,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(drawer)/(tabs)/tax')}>
-								<Ionicons name='calculator-outline' size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='calculator-outline' size={24} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-xs mt-2' style={{ color: colors.noActive }}>
 									Q{currentQuarter} net profit
 								</Text>
@@ -253,7 +253,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/createInvoice')}>
-								<Ionicons name='add-circle-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='add-circle-outline' size={28} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									New Invoice
 								</Text>
@@ -263,7 +263,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/addMtdTransaction')}>
-								<Ionicons name='receipt-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='receipt-outline' size={28} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									Add MTD Record
 								</Text>
@@ -273,7 +273,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/createEstimate')}>
-								<Ionicons name='document-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='document-outline' size={28} color={isDark ? '#93c5fd' : '#2563eb'} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									New Estimate
 								</Text>
