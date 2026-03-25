@@ -15,7 +15,7 @@ import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
 import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoiceSync';
 import AddToBudgetModal from '../AddToBudgetModal';
 import InvoiceEstimateSwitcher from '@/components/InvoiceEstimateSwitcher';
-import { EstimateList } from '../EstimateForm';
+import EstimateList from '../EstimateForm/EstimateList';
 
 export default function InvoiceList() {
 	const [data, setData] = useState<{
@@ -140,7 +140,7 @@ export default function InvoiceList() {
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [loadData])
+		}, [loadData]),
 	);
 
 	const memoizedInvoices = useMemo(() => {
@@ -239,31 +239,25 @@ export default function InvoiceList() {
 				const warnings: string[] = [];
 				if (linked.hasLinkedBudget) warnings.push('linked budget entry');
 				if (linked.hasLinkedMtd) warnings.push('linked MTD record');
-				const warningText = warnings.length > 0
-					? `\n\nThis will also delete: ${warnings.join(', ')}.`
-					: '';
+				const warningText = warnings.length > 0 ? `\n\nThis will also delete: ${warnings.join(', ')}.` : '';
 
-				Alert.alert(
-					'Delete Invoice',
-					`Are you sure you want to delete this invoice?${warningText}`,
-					[
-						{ text: 'Cancel', style: 'cancel' },
-						{
-							text: 'Delete',
-							style: 'destructive',
-							onPress: async () => {
-								await deleteInvoiceFull(invoiceId);
-								await loadData();
-							},
+				Alert.alert('Delete Invoice', `Are you sure you want to delete this invoice?${warningText}`, [
+					{ text: 'Cancel', style: 'cancel' },
+					{
+						text: 'Delete',
+						style: 'destructive',
+						onPress: async () => {
+							await deleteInvoiceFull(invoiceId);
+							await loadData();
 						},
-					]
-				);
+					},
+				]);
 			} catch (error) {
 				console.error('Error deleting invoice:', error);
 				Alert.alert('Error', 'Failed to delete invoice. Please try again.');
 			}
 		},
-		[loadData]
+		[loadData],
 	);
 
 	const handleUpdateInvoice = useCallback(
@@ -289,7 +283,7 @@ export default function InvoiceList() {
 				});
 			}
 		},
-		[router, loadData, memoizedInvoices]
+		[router, loadData, memoizedInvoices],
 	);
 
 	const renderSectionHeader = ({ section }: any) => {
@@ -306,8 +300,7 @@ export default function InvoiceList() {
 					shadowOpacity: 0.15,
 					shadowRadius: 6,
 					elevation: 3,
-				}}
-			>
+				}}>
 				<View className='flex-row justify-between items-center'>
 					<View className='flex-1'>
 						<View className='flex-row items-center'>
