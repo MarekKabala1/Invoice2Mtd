@@ -200,10 +200,18 @@ export default function SettingsScreen() {
 
 			if (Object.keys(updatePayload).length > 0) {
 				await update(updatePayload);
-				Alert.alert('Success', 'Settings saved');
+
+				// WHY: Merge updates into formState immediately to clear unsaved changes
+				// while context updates settings asynchronously
+				const mergedState = { ...formState, ...updatePayload };
+				setFormState(mergedState);
+
+				Alert.alert('✅ Success', 'Your settings have been saved');
+			} else {
+				Alert.alert('ℹ️ No Changes', 'No settings were modified');
 			}
 		} catch (err) {
-			Alert.alert('Error', 'Failed to save settings');
+			Alert.alert('❌ Error', 'Failed to save settings. Please try again.');
 		} finally {
 			setIsSaving(false);
 		}
