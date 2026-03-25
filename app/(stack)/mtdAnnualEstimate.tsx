@@ -6,19 +6,19 @@
  * and the annual summary card with total tax and NI.
  *
  * Depends on: hooks/useMtdData.ts, utils/mtdTaxCalc.ts, utils/mtdDates.ts,
- *             utils/mtdCategories.ts
+ *             utils/mtdCategories.ts, components/TaxBandBar.tsx
  * Used by: app/(drawer)/(tabs)/tax.tsx (nav tile)
  */
 
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
 import { currentTaxYearStart, taxYearLabel, quartersForTaxYear } from '@/utils/mtdDates';
 import { estimateTax, projectFullYearTax, formatGBP, formatPercent } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
+import { TaxBandBar } from '@/components/TaxBandBar';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MtdAnnualEstimateScreen() {
@@ -113,20 +113,6 @@ export default function MtdAnnualEstimateScreen() {
 
   const netProfit = totals.totalTurnover - totals.totalExpenses;
 
-  // Tax band bar data (SVG)
-  const barWidth = 300;
-  const barHeight = 24;
-  const maxAmount = Math.max(totals.totalTurnover, 1);
-  const paWidth = (rates.personalAllowance / maxAmount) * barWidth;
-  const basicWidth = Math.max(
-    0,
-    (Math.min(netProfit, rates.basicRateThreshold) - rates.personalAllowance) / maxAmount
-  ) * barWidth;
-  const higherWidth = Math.max(
-    0,
-    (Math.min(netProfit, rates.higherRateThreshold) - rates.basicRateThreshold) / maxAmount
-  ) * barWidth;
-
   return (
     <ScrollView
       className="flex-1"
@@ -178,64 +164,15 @@ export default function MtdAnnualEstimateScreen() {
         </View>
       </View>
 
-      {/* SVG Tax Band Bar */}
+      {/* Tax Band Bar Visualization */}
       {taxEstimate && netProfit > 0 && (
-        <View className="rounded-lg p-4 mb-4" style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
-          <Text className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: colors.noActive }}>
-            Tax Bands
-          </Text>
-          <Svg width="100%" height={barHeight + 40}>
-            {/* Personal allowance */}
-            <Rect
-              x={0}
-              y={0}
-              width={Math.min(paWidth, barWidth)}
-              height={barHeight}
-              rx={barHeight / 2}
-              ry={barHeight / 2}
-              fill="#39AD6A"
-            />
-            {/* Basic rate */}
-            {basicWidth > 0 && (
-              <Rect
-                x={paWidth}
-                y={0}
-                width={Math.min(basicWidth, barWidth - paWidth)}
-                height={barHeight}
-                fill={isDark ? '#a5b4fc' : '#4f46e5'}
-              />
-            )}
-            {/* Higher rate */}
-            {higherWidth > 0 && (
-              <Rect
-                x={paWidth + basicWidth}
-                y={0}
-                width={Math.min(higherWidth, barWidth - paWidth - basicWidth)}
-                height={barHeight}
-                rx={higherWidth >= barWidth - paWidth - basicWidth ? barHeight / 2 : 0}
-                ry={higherWidth >= barWidth - paWidth - basicWidth ? barHeight / 2 : 0}
-                fill="#f59e0b"
-              />
-            )}
-          </Svg>
-          {/* Legend */}
-          <View className="flex-row flex-wrap gap-4 mt-2">
-            <View className="flex-row items-center gap-1">
-              <View style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: '#39AD6A' }} />
-              <Text className="text-xs" style={{ color: colors.noActive }}>
-                Personal allowance ({formatGBP(rates.personalAllowance)})
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <View style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: isDark ? '#a5b4fc' : '#4f46e5' }} />
-              <Text className="text-xs" style={{ color: colors.noActive }}>Basic rate 20%</Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <View style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: '#f59e0b' }} />
-              <Text className="text-xs" style={{ color: colors.noActive }}>Higher rate 40%</Text>
-            </View>
-          </View>
-        </View>
+        <TaxBandBar
+          netProfit={netProfit}
+          totalTurnover={totals.totalTurnover}
+          taxRates={rates}
+          isDark={isDark}
+          colors={colors}
+        />
       )}
 
       {/* Income Tax card */}
