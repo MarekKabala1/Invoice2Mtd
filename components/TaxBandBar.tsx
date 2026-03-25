@@ -25,13 +25,7 @@ interface TaxBandBarProps {
 	colors: typeof lightColors;
 }
 
-export const TaxBandBar: React.FC<TaxBandBarProps> = ({
-	netProfit,
-	totalTurnover,
-	taxRates,
-	isDark,
-	colors,
-}) => {
+export const TaxBandBar: React.FC<TaxBandBarProps> = ({ netProfit, totalTurnover, taxRates, isDark, colors }) => {
 	// WHY: Use total turnover as scale reference (not net profit).
 	// This keeps the bar consistent across different expense scenarios.
 	// Two businesses with same turnover but different expenses show the same bar width.
@@ -48,49 +42,24 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({
 	const paWidth = (taxRates.personalAllowance / maxAmount) * barWidth;
 
 	// Basic rate segment: from allowance to basic threshold, or end of profit if less
-	const basicWidth = Math.max(
-		0,
-		(Math.min(netProfit, taxRates.basicRateThreshold) - taxRates.personalAllowance) / maxAmount
-	) * barWidth;
+	const basicWidth = Math.max(0, (Math.min(netProfit, taxRates.basicRateThreshold) - taxRates.personalAllowance) / maxAmount) * barWidth;
 
 	// Higher rate segment: from basic threshold to higher threshold, or end of profit if less
-	const higherWidth = Math.max(
-		0,
-		(Math.min(netProfit, taxRates.higherRateThreshold) - taxRates.basicRateThreshold) / maxAmount
-	) * barWidth;
+	const higherWidth = Math.max(0, (Math.min(netProfit, taxRates.higherRateThreshold) - taxRates.basicRateThreshold) / maxAmount) * barWidth;
 
 	return (
-		<View className="rounded-lg p-4" style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
-			<Text
-				className="text-xs font-bold uppercase tracking-widest mb-3"
-				style={{ color: colors.noActive }}
-			>
+		<View className='rounded-lg p-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+			<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
 				Tax Bands
 			</Text>
 
 			{/* SVG Tax Band Bar */}
-			<Svg width="100%" height={barHeight + 40}>
+			<Svg width='100%' height={barHeight + 40}>
 				{/* Personal allowance segment (green) */}
-				<Rect
-					x={0}
-					y={0}
-					width={Math.min(paWidth, barWidth)}
-					height={barHeight}
-					rx={barHeight / 2}
-					ry={barHeight / 2}
-					fill="#39AD6A"
-				/>
+				<Rect x={0} y={0} width={Math.min(paWidth, barWidth)} height={barHeight} rx={barHeight / 2} ry={barHeight / 2} fill='#39AD6A' />
 
 				{/* Basic rate segment (blue) */}
-				{basicWidth > 0 && (
-					<Rect
-						x={paWidth}
-						y={0}
-						width={Math.min(basicWidth, barWidth - paWidth)}
-						height={barHeight}
-						fill={isDark ? '#a5b4fc' : '#4f46e5'}
-					/>
-				)}
+				{basicWidth > 0 && <Rect x={paWidth} y={0} width={Math.min(basicWidth, barWidth - paWidth)} height={barHeight} fill={isDark ? '#a5b4fc' : '#4f46e5'} />}
 
 				{/* Higher rate segment (amber) */}
 				{higherWidth > 0 && (
@@ -101,14 +70,14 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({
 						height={barHeight}
 						rx={higherWidth >= barWidth - paWidth - basicWidth ? barHeight / 2 : 0}
 						ry={higherWidth >= barWidth - paWidth - basicWidth ? barHeight / 2 : 0}
-						fill="#f59e0b"
+						fill='#f59e0b'
 					/>
 				)}
 			</Svg>
 
 			{/* Legend */}
-			<View className="flex-row flex-wrap gap-4 mt-2">
-				<View className="flex-row items-center gap-1">
+			<View className='flex-row flex-wrap gap-4 mt-2'>
+				<View className='flex-row items-center gap-1'>
 					<View
 						style={{
 							width: 12,
@@ -117,12 +86,12 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({
 							backgroundColor: '#39AD6A',
 						}}
 					/>
-					<Text className="text-xs" style={{ color: colors.noActive }}>
+					<Text className='text-xs' style={{ color: colors.noActive }}>
 						Personal allowance (£{taxRates.personalAllowance.toLocaleString()})
 					</Text>
 				</View>
 
-				<View className="flex-row items-center gap-1">
+				<View className='flex-row items-center gap-1'>
 					<View
 						style={{
 							width: 12,
@@ -131,12 +100,12 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({
 							backgroundColor: isDark ? '#a5b4fc' : '#4f46e5',
 						}}
 					/>
-					<Text className="text-xs" style={{ color: colors.noActive }}>
+					<Text className='text-xs' style={{ color: colors.noActive }}>
 						Basic rate (20%)
 					</Text>
 				</View>
 
-				<View className="flex-row items-center gap-1">
+				<View className='flex-row items-center gap-1'>
 					<View
 						style={{
 							width: 12,
@@ -145,7 +114,7 @@ export const TaxBandBar: React.FC<TaxBandBarProps> = ({
 							backgroundColor: '#f59e0b',
 						}}
 					/>
-					<Text className="text-xs" style={{ color: colors.noActive }}>
+					<Text className='text-xs' style={{ color: colors.noActive }}>
 						Higher rate (40%)
 					</Text>
 				</View>
