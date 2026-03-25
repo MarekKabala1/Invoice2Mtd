@@ -1,11 +1,12 @@
 /**
  * QuarterMonthSelector.tsx
  *
- * Visual quarter and month selector with max 4 months selection.
- * - Shows 12-month grid
+ * Visual quarter month selector with 12-month grid.
  * - Highlights selected months
  * - Enforces max 4 selections
- * - Quick presets for Standard UK and Calendar year
+ * - Quarter labels shown on each month tile
+ *
+ * Presets are handled by the FinancialYearSection, not here.
  */
 
 import React, { useMemo } from 'react';
@@ -19,8 +20,6 @@ interface QuarterMonthSelectorProps {
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const UK_QUARTERS = [4, 7, 10, 1]; // Apr, Jul, Oct, Jan
-const CALENDAR_QUARTERS = [1, 4, 7, 10]; // Jan, Apr, Jul, Oct
 
 export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({ selectedMonths, onMonthsChange, maxMonths = 4 }) => {
 	const { colors, isDark } = useTheme();
@@ -30,10 +29,8 @@ export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({ sele
 
 	const handleMonthToggle = (monthNum: number) => {
 		if (sorted.includes(monthNum)) {
-			// Remove month
 			onMonthsChange(sorted.filter((m) => m !== monthNum));
 		} else {
-			// Add month if under limit
 			if (sorted.length >= maxMonths) {
 				Alert.alert('Quarter months limited', `Only ${maxMonths} months can be selected`);
 				return;
@@ -57,7 +54,7 @@ export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({ sele
 			{/* Month Selection Grid */}
 			<View className='mb-3'>
 				<Text className='text-xs font-semibold mb-2' style={{ color: colors.text }}>
-					Select Quarter Start Months ({sorted.length}/{maxMonths})
+					Quarter Start Months ({sorted.length}/{maxMonths})
 				</Text>
 
 				<View className='flex-row gap-1 flex-wrap'>
@@ -92,44 +89,6 @@ export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({ sele
 							</TouchableOpacity>
 						);
 					})}
-				</View>
-			</View>
-
-			{/* Quick Presets */}
-			<View className='mb-3'>
-				<Text className='text-xs font-semibold mb-2' style={{ color: colors.text }}>
-					Quick Presets
-				</Text>
-				<View className='gap-1'>
-					<TouchableOpacity
-						onPress={() => onMonthsChange(UK_QUARTERS)}
-						className='py-3 px-4 rounded-lg border'
-						style={{
-							backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-							borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-						}}>
-						<Text className='text-sm font-bold' style={{ color: colors.text }}>
-							Standard UK Tax Year (Apr, Jul, Oct, Jan)
-						</Text>
-						<Text className='text-xs mt-1' style={{ color: colors.noActive }}>
-							6 Apr – 5 Jul, 6 Jul – 5 Oct, 6 Oct – 5 Jan, 6 Jan – 5 Apr
-						</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						onPress={() => onMonthsChange(CALENDAR_QUARTERS)}
-						className='py-3 px-4 rounded-lg border'
-						style={{
-							backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-							borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-						}}>
-						<Text className='text-sm font-bold' style={{ color: colors.text }}>
-							Calendar Year (Jan, Apr, Jul, Oct)
-						</Text>
-						<Text className='text-xs mt-1' style={{ color: colors.noActive }}>
-							1 Jan – 31 Mar, 1 Apr – 30 Jun, 1 Jul – 30 Sep, 1 Oct – 31 Dec
-						</Text>
-					</TouchableOpacity>
 				</View>
 			</View>
 

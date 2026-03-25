@@ -50,7 +50,7 @@ export const MTDSettingsSection: React.FC<MTDSettingsSectionProps> = ({ formStat
 				onToggle={(val) => onFieldChange('autoCalculateQuarters', val)}
 			/>
 
-			{/* Quarter Month Selector with Calendar UI */}
+			{/* Quarter Month Selector — months sync from Financial Year presets */}
 			<View className='py-3 px-4 rounded-lg mb-4' style={{ backgroundColor: 'transparent' }}>
 				<QuarterMonthSelector
 					selectedMonths={selectedMonths}
