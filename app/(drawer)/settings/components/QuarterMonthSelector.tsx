@@ -22,11 +22,7 @@ const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 const UK_QUARTERS = [4, 7, 10, 1]; // Apr, Jul, Oct, Jan
 const CALENDAR_QUARTERS = [1, 4, 7, 10]; // Jan, Apr, Jul, Oct
 
-export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({
-	selectedMonths,
-	onMonthsChange,
-	maxMonths = 4,
-}) => {
+export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({ selectedMonths, onMonthsChange, maxMonths = 4 }) => {
 	const { colors, isDark } = useTheme();
 
 	// WHY: Sort and deduplicate selected months
@@ -84,13 +80,7 @@ export const QuarterMonthSelector: React.FC<QuarterMonthSelectorProps> = ({
 											? 'rgba(255,255,255,0.08)'
 											: 'rgba(0,0,0,0.04)',
 									borderWidth: 1,
-									borderColor: isSelected
-										? isDark
-											? 'rgba(59, 130, 246, 1)'
-											: 'rgba(29, 78, 216, 1)'
-										: isDark
-											? 'rgba(255,255,255,0.1)'
-											: 'rgba(0,0,0,0.1)',
+									borderColor: isSelected ? (isDark ? 'rgba(59, 130, 246, 1)' : 'rgba(29, 78, 216, 1)') : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
 									minWidth: '22.5%',
 								}}>
 								<Text className='text-xs font-bold text-center' style={{ color: isSelected ? 'white' : colors.text }}>
