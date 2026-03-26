@@ -1,9 +1,9 @@
 /**
  * mtdAnnualEstimate.tsx
  *
- * Full-year tax estimate screen. Aggregates all 4 quarters, shows income &
- * profit summary, tax band bar (SVG), income tax breakdown, NI breakdown,
- * and the annual summary card with total tax and NI.
+ * SA103-style Self Assessment summary screen. Aggregates all 4 quarters,
+ * shows per-category expense breakdown, CIS deductions, income tax and
+ * NI estimates. Designed for year-end Self Assessment preparation.
  *
  * Depends on: hooks/useMtdData.ts, utils/mtdTaxCalc.ts, utils/mtdDates.ts,
  *             utils/mtdCategories.ts, components/TaxBandBar.tsx
@@ -16,16 +16,19 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
 import { currentTaxYearStart, taxYearLabel, quartersForTaxYear } from '@/utils/mtdDates';
-import { estimateTax, projectFullYearTax, formatGBP, formatPercent } from '@/utils/mtdTaxCalc';
+import { estimateTax, formatGBP, formatPercent } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { TaxBandBar } from '@/components/TaxBandBar';
 import { Ionicons } from '@expo/vector-icons';
+import { ExpenseCategory } from '@/types/mtd';
+import { EXPENSE_CATEGORY_LABELS, isAllowable, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtdCategories';
 
 export default function MtdAnnualEstimateScreen() {
 	const { colors, isDark } = useTheme();
 	const { settings } = useAppSettings();
 	const userId = settings?.userId ?? '';
 	const rates = useTaxRates();
+	const [showAllExpenses, setShowAllExpenses] = useState(false);
 
 	const startYear = currentTaxYearStart();
 	const tyLabel = taxYearLabel(startYear);
@@ -41,33 +44,62 @@ export default function MtdAnnualEstimateScreen() {
 	const isLoading = allQuarters.some((q) => q.isLoading);
 	const anyError = allQuarters.find((q) => q.error);
 
-	// Aggregate all quarters
+	// Aggregate all quarters — actual figures + per-category breakdown + CIS
 	const totals = useMemo(() => {
-		let totalTurnover = 0;
-		let totalExpenses = 0;
+		let actualTurnover = 0;
+		let totalCisDeducted = 0;
 		let quartersWithData = 0;
+
+		// Per-category sums for SA103 breakdown
+		const categoryTotals = {} as Record<ExpenseCategory, number>;
+		for (const cat of EXPENSE_ONLY_CATEGORIES) {
+			categoryTotals[cat] = 0;
+		}
 
 		for (const q of allQuarters) {
 			if (q.aggregates) {
-				totalTurnover += q.aggregates.totalTurnover;
-				totalExpenses += q.aggregates.totalAllowableExpenses;
+				actualTurnover += q.aggregates.totalTurnover;
+				totalCisDeducted += q.aggregates.cisDeducted;
+				for (const cat of EXPENSE_ONLY_CATEGORIES) {
+					categoryTotals[cat] += (q.aggregates[cat as keyof typeof q.aggregates] as number) ?? 0;
+				}
 				if (q.aggregates.totalTurnover > 0 || q.aggregates.totalAllowableExpenses > 0) {
 					quartersWithData++;
 				}
 			}
 		}
 
-		return { totalTurnover, totalExpenses, quartersWithData };
+		// Compute actual totals
+		const allowableCategories = EXPENSE_ONLY_CATEGORIES.filter((c) => isAllowable(c));
+		const disallowableCategories = EXPENSE_ONLY_CATEGORIES.filter((c) => !isAllowable(c));
+		const totalAllowable = allowableCategories
+			.reduce((sum: number, c: ExpenseCategory) => sum + (categoryTotals[c] || 0), 0);
+		const totalDisallowable = disallowableCategories
+			.reduce((sum: number, c: ExpenseCategory) => sum + (categoryTotals[c] || 0), 0);
+		const actualNetProfit = actualTurnover - totalAllowable;
+
+		// Projected annual for tax calculation
+		const elapsedFraction = quartersWithData > 0 ? quartersWithData / 4 : 0;
+		const projectedTurnover = elapsedFraction > 0 ? actualTurnover / elapsedFraction : 0;
+		const projectedExpenses = elapsedFraction > 0 ? totalAllowable / elapsedFraction : 0;
+
+		return {
+			actualTurnover,
+			totalCisDeducted,
+			totalAllowable,
+			totalDisallowable,
+			actualNetProfit,
+			categoryTotals,
+			projectedTurnover,
+			projectedExpenses,
+			quartersWithData,
+		};
 	}, [q1.aggregates, q2.aggregates, q3.aggregates, q4.aggregates]);
 
-	// Calculate tax estimate
+	// Tax estimate from projected annual figures
 	const taxEstimate = useMemo(() => {
 		if (totals.quartersWithData === 0) return null;
-		if (totals.quartersWithData === 4) {
-			return estimateTax(totals.totalTurnover, totals.totalExpenses, rates);
-		}
-		// Project from partial data
-		return projectFullYearTax(totals.quartersWithData as 1 | 2 | 3 | 4, totals.totalTurnover, totals.totalExpenses, rates);
+		return estimateTax(totals.projectedTurnover, totals.projectedExpenses, rates);
 	}, [totals, rates]);
 
 	if (isLoading) {
@@ -105,72 +137,157 @@ export default function MtdAnnualEstimateScreen() {
 		);
 	}
 
-	const netProfit = totals.totalTurnover - totals.totalExpenses;
+	const projectedNetProfit = totals.projectedTurnover - totals.projectedExpenses;
+
+	// Split expense categories into allowable and disallowable
+	const allowableCategories = EXPENSE_ONLY_CATEGORIES.filter((c) => isAllowable(c));
+	const disallowableCategories = EXPENSE_ONLY_CATEGORIES.filter((c) => !isAllowable(c));
+
+	// Filter to non-zero categories for compact view
+	const nonZeroAllowable = allowableCategories.filter((c) => (totals.categoryTotals[c] || 0) > 0);
+	const nonZeroDisallowable = disallowableCategories.filter((c) => (totals.categoryTotals[c] || 0) > 0);
+	const hasAnyDisallowable = totals.totalDisallowable > 0;
+
+	const cardBg = { backgroundColor: isDark ? colors.nav : colors.card };
+	const dividerStyle = { borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' };
 
 	return (
 		<ScrollView className='flex-1' style={{ backgroundColor: colors.primary }} contentContainerStyle={{ padding: 20 }}>
+
 			{/* Projection warning */}
 			{totals.quartersWithData < 4 && (
-					<View className='rounded-lg p-3 mb-4 flex-row items-center' style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)' }}>
+				<View className='rounded-lg p-3 mb-4 flex-row items-center' style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)' }}>
 					<Ionicons name='warning-outline' size={20} color={colors.warning} />
 					<Text className='text-xs ml-2 flex-1' style={{ color: colors.warning }}>
-						Projection based on {totals.quartersWithData} quarter{totals.quartersWithData > 1 ? 's' : ''} of data. Actual annual figures may differ.
+						Based on {formatGBP(totals.actualNetProfit)} profit in {totals.quartersWithData} of 4 quarters. Projected annual: {formatGBP(projectedNetProfit)}.
 					</Text>
 				</View>
 			)}
 
-			{/* Income & Profit card */}
-			<View className='rounded-lg p-4 mb-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 1: INCOME (SA103 Turnover)
+			    ════════════════════════════════════════════════════════════════ */}
+			<View className='rounded-lg p-4 mb-4' style={cardBg}>
 				<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
-					Income & Profit
+					Income — {totals.quartersWithData} of 4 quarters
 				</Text>
 				<View className='flex-row justify-between py-1'>
 					<Text className='text-sm' style={{ color: colors.text }}>
-						Total turnover
+						Total turnover (before tax)
 					</Text>
 					<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
-						{formatGBP(totals.totalTurnover)}
+						{formatGBP(totals.actualTurnover)}
 					</Text>
 				</View>
+				{totals.totalCisDeducted > 0 && (
+					<View className='flex-row justify-between py-1'>
+						<Text className='text-sm' style={{ color: colors.text }}>
+							CIS tax deducted at source
+						</Text>
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.warning }}>
+							-{formatGBP(totals.totalCisDeducted)}
+						</Text>
+					</View>
+				)}
 				<View className='flex-row justify-between py-1'>
 					<Text className='text-sm' style={{ color: colors.text }}>
-						Allowable expenses
+						Amount received (after CIS)
 					</Text>
-					<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
-						{formatGBP(totals.totalExpenses)}
-					</Text>
-				</View>
-				<View
-					className='flex-row justify-between items-center pt-2 mt-2'
-					style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-					<Text className='text-base font-bold' style={{ color: colors.text }}>
-						Net Profit
-					</Text>
-					<Text className='text-xl font-bold tabular-nums' style={{ color: netProfit >= 0 ? colors.success : colors.danger }}>
-						{formatGBP(netProfit)}
+					<Text className='text-sm font-bold tabular-nums' style={{ color: colors.success }}>
+						{formatGBP(totals.actualTurnover - totals.totalCisDeducted)}
 					</Text>
 				</View>
 			</View>
 
-			{/* Tax Band Bar Visualization */}
-			{taxEstimate && netProfit > 0 && (
-				<TaxBandBar netProfit={netProfit} totalTurnover={totals.totalTurnover} taxRates={rates} isDark={isDark} colors={colors} />
-			)}
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 2: ALLOWABLE EXPENSES (SA103 breakdown)
+			    ════════════════════════════════════════════════════════════════ */}
+			<View className='rounded-lg p-4 mb-4' style={cardBg}>
+				<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
+					Allowable Expenses (SA103)
+				</Text>
 
-			{/* Income Tax card */}
-			{taxEstimate && (
-				<View className='rounded-lg p-4 mb-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
-					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
-						Income Tax
-					</Text>
-					<View className='flex-row justify-between py-1'>
-						<Text className='text-sm' style={{ color: colors.text }}>
-							Taxable profit
+				{(showAllExpenses ? allowableCategories : nonZeroAllowable).map((cat) => (
+					<View key={cat} className='flex-row justify-between py-1'>
+						<Text className='text-sm flex-1 mr-2' style={{ color: colors.text }}>
+							{EXPENSE_CATEGORY_LABELS[cat]}
 						</Text>
 						<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
+							{formatGBP(totals.categoryTotals[cat] || 0)}
+						</Text>
+					</View>
+				))}
+
+				{/* Toggle show all */}
+				{nonZeroAllowable.length > 0 && nonZeroAllowable.length < allowableCategories.length && (
+					<TouchableOpacity onPress={() => setShowAllExpenses(!showAllExpenses)} className='mt-2 py-1'>
+						<Text className='text-xs font-bold' style={{ color: colors.secondary }}>
+							{showAllExpenses ? 'Show non-zero only' : `Show all ${allowableCategories.length} categories`}
+						</Text>
+					</TouchableOpacity>
+				)}
+
+				{/* Disallowable expenses */}
+				{hasAnyDisallowable && (
+					<>
+						<View className='mt-3 mb-2' style={dividerStyle} />
+						<Text className='text-xs font-bold uppercase tracking-widest mb-2' style={{ color: colors.warning }}>
+							Disallowable (not deducted)
+						</Text>
+						{(showAllExpenses ? disallowableCategories : nonZeroDisallowable).map((cat) => (
+							<View key={cat} className='flex-row justify-between py-1'>
+								<Text className='text-sm flex-1 mr-2' style={{ color: colors.noActive }}>
+									{EXPENSE_CATEGORY_LABELS[cat]}
+								</Text>
+								<Text className='text-sm tabular-nums' style={{ color: colors.noActive }}>
+									{formatGBP(totals.categoryTotals[cat] || 0)}
+								</Text>
+							</View>
+						))}
+					</>
+				)}
+
+				{/* Totals */}
+				<View className='mt-3 pt-2' style={dividerStyle}>
+					<View className='flex-row justify-between py-1'>
+						<Text className='text-sm font-bold' style={{ color: colors.text }}>
+							Total allowable expenses
+						</Text>
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
+							{formatGBP(totals.totalAllowable)}
+						</Text>
+					</View>
+					<View className='flex-row justify-between items-center pt-2'>
+						<Text className='text-base font-bold' style={{ color: colors.text }}>
+							Net Profit
+						</Text>
+						<Text className='text-xl font-bold tabular-nums' style={{ color: totals.actualNetProfit >= 0 ? colors.success : colors.danger }}>
+							{formatGBP(totals.actualNetProfit)}
+						</Text>
+					</View>
+				</View>
+			</View>
+
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 3: TAX ESTIMATE (projected annual)
+			    ════════════════════════════════════════════════════════════════ */}
+			{taxEstimate && (
+				<View className='rounded-lg p-4 mb-4' style={cardBg}>
+					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
+						Tax Estimate {totals.quartersWithData < 4 ? '(projected annual)' : ''}
+					</Text>
+
+					{/* Amount before tax */}
+					<View className='flex-row justify-between py-1'>
+						<Text className='text-sm' style={{ color: colors.text }}>
+							Turnover (amount before tax)
+						</Text>
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
 							{formatGBP(taxEstimate.taxableProfit)}
 						</Text>
 					</View>
+
+					{/* Personal allowance */}
 					<View className='flex-row justify-between py-1'>
 						<Text className='text-sm' style={{ color: colors.text }}>
 							Personal allowance
@@ -179,6 +296,18 @@ export default function MtdAnnualEstimateScreen() {
 							-{formatGBP(taxEstimate.personalAllowanceUsed)}
 						</Text>
 					</View>
+
+					{/* Taxable after allowance */}
+					<View className='flex-row justify-between py-1'>
+						<Text className='text-sm' style={{ color: colors.text }}>
+							Taxable after allowance
+						</Text>
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
+							{formatGBP(taxEstimate.taxableAfterAllowance)}
+						</Text>
+					</View>
+
+					{/* Income tax bands */}
 					{taxEstimate.basicRateTax > 0 && (
 						<View className='flex-row justify-between py-1'>
 							<Text className='text-sm' style={{ color: colors.text }}>
@@ -199,9 +328,9 @@ export default function MtdAnnualEstimateScreen() {
 							</Text>
 						</View>
 					)}
-					<View
-						className='flex-row justify-between items-center pt-2 mt-2'
-						style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+
+					{/* Total income tax */}
+					<View className='flex-row justify-between items-center pt-2 mt-2' style={dividerStyle}>
 						<Text className='text-sm font-bold' style={{ color: colors.text }}>
 							Total Income Tax
 						</Text>
@@ -212,26 +341,42 @@ export default function MtdAnnualEstimateScreen() {
 				</View>
 			)}
 
-			{/* NI card */}
+			{/* TaxBandBar — uses projected figures to match tax estimate */}
+			{taxEstimate && projectedNetProfit > 0 && (
+				<TaxBandBar netProfit={projectedNetProfit} totalTurnover={totals.projectedTurnover} taxRates={rates} isDark={isDark} colors={colors} />
+			)}
+
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 4: NATIONAL INSURANCE
+			    ════════════════════════════════════════════════════════════════ */}
 			{taxEstimate && (
-				<View className='rounded-lg p-4 mb-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+				<View className='rounded-lg p-4 mb-4' style={cardBg}>
 					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
 						National Insurance
 					</Text>
-					{taxEstimate.class2NI > 0 && (
-						<View className='flex-row justify-between py-1'>
+
+					{/* Class 2 NI */}
+					<View className='flex-row justify-between py-1'>
+						<View className='flex-1 mr-2'>
 							<Text className='text-sm' style={{ color: colors.text }}>
-								Class 2 (£3.45/week)
+								Class 2 NI
 							</Text>
-							<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
-								{formatGBP(taxEstimate.class2NI)}
+							<Text className='text-xs' style={{ color: colors.noActive }}>
+								{taxEstimate.taxableProfit >= 6725
+									? 'Treated as paid (free) — protects State Pension'
+									: 'Voluntary: £3.45/week to protect pension record'}
 							</Text>
 						</View>
-					)}
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
+							£0.00
+						</Text>
+					</View>
+
+					{/* Class 4 NI */}
 					{taxEstimate.ni4LowerBand > 0 && (
 						<View className='flex-row justify-between py-1'>
 							<Text className='text-sm' style={{ color: colors.text }}>
-								Class 4 lower (6%)
+								Class 4 lower (6% on £12,570–£50,270)
 							</Text>
 							<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
 								{formatGBP(taxEstimate.ni4LowerBand)}
@@ -241,18 +386,28 @@ export default function MtdAnnualEstimateScreen() {
 					{taxEstimate.ni4UpperBand > 0 && (
 						<View className='flex-row justify-between py-1'>
 							<Text className='text-sm' style={{ color: colors.text }}>
-								Class 4 upper (2%)
+								Class 4 upper (2% above £50,270)
 							</Text>
 							<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
 								{formatGBP(taxEstimate.ni4UpperBand)}
 							</Text>
 						</View>
 					)}
-					<View
-						className='flex-row justify-between items-center pt-2 mt-2'
-						style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+					{taxEstimate.ni4LowerBand === 0 && taxEstimate.ni4UpperBand === 0 && (
+						<View className='flex-row justify-between py-1'>
+							<Text className='text-sm' style={{ color: colors.text }}>
+								Class 4 NI (6% on profits £12,570–£50,270)
+							</Text>
+							<Text className='text-sm tabular-nums' style={{ color: colors.text }}>
+								£0.00
+							</Text>
+						</View>
+					)}
+
+					{/* Total NI */}
+					<View className='flex-row justify-between items-center pt-2 mt-2' style={dividerStyle}>
 						<Text className='text-sm font-bold' style={{ color: colors.text }}>
-							Total NI
+							Total NI payable
 						</Text>
 						<Text className='text-base font-bold tabular-nums' style={{ color: colors.text }}>
 							{formatGBP(taxEstimate.totalNI)}
@@ -261,24 +416,63 @@ export default function MtdAnnualEstimateScreen() {
 				</View>
 			)}
 
-			{/* Summary card — the hero */}
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 5: CIS DEDUCTIONS & AMOUNT OWED
+			    ════════════════════════════════════════════════════════════════ */}
 			{taxEstimate && (
-				<View className='rounded-lg p-6 mb-4' style={{ backgroundColor: isDark ? '#1e3a8a' : '#1d4ed8' }}>
-					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: 'rgba(255,255,255,0.7)' }}>
-						Annual Summary
+				<View className='rounded-lg p-4 mb-4' style={cardBg}>
+					<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
+						Tax Summary
 					</Text>
-					<Text className='text-4xl font-bold text-white tabular-nums'>{formatGBP(taxEstimate.totalTaxAndNI)}</Text>
-					<Text className='text-sm mt-2' style={{ color: 'rgba(255,255,255,0.8)' }}>
-						Effective rate: {formatPercent(taxEstimate.effectiveRate)}
-					</Text>
-					<Text className='text-sm' style={{ color: 'rgba(255,255,255,0.8)' }}>
-						Set aside: {formatGBP(taxEstimate.quarterlySetAside)}/quarter
-					</Text>
+
+					{/* Total tax + NI */}
+					<View className='flex-row justify-between py-1'>
+						<Text className='text-sm' style={{ color: colors.text }}>
+							Total tax + NI liability
+						</Text>
+						<Text className='text-sm font-bold tabular-nums' style={{ color: colors.text }}>
+							{formatGBP(taxEstimate.totalTaxAndNI)}
+						</Text>
+					</View>
+
+					{/* CIS already deducted */}
+					{totals.totalCisDeducted > 0 && (
+						<View className='flex-row justify-between py-1'>
+							<Text className='text-sm' style={{ color: colors.text }}>
+								CIS already deducted by contractor
+							</Text>
+							<Text className='text-sm font-bold tabular-nums' style={{ color: colors.success }}>
+								-{formatGBP(totals.totalCisDeducted)}
+							</Text>
+						</View>
+					)}
+
+					{/* Amount still owed */}
+					<View className='flex-row justify-between items-center pt-2 mt-2' style={dividerStyle}>
+						<Text className='text-sm font-bold' style={{ color: colors.text }}>
+							{taxEstimate.totalTaxAndNI - totals.totalCisDeducted > 0 ? 'Amount still owed to HMRC' : 'Refund expected from HMRC'}
+						</Text>
+						<Text className='text-xl font-bold tabular-nums' style={{ color: taxEstimate.totalTaxAndNI - totals.totalCisDeducted > 0 ? colors.danger : colors.success }}>
+							{formatGBP(Math.abs(taxEstimate.totalTaxAndNI - totals.totalCisDeducted))}
+						</Text>
+					</View>
+
+					{/* Effective rate and set aside */}
+					<View className='flex-row justify-between py-1 mt-2'>
+						<Text className='text-xs' style={{ color: colors.noActive }}>
+							Effective rate: {formatPercent(taxEstimate.effectiveRate)}
+						</Text>
+						<Text className='text-xs' style={{ color: colors.noActive }}>
+							Set aside: {formatGBP(taxEstimate.quarterlySetAside)}/quarter
+						</Text>
+					</View>
 				</View>
 			)}
 
-			{/* Key dates */}
-			<View className='rounded-lg p-4 mb-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+			{/* ════════════════════════════════════════════════════════════════
+			    SECTION 6: KEY DATES
+			    ════════════════════════════════════════════════════════════════ */}
+			<View className='rounded-lg p-4 mb-4' style={cardBg}>
 				<Text className='text-xs font-bold uppercase tracking-widest mb-3' style={{ color: colors.noActive }}>
 					Key Dates
 				</Text>
@@ -295,7 +489,7 @@ export default function MtdAnnualEstimateScreen() {
 			</View>
 
 			{/* Disclaimer */}
-			<View className='rounded-lg p-4 mb-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+			<View className='rounded-lg p-4 mb-4' style={cardBg}>
 				<Text className='text-xs' style={{ color: colors.noActive }}>
 					ESTIMATES ONLY — not official HMRC calculations. Update rates each April. Consult an accountant for actual tax filing.
 				</Text>
