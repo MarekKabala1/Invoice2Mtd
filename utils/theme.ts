@@ -55,7 +55,8 @@ export const lightColors = {
   danger: 'rgb(238, 28, 28)',
   border: 'rgb(226, 232, 240)',
   input: 'rgb(226, 232, 240)',
-  success: 'rgb(57, 173, 106)'
+  success: 'rgb(57, 173, 106)',
+  warning: 'rgb(245, 158, 11)',
 };
 
 export const darkColors = {
@@ -73,5 +74,6 @@ export const darkColors = {
   danger: 'rgb(248, 113, 113)',
   border: 'rgb(51, 65, 85)',
   input: 'rgb(51, 65, 85)',
-  success: 'rgb(74, 222, 128)'
+  success: 'rgb(74, 222, 128)',
+  warning: 'rgb(251, 191, 36)',
 };

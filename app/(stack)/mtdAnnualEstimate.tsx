@@ -81,7 +81,7 @@ export default function MtdAnnualEstimateScreen() {
 	if (anyError) {
 		return (
 			<View className='flex-1 items-center justify-center px-6' style={{ backgroundColor: colors.primary }}>
-				<Text className='text-base text-center mb-4' style={{ color: '#ee1c1c' }}>
+				<Text className='text-base text-center mb-4' style={{ color: colors.danger }}>
 					{anyError.error}
 				</Text>
 			</View>
@@ -111,9 +111,9 @@ export default function MtdAnnualEstimateScreen() {
 		<ScrollView className='flex-1' style={{ backgroundColor: colors.primary }} contentContainerStyle={{ padding: 20 }}>
 			{/* Projection warning */}
 			{totals.quartersWithData < 4 && (
-				<View className='rounded-lg p-3 mb-4 flex-row items-center' style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)' }}>
-					<Ionicons name='warning-outline' size={20} color='#f59e0b' />
-					<Text className='text-xs ml-2 flex-1' style={{ color: '#f59e0b' }}>
+					<View className='rounded-lg p-3 mb-4 flex-row items-center' style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)' }}>
+					<Ionicons name='warning-outline' size={20} color={colors.warning} />
+					<Text className='text-xs ml-2 flex-1' style={{ color: colors.warning }}>
 						Projection based on {totals.quartersWithData} quarter{totals.quartersWithData > 1 ? 's' : ''} of data. Actual annual figures may differ.
 					</Text>
 				</View>
@@ -146,7 +146,7 @@ export default function MtdAnnualEstimateScreen() {
 					<Text className='text-base font-bold' style={{ color: colors.text }}>
 						Net Profit
 					</Text>
-					<Text className='text-xl font-bold tabular-nums' style={{ color: netProfit >= 0 ? '#39AD6A' : '#ee1c1c' }}>
+					<Text className='text-xl font-bold tabular-nums' style={{ color: netProfit >= 0 ? colors.success : colors.danger }}>
 						{formatGBP(netProfit)}
 					</Text>
 				</View>
