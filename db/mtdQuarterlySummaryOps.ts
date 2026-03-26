@@ -42,6 +42,7 @@ function emptyAggregates(): QuarterAggregates {
 		otherDisallowableExpenses: 0,
 		totalAllowableExpenses: 0,
 		netProfit: 0,
+		cisDeducted: 0,
 		sources: {
 			invoiceTurnover: 0,
 			budgetExpenses: { ...zero },
@@ -101,9 +102,16 @@ export async function aggregateQuarter(
 		}
 	}
 
-	// Source 2: Paid invoices → turnover
+	// Source 2: Paid invoices → turnover (gross, before any CIS deduction)
+	// WHY: amountBeforeTax is the invoiced amount (turnover for tax purposes).
+	// amountAfterTax is what the user actually received after CIS deduction.
+	// CIS (Construction Industry Scheme) — contractor deducts tax at source,
+	// so the difference is tax already paid on the user's behalf.
 	const paidInvoices = await db
-		.select({ amountAfterTax: Invoice.amountAfterTax })
+		.select({
+			amountBeforeTax: Invoice.amountBeforeTax,
+			amountAfterTax: Invoice.amountAfterTax,
+		})
 		.from(Invoice)
 		.where(
 			and(
@@ -114,8 +122,12 @@ export async function aggregateQuarter(
 		);
 
 	for (const inv of paidInvoices) {
-		agg.sources.invoiceTurnover += (inv.amountAfterTax || 0);
-		agg.totalTurnover += (inv.amountAfterTax || 0);
+		const gross = inv.amountBeforeTax || 0;
+		const net = inv.amountAfterTax || 0;
+		agg.sources.invoiceTurnover += gross;
+		agg.totalTurnover += gross;
+		// CIS deduction = gross invoiced minus what was actually received
+		agg.cisDeducted += Math.max(0, gross - net);
 	}
 
 	// Source 3a: Budget expense transactions → mapped to HMRC categories

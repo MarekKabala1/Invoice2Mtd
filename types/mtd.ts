@@ -141,6 +141,12 @@ export type QuarterAggregates = {
   otherDisallowableExpenses: number;
   totalAllowableExpenses: number;
   netProfit: number;
+  // WHY: CIS (Construction Industry Scheme) — contractor deducts tax at source
+  // from invoices. cisDeducted tracks total tax already paid by contractor,
+  // so the user knows how much they've already contributed toward their
+  // annual tax bill. turnover = amountBeforeTax (gross invoiced), cisDeducted
+  // = amountBeforeTax - amountAfterTax on paid invoices.
+  cisDeducted: number;
   sources: {
     invoiceTurnover: number;
     budgetExpenses: Record<ExpenseCategory, number>;
