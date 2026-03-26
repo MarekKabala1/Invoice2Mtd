@@ -1,164 +1,49 @@
-import React, { useCallback, useState, useMemo } from 'react';
+/**
+ * charts.tsx
+ *
+ * Invoice charts screen. Shows line chart of monthly/individual invoice amounts
+ * and summary totals for a selected user.
+ *
+ * Depends on: hooks/useChartsData, components/Picker, components/BaseCard, context/ThemeContext
+ * Used by: app/(drawer)/_layout.tsx (drawer screen)
+ */
+
+import React, { useState } from 'react';
 import { View, Text, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { db } from '@/db/config';
-import { User, Invoice, Payment } from '@/db/schema';
-import { UserType, InvoiceType, PaymentType } from '@/db/zodSchema';
 import PickerWithTouchableOpacity from '@/components/Picker';
 import { Controller, useForm } from 'react-hook-form';
-import { eq, inArray } from 'drizzle-orm';
+import { UserType } from '@/db/zodSchema';
 import { LineChart } from 'react-native-chart-kit';
-import { useFocusEffect } from 'expo-router';
-import { calculateInvoiceTotal, calculateMonthlyTotals } from '@/utils/invoiceCalculations';
-import { format, parseISO } from 'date-fns';
 import BaseCard from '@/components/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
-
-type ViewMode = 'all' | 'monthly';
+import { useChartsData } from '@/hooks/useChartsData';
 
 export default function Charts() {
 	const { control, watch } = useForm<UserType>();
-	const [userOptions, setUserOptions] = useState<Array<{ label: string; value: string }>>([]);
-	const [invoices, setInvoices] = useState<InvoiceType[]>([]);
-	const [payments, setPayments] = useState<PaymentType[]>([]);
-	const [viewMode, setViewMode] = useState<ViewMode>('monthly');
-	const [selectedMonth, setSelectedMonth] = useState<string>('all');
-	const [totals, setTotals] = useState({
-		totalBeforeTax: 0,
-		totalAfterTax: 0,
-		taxToPay: 0,
-		totalAfterPayment: 0,
-	});
-	const [error, setError] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
+	const {
+		userOptions,
+		invoices,
+		totals,
+		error,
+		isLoading,
+		viewMode,
+		setViewMode,
+		selectedMonth,
+		setSelectedMonth,
+		availableMonths,
+		chartData,
+		setSelectedUserId,
+		retry,
+	} = useChartsData();
 
 	const { colors, isDark } = useTheme();
 	const selectedUserId = watch('id');
 
-	const getUsers = useCallback(async () => {
-		try {
-			setIsLoading(true);
-			setError(null);
-			const usersData = await db.select().from(User);
-
-			if (usersData.length === 0) {
-				setError('No users found. Please add a user first.');
-			}
-
-			const options = usersData.map((user) => ({
-				label: user.fullName || 'Unnamed User',
-				value: user.id,
-			}));
-			setUserOptions(options);
-		} catch (error) {
-			console.error('Failed to get user data:', error);
-			setError('Unable to retrieve users. Please check your connection and try again.');
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	const getUserInvoices = useCallback(async (userId: string) => {
-		if (!userId) {
-			setError('Please select a valid user.');
-			return;
-		}
-
-		try {
-			setIsLoading(true);
-			setError(null);
-			const invoiceData = await db.select().from(Invoice).where(eq(Invoice.userId, userId));
-
-			if (invoiceData.length === 0) {
-				setError('No invoices found for the selected user.');
-				setInvoices([]);
-				setPayments([]);
-				setTotals({
-					totalBeforeTax: 0,
-					totalAfterTax: 0,
-					taxToPay: 0,
-					totalAfterPayment: 0,
-				});
-				return;
-			}
-
-			setInvoices(invoiceData as unknown as InvoiceType[]);
-
-			const invoiceIds = invoiceData.map((invoice) => invoice.id);
-			const paymentsData = await db.select().from(Payment).where(inArray(Payment.invoiceId, invoiceIds));
-
-			setPayments(paymentsData as unknown as PaymentType[]);
-
-			const calculatedTotals = calculateInvoiceTotal(invoiceData as unknown as InvoiceType[], paymentsData as unknown as PaymentType[]);
-
-			setTotals(calculatedTotals);
-		} catch (error) {
-			console.error('Failed to get invoice data:', error);
-			setError('Unable to retrieve invoices. Please check your connection and try again.');
-			setInvoices([]);
-			setPayments([]);
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	useFocusEffect(
-		useCallback(() => {
-			if (selectedUserId) {
-				getUserInvoices(selectedUserId);
-			}
-			getUsers();
-		}, [selectedUserId, getUsers, getUserInvoices])
-	);
-
-	const monthlyTotals = useMemo(() => {
-		return calculateMonthlyTotals(invoices);
-	}, [invoices]);
-
-	const availableMonths = useMemo(() => {
-		const months = Object.keys(monthlyTotals).sort();
-		return [
-			{ label: 'All Months', value: 'all' },
-			...months.map((month) => ({
-				label: format(parseISO(month), 'MMMM yyyy'),
-				value: month,
-			})),
-		];
-	}, [monthlyTotals]);
-
-	const chartData = useMemo(() => {
-		if (viewMode === 'monthly') {
-			const sortedMonths = Object.keys(monthlyTotals)
-				.filter((month) => selectedMonth === 'all' || month === selectedMonth)
-				.sort();
-
-			return {
-				labels: ['', ...sortedMonths.map((month) => format(parseISO(month), 'MM/yy'))],
-				datasets: [
-					{
-						data: [0, ...sortedMonths.map((month) => monthlyTotals[month].totalBeforeTax)],
-					},
-				],
-			};
-		} else {
-			const filteredInvoices =
-				selectedMonth === 'all'
-					? invoices
-					: invoices.filter((invoice) => {
-							const invoiceMonth = invoice.createdAt?.slice(0, 7);
-							return invoiceMonth === selectedMonth;
-						});
-
-			return {
-				labels: ['', ...filteredInvoices.map((invoice) => format(new Date(invoice.createdAt || ''), 'dd/MM/yy'))],
-				datasets: [
-					{
-						data: [0, ...filteredInvoices.map((invoice) => invoice.amountBeforeTax || 0)],
-					},
-				],
-			};
-		}
-	}, [invoices, monthlyTotals, viewMode, selectedMonth]);
+	// Sync form selection to hook
+	if (selectedUserId) {
+		setSelectedUserId(selectedUserId);
+	}
 
 	const screenWidth = Dimensions.get('window').width;
 	const chartWidth = Math.max(screenWidth - 32, chartData.labels.length * 50);
@@ -168,12 +53,7 @@ export default function Charts() {
 		return (
 			<View style={{ paddingTop: insets.top }} className='flex-1 bg-light-primary dark:bg-dark-primary p-4 w-screen justify-center items-center'>
 				<Text className='text-lg text-red-500 text-center mb-4'>{error}</Text>
-				<TouchableOpacity
-					onPress={() => {
-						setError(null);
-						getUsers();
-					}}
-					className='bg-light-accent dark:bg-dark-accent p-3 rounded-lg'>
+				<TouchableOpacity onPress={retry} className='bg-light-accent dark:bg-dark-accent p-3 rounded-lg'>
 					<Text className='text-light-text dark:text-dark-text'>Retry</Text>
 				</TouchableOpacity>
 			</View>

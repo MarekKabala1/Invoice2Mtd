@@ -14,7 +14,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { useMtdData } from '@/hooks/useMtdData';
+import { useMtdDataAllQuarters } from '@/hooks/useMtdDataAllQuarters';
 import { currentTaxYearStart, taxYearLabel, quartersForTaxYear } from '@/utils/mtdDates';
 import { estimateTax, formatGBP, formatPercent } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
@@ -34,15 +34,9 @@ export default function MtdAnnualEstimateScreen() {
 	const tyLabel = taxYearLabel(startYear);
 	const quarters = quartersForTaxYear(startYear);
 
-	// Fetch data for all 4 quarters
-	const q1 = useMtdData({ taxYear: tyLabel, quarter: 1, userId });
-	const q2 = useMtdData({ taxYear: tyLabel, quarter: 2, userId });
-	const q3 = useMtdData({ taxYear: tyLabel, quarter: 3, userId });
-	const q4 = useMtdData({ taxYear: tyLabel, quarter: 4, userId });
 
-	const allQuarters = [q1, q2, q3, q4];
-	const isLoading = allQuarters.some((q) => q.isLoading);
-	const anyError = allQuarters.find((q) => q.error);
+	// Fetch data for all 4 quarters via consolidated hook
+	const { allQuarters, isLoading, error: anyError, q1, q2, q3, q4 } = useMtdDataAllQuarters(tyLabel, userId);
 
 	// Aggregate all quarters — actual figures + per-category breakdown + CIS
 	const totals = useMemo(() => {
@@ -114,7 +108,7 @@ export default function MtdAnnualEstimateScreen() {
 		return (
 			<View className='flex-1 items-center justify-center px-6' style={{ backgroundColor: colors.primary }}>
 				<Text className='text-base text-center mb-4' style={{ color: colors.danger }}>
-					{anyError.error}
+					{anyError}
 				</Text>
 			</View>
 		);
