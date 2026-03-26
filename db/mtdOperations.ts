@@ -14,7 +14,7 @@
  *             utils/generateUuid.ts
  */
 
-import { eq, and, gte, lte, sql as sqlFn } from 'drizzle-orm';
+import { eq, and, gte, lte, sql as sqlFn, isNull, or, ne } from 'drizzle-orm';
 import { db } from './config';
 import { MtdTransactions, MtdQuarterlySummary, MtdAnnualSummary, Invoice, Transactions } from './schema';
 import { generateId } from '@/utils/generateUuid';
@@ -92,6 +92,36 @@ export async function getMtdTransactions(
     .where(eq(MtdTransactions.taxYear, taxYear));
 }
 
+/**
+ * Paid invoice amounts in the quarter whose turnover is not represented by any
+ * MtdTransactions row linked via invoiceId (e.g. legacy paid invoices before sync).
+ */
+export async function getPaidInvoiceTurnoverMissingMtd(
+  taxYear: string,
+  quarter: 1 | 2 | 3 | 4
+): Promise<number> {
+  const startYear = parseInt(taxYear.split('-')[0], 10);
+  if (Number.isNaN(startYear)) return 0;
+  const quarters = quartersForTaxYear(startYear);
+  const q = quarters.find((x) => x.quarter === quarter);
+  if (!q) return 0;
+
+  const rows = await db
+    .select({ amount: Invoice.amountAfterTax })
+    .from(Invoice)
+    .leftJoin(MtdTransactions, eq(MtdTransactions.invoiceId, Invoice.id))
+    .where(
+      and(
+        eq(Invoice.isPayed, true),
+        isNull(MtdTransactions.id),
+        gte(Invoice.invoiceDate, q.periodStart),
+        lte(Invoice.invoiceDate, q.periodEnd + 'T23:59:59.999Z')
+      )
+    );
+
+  return rows.reduce((s, r) => s + (r.amount ?? 0), 0);
+}
+
 // ─── Delete transaction ──────────────────────────────────────────────────────
 
 export async function deleteMtdTransaction(id: string): Promise<void> {
@@ -138,10 +168,11 @@ export async function aggregateQuarter(
 
   const agg = emptyAggregates();
 
-  // Source 1: Manual MTD transactions
-  // userId filter removed — sole trader app has one user per device,
-  // so filtering by userId is unnecessary and causes mismatches when
-  // the userId from settings doesn't match the one used at creation.
+  // Source 1: Manual MTD transactions (rows that are NOT already represented elsewhere)
+  // Skip rows linked to a budget Transactions row — Source 3 counts those.
+  // Skip income rows linked to an Invoice — Source 2 counts paid invoice turnover
+  // (markInvoiceAsPaid creates Mtd + budget income + invoice paid; without this,
+  // turnover would be triple-counted across manual + invoice + budget).
   const manualTxns = await db
     .select({
       type: MtdTransactions.type,
@@ -152,7 +183,9 @@ export async function aggregateQuarter(
     .where(
       and(
         eq(MtdTransactions.taxYear, taxYear),
-        eq(MtdTransactions.quarter, quarter)
+        eq(MtdTransactions.quarter, quarter),
+        isNull(MtdTransactions.transactionId),
+        or(ne(MtdTransactions.type, 'income'), isNull(MtdTransactions.invoiceId))
       )
     );
 
@@ -210,16 +243,18 @@ export async function aggregateQuarter(
   }
 
   // Source 3b: Budget income transactions → turnover
-  // When the user adds income via the Budget tab, it should also
-  // appear as MTD turnover so the tax estimate stays accurate.
+  // Exclude rows mirrored from markInvoiceAsPaid (Mtd row ties transactionId to invoiceId);
+  // those amounts are already in Source 2 (invoice turnover).
   const budgetIncome = await db
     .select({ amount: Transactions.amount })
     .from(Transactions)
+    .leftJoin(MtdTransactions, eq(MtdTransactions.transactionId, Transactions.id))
     .where(
       and(
         eq(Transactions.type, 'INCOME'),
         gte(Transactions.date, q.periodStart),
-        lte(Transactions.date, q.periodEnd)
+        lte(Transactions.date, q.periodEnd),
+        or(isNull(MtdTransactions.id), isNull(MtdTransactions.invoiceId))
       )
     );
 

@@ -48,7 +48,7 @@
 				"@sentry/react-native/expo",
 				{
 					"organization": "mk-3c",
-					"project": "invoiceapp",
+					"project": "invoice2mtd",
 					"url": "https://sentry.io/"
 				}
 			],

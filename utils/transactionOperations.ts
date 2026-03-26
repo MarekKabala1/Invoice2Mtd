@@ -6,6 +6,10 @@ import { eq } from 'drizzle-orm';
 import { generateId } from '@/utils/generateUuid';
 import { router } from 'expo-router';
 
+export type SaveTransactionResult =
+  | { saved: false }
+  | { saved: true; transactionId: string; mode: 'insert' | 'update' };
+
 export const validateTransactionData = (data: TransactionType): boolean => {
   if (!data.userId) {
     Alert.alert('Error', 'Please select a user');
@@ -25,10 +29,14 @@ export const validateTransactionData = (data: TransactionType): boolean => {
   return true;
 };
 
-export const handleSaveTransaction = async (data: TransactionType, isUpdateMode: boolean, transactionData?: TransactionType): Promise<void> => {
+export const handleSaveTransaction = async (
+  data: TransactionType,
+  isUpdateMode: boolean,
+  transactionData?: TransactionType
+): Promise<SaveTransactionResult> => {
   try {
     if (!validateTransactionData(data)) {
-      return;
+      return { saved: false };
     }
 
     const amount = parseFloat(data.amount as unknown as string);
@@ -43,10 +51,18 @@ export const handleSaveTransaction = async (data: TransactionType, isUpdateMode:
 
     if (isUpdateMode && transactionData) {
       await db.update(Transactions).set(transaction).where(eq(Transactions.id, transactionData.id));
-    } else {
-      await db.insert(Transactions).values(transaction);
+      Alert.alert('Success', 'Transaction updated successfully', [
+        {
+          text: 'OK',
+          onPress: () => {
+            router.back();
+          },
+        },
+      ]);
+      return { saved: true, transactionId: transactionData.id, mode: 'update' };
     }
 
+    await db.insert(Transactions).values(transaction);
     Alert.alert('Success', 'Transaction added successfully', [
       {
         text: 'OK',
@@ -55,8 +71,10 @@ export const handleSaveTransaction = async (data: TransactionType, isUpdateMode:
         },
       },
     ]);
+    return { saved: true, transactionId: id, mode: 'insert' };
   } catch (error) {
     console.error('Failed to add transaction:', error);
     Alert.alert('Error', 'Failed to add transaction. Please try again.');
+    return { saved: false };
   }
 };

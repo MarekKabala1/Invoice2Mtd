@@ -5,14 +5,14 @@
  * expenses (per HMRC category), disallowable expenses, net profit, and a
  * quarterly tax estimate. Shows individual MTD transactions with delete.
  *
- * Depends on: hooks/useMtdData.ts, hooks/useMtdTransaction.ts,
- *             utils/mtdCategories.ts, utils/mtdTaxCalc.ts, db/mtdOperations.ts
+ * Depends on: hooks/useMtdData.ts, hooks/useMtdTransactionsForQuarter.ts,
+ *             utils/mtdCategories.ts, utils/mtdTaxCalc.ts, utils/invoiceSync.ts
  * Used by: app/(drawer)/(tabs)/tax.tsx (nav tile)
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
@@ -21,9 +21,9 @@ import { currentTaxYearStart, taxYearLabel } from '@/utils/mtdDates';
 import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { ExpenseCategory, EXPENSE_CATEGORIES } from '@/types/mtd';
-import { getMtdTransactions } from '@/db/mtdOperations';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteMtdTransactionSync } from '@/utils/invoiceSync';
+import { useMtdTransactionsForQuarter, MtdTransactionRow } from '@/hooks/useMtdTransactionsForQuarter';
 
 const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [
   { num: 1, label: 'Q1' },
@@ -52,35 +52,21 @@ export default function MtdQuarterlySummaryScreen() {
   })();
 
   const [selectedQuarter, setSelectedQuarter] = useState<1 | 2 | 3 | 4>(initialQuarter);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [txLoading, setTxLoading] = useState(false);
 
   const { aggregates, isLoading, error, refresh } = useMtdData({
     taxYear: tyLabel,
     quarter: selectedQuarter,
     userId,
   });
-  // Fetch individual MTD transactions for the selected quarter
-  const fetchTransactions = useCallback(async () => {
-    setTxLoading(true);
-    try {
-      const txns = await getMtdTransactions(tyLabel, selectedQuarter);
-      setTransactions(txns);
-    } catch (err) {
-      console.error('Failed to fetch MTD transactions:', err);
-    } finally {
-      setTxLoading(false);
-    }
-  }, [tyLabel, selectedQuarter]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchTransactions();
-    }, [fetchTransactions])
-  );
+  const {
+    transactions,
+    isLoading: txLoading,
+    refresh: refreshTransactions,
+  } = useMtdTransactionsForQuarter(tyLabel, selectedQuarter);
 
   // Delete MTD record — cascades to budget + invoice via sync service
-  const handleDelete = (tx: any) => {
+  const handleDelete = (tx: MtdTransactionRow) => {
     Alert.alert(
       'Delete Record',
       `Delete "${tx.description}" (${formatGBP(tx.amount)})?` +
@@ -94,7 +80,7 @@ export default function MtdQuarterlySummaryScreen() {
           onPress: async () => {
             try {
               await deleteMtdTransactionSync(tx.id);
-              fetchTransactions();
+              refreshTransactions();
               refresh();
             } catch (err) {
               Alert.alert('Error', 'Failed to delete record');
