@@ -12,15 +12,30 @@ import { getCurrentUserId } from '@/utils/getCurrentUser';
 import { eq } from 'drizzle-orm';
 
 jest.mock('@/utils/getCurrentUser');
-jest.mock('@/db/config', () => ({
-  db: {
-    insert: jest.fn().mockReturnThis(),
+jest.mock('@/db/config', () => {
+  const queryMock: Record<string, unknown> = {
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
-    then: jest.fn(),
-  },
-}));
+    leftJoin: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockResolvedValue([]),
+    values: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    // WHY: Drizzle queries are thenable — 'await query' calls .then() internally.
+    // Without this, 'await db.select().from().where()' returns the mock object
+    // instead of an array, breaking for...of loops on the result.
+    then: jest.fn((resolve) => resolve([])),
+  };
+  return {
+    db: {
+      insert: jest.fn().mockReturnValue({ values: jest.fn().mockResolvedValue(undefined) }),
+      select: jest.fn().mockReturnValue(queryMock),
+      update: jest.fn().mockReturnValue({ set: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue(undefined) }) }),
+      delete: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue(undefined) }),
+    },
+  };
+});
 
 describe('MTD Data Flow Integration', () => {
   const mockUserId = 'user-123';
@@ -51,9 +66,9 @@ describe('MTD Data Flow Integration', () => {
     // WHY: Tests three-source aggregation: manual MTD + invoices + budget transactions
     const aggregatedData = await aggregateQuarter('2025-26', 1 as 1 | 2 | 3 | 4, mockUserId);
 
-    expect(aggregatedData).toHaveProperty('income');
-    expect(aggregatedData).toHaveProperty('allowableExpenses');
-    expect(aggregatedData).toHaveProperty('disallowableExpenses');
+    expect(aggregatedData).toHaveProperty('totalTurnover');
+    expect(aggregatedData).toHaveProperty('totalAllowableExpenses');
+    expect(aggregatedData).toHaveProperty('netProfit');
     expect(aggregatedData).toHaveProperty('sources');
   });
 

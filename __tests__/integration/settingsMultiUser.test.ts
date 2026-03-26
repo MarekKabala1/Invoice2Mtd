@@ -8,6 +8,14 @@
 import { getCurrentUserId } from '@/utils/getCurrentUser';
 
 jest.mock('@/utils/getCurrentUser');
+jest.mock('@/db/config', () => ({
+  db: {
+    insert: jest.fn().mockReturnValue({ values: jest.fn().mockResolvedValue(undefined) }),
+    select: jest.fn().mockReturnValue({ from: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }) }),
+    update: jest.fn().mockReturnValue({ set: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue(undefined) }) }),
+    delete: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue(undefined) }),
+  },
+}));
 
 describe('Settings Multi-User Isolation', () => {
   const userA = 'user-a-123';

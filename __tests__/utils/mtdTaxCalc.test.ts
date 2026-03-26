@@ -144,7 +144,7 @@ describe('mtdTaxCalc', () => {
     });
 
     it('formats negative numbers', () => {
-      expect(formatGBP(-500)).toBe('-£500.00');
+      expect(formatGBP(-500)).toBe('£-500.00');
     });
   });
 

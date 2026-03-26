@@ -63,7 +63,7 @@ describe('Invoice→MTD Auto-Sync Integration', () => {
     const d = date.getDate();
 
     let quarter: number;
-    if ((m === 3 && d >= 6) || m === 4 || (m === 5 && d <= 5)) quarter = 1;
+    if ((m === 3 && d >= 6) || m === 4 || m === 5) quarter = 1;
     else if ((m === 6 && d >= 6) || m === 7 || (m === 8 && d <= 5)) quarter = 2;
     else if ((m === 9 && d >= 6) || m === 10 || m === 11) quarter = 3;
     else quarter = 4;
