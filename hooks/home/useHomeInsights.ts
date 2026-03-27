@@ -16,7 +16,7 @@ import { useFocusEffect } from 'expo-router';
 import { aggregateQuarter, getPaidInvoiceTurnoverMissingMtd } from '@/db/mtdOperations';
 import { getUnpaidInvoicesTotals } from '@/db/invoiceOperations';
 import { getRecentActivity } from '@/db/homeInsightsOperations';
-import { useMtdDeadlines } from './useMtdDeadlines';
+import { useMtdDeadlines } from '@/hooks/mtd/useMtdDeadlines';
 import { currentTaxYearStart, taxYearLabel, quarterForDate } from '@/utils/mtd/mtdDates';
 import { ActivityItem, DeadlineItem } from '@/types/mtd';
 
