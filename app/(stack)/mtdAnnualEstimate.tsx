@@ -15,13 +15,13 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } 
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdDataAllQuarters } from '@/hooks/useMtdDataAllQuarters';
-import { currentTaxYearStart, taxYearLabel, quartersForTaxYear } from '@/utils/mtdDates';
-import { estimateTax, formatGBP, formatPercent } from '@/utils/mtdTaxCalc';
+import { currentTaxYearStart, taxYearLabel, quartersForTaxYear } from '@/utils/mtd/mtdDates';
+import { estimateTax, formatGBP, formatPercent } from '@/utils/mtd/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { TaxBandBar } from '@/components/TaxBandBar';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpenseCategory } from '@/types/mtd';
-import { EXPENSE_CATEGORY_LABELS, isAllowable, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtdCategories';
+import { EXPENSE_CATEGORY_LABELS, isAllowable, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtd/mtdCategories';
 
 export default function MtdAnnualEstimateScreen() {
 	const { colors, isDark } = useTheme();

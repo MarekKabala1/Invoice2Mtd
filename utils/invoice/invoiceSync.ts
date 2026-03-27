@@ -16,10 +16,10 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db/config';
 import { Invoice, Transactions, MtdTransactions, WorkInformation, Payment, Note } from '@/db/schema';
-import { generateId } from '@/utils/generateUuid';
-import { taxYearForDate } from '@/utils/mtdDates';
+import { generateId } from '@/utils/shared/generateUuid';
+import { taxYearForDate } from '@/utils/mtd/mtdDates';
 import { refreshCurrentYear } from '@/db/mtdOperations';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 
 function quarterForDateValue(date: Date): 1 | 2 | 3 | 4 {
   const m = date.getMonth();

@@ -3,13 +3,13 @@ import { View, Text, Modal, TouchableOpacity, Alert, Platform } from 'react-nati
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CustomerType, InvoiceType, UserType } from '@/db/zodSchema';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
 import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
-import { sendPaymentReminder } from '@/utils/emailOperations';
-import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoiceFormOperations';
-import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoiceSync';
-import { toISO, quarterForDate } from '@/utils/mtdDates';
+import { sendPaymentReminder } from '@/utils/invoice/emailOperations';
+import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoice/invoiceFormOperations';
+import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoice/invoiceSync';
+import { toISO, quarterForDate } from '@/utils/mtd/mtdDates';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme as useThemeHook } from '@/context/ThemeContext';

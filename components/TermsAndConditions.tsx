@@ -14,12 +14,12 @@ import { useTheme } from '@/context/ThemeContext';
 import { db } from '@/db/config';
 import { EstimateTerms } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import BaseCard from './BaseCard';
 import {
 	getEstimateTerms,
 	saveEstimateTerms,
-} from '@/utils/estimateOperations';
+} from '@/utils/invoice/estimateOperations';
 import { EstimateTermsType } from '@/db/zodSchema';
 
 interface TermsAndConditionsProps {

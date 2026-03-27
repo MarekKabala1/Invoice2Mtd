@@ -5,13 +5,13 @@ import { View, TextInput, Text, TouchableOpacity, ScrollView } from 'react-nativ
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import PickerWithTouchableOpacity from '@/components/Picker';
 import { userSchema } from '@/db/zodSchema';
 import { BankDetails as BankDetailsType, User as UserType } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { BankDetailsToUpdate, BankDetailsUpdateParams } from '@/types';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
 
 const bankDetailsSchema = z.object({

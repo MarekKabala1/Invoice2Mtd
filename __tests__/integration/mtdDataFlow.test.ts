@@ -8,10 +8,10 @@
 import { db } from '@/db/config';
 import { MtdTransactions, MtdQuarterlySummary } from '@/db/schema';
 import { addMtdTransaction, aggregateQuarter, refreshCurrentYear } from '@/db/mtdOperations';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 import { eq } from 'drizzle-orm';
 
-jest.mock('@/utils/getCurrentUser');
+jest.mock('@/utils/shared/getCurrentUser');
 jest.mock('@/db/config', () => {
   const queryMock: Record<string, unknown> = {
     select: jest.fn().mockReturnThis(),

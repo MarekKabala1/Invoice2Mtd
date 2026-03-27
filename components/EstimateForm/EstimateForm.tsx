@@ -28,15 +28,15 @@ import {
 	handlePreviewEstimate,
 	getEstimateTerms,
 	saveEstimateTerms,
-} from '@/utils/estimateOperations';
-import { calculateEstimateTotals } from '@/utils/estimateCalculations';
+} from '@/utils/invoice/estimateOperations';
+import { calculateEstimateTotals } from '@/utils/invoice/estimateCalculations';
 import { EstimateHeaderSection } from './EstimateHeaderSection';
 import { EstimateNotesSection } from './EstimateNotesSection';
 import { EstimateTermsSection } from './EstimateTermsSection';
 import { EstimateActionButtons } from './EstimateActionButtons';
 import TermsAndConditions from '@/components/TermsAndConditions';
 import { generateEstimateHtml } from '@/templates/estimateTemplate';
-import { getCustomers } from '@/utils/customerOperations';
+import { getCustomers } from '@/utils/invoice/customerOperations';
 
 interface EstimateFormProps {
 	isUpdateMode?: boolean;

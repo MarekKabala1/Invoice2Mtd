@@ -6,7 +6,7 @@ import {
   getEstimateStorageDirectory,
   requestInvoiceStorageDirectory,
   requestEstimateStorageDirectory,
-} from '@/utils/permissions';
+} from '@/utils/shared/permissions';
 
 // Alias for backward compatibility
 const getOrCreateStorageDirectory = getOrCreateInvoiceStorageDirectory;

@@ -14,8 +14,8 @@ import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { RATES_2025_26, formatGBP, parseTaxRates } from '@/utils/mtdTaxCalc';
-import { currentTaxYear, quartersForTaxYear, currentTaxYearStart } from '@/utils/mtdDates';
+import { RATES_2025_26, formatGBP, parseTaxRates } from '@/utils/mtd/mtdTaxCalc';
+import { currentTaxYear, quartersForTaxYear, currentTaxYearStart } from '@/utils/mtd/mtdDates';
 
 function SectionTitle({ title }: { title: string }) {
   const { colors } = useTheme();

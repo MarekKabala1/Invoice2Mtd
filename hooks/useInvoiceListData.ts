@@ -18,7 +18,7 @@ import { db } from '@/db/config';
 import { Invoice, Payment, Note, WorkInformation, Customer } from '@/db/schema';
 import { InvoiceType, WorkInformationType, PaymentType, NoteType, CustomerType } from '@/db/zodSchema';
 import { InvoiceForUpdate } from '@/types';
-import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoiceFinancialGrouping';
+import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoice/invoiceFinancialGrouping';
 import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface InvoiceListData {

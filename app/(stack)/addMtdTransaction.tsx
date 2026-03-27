@@ -32,8 +32,8 @@ import {
   INCOME_CATEGORIES,
   EXPENSE_ONLY_CATEGORIES,
   isAllowable,
-} from '@/utils/mtdCategories';
-import { toISO, fromISO, quarterForDate } from '@/utils/mtdDates';
+} from '@/utils/mtd/mtdCategories';
+import { toISO, fromISO, quarterForDate } from '@/utils/mtd/mtdDates';
 import { ExpenseCategory } from '@/types/mtd';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker from '@/components/DatePicker';

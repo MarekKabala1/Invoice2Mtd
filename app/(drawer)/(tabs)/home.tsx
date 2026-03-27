@@ -28,8 +28,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useHomeInsights } from '@/hooks/useHomeInsights';
-import { formatGBP } from '@/utils/mtdTaxCalc';
-import { chunkIntoPages } from '@/utils/homeActivityChunks';
+import { formatGBP } from '@/utils/mtd/mtdTaxCalc';
+import { chunkIntoPages } from '@/utils/home/homeActivityChunks';
 
 const ACTIVITY_PAGE_SIZE = 5;
 

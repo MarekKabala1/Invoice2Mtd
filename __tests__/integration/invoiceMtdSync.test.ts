@@ -5,7 +5,7 @@
  * Create invoice → Mark paid → Verify MTD record created with correct quarter
  */
 
-import { quartersForTaxYear, taxYearForDate } from '@/utils/mtdDates';
+import { quartersForTaxYear, taxYearForDate } from '@/utils/mtd/mtdDates';
 import { parseISO } from 'date-fns';
 
 describe('Invoice→MTD Auto-Sync Integration', () => {

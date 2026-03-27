@@ -10,7 +10,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { SectionHeader, SettingsInputRow, SettingsToggleRow } from '../components';
 import { AppSettingsType } from '@/db/zodSchema';
-import { formatGBP } from '@/utils/mtdTaxCalc';
+import { formatGBP } from '@/utils/mtd/mtdTaxCalc';
 
 interface TaxSettingsSectionProps {
 	formState: Partial<AppSettingsType>;

@@ -9,7 +9,7 @@ import Animated, {
 	withSpring,
 	withTiming,
 } from 'react-native-reanimated';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import { DrawerToggleButton } from '@react-navigation/drawer';

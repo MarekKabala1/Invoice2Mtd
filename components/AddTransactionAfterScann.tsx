@@ -15,13 +15,13 @@ import { Controller, useForm } from 'react-hook-form';
 import PickerWithTouchableOpacity from './Picker';
 import { useTransaction } from '@/hooks/useTransaction';
 import { TransactionType } from '@/db/zodSchema';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
 import React, { useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import DatePicker from './DatePicker';
-import { categories } from '@/utils/categories';
+import { categories } from '@/utils/budget/categories';
 
 interface AddTransactionAfterScanProps {
 	isAddToBudgetModalVisible: boolean;

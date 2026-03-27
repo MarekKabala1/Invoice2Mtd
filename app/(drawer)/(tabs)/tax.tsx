@@ -19,10 +19,10 @@ import { useMtdData } from '@/hooks/useMtdData';
 import { useMtdDeadlines } from '@/hooks/useMtdDeadlines';
 import { useUnpaidInvoicesForQuarter } from '@/hooks/useUnpaidInvoicesForQuarter';
 import { useMtdDataAllQuarters } from '@/hooks/useMtdDataAllQuarters';
-import { currentTaxYearStart, taxYearLabel, currentTaxYear } from '@/utils/mtdDates';
-import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
+import { currentTaxYearStart, taxYearLabel, currentTaxYear } from '@/utils/mtd/mtdDates';
+import { estimateTax, formatGBP } from '@/utils/mtd/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
-import { EXPENSE_CATEGORY_LABELS, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtdCategories';
+import { EXPENSE_CATEGORY_LABELS, EXPENSE_ONLY_CATEGORIES } from '@/utils/mtd/mtdCategories';
 import { QuarterAggregates } from '@/types/mtd';
 import { Ionicons } from '@expo/vector-icons';
 

@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { SectionHeader, SettingsInputRow } from '../components';
 import { AppSettingsType } from '@/db/zodSchema';
-import { RATES_2025_26, parseTaxRates, serializeTaxRates } from '@/utils/mtdTaxCalc';
+import { RATES_2025_26, parseTaxRates, serializeTaxRates } from '@/utils/mtd/mtdTaxCalc';
 
 interface HMRCRatesSectionProps {
 	formState: Partial<AppSettingsType>;

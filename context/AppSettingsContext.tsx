@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AppSettingsType } from '@/db/zodSchema';
-import { getAppSettingsFromDb, updateAppSettingsInDb, insertAppSettingsInDb } from '@/utils/settingsOperations';
+import { getAppSettingsFromDb, updateAppSettingsInDb, insertAppSettingsInDb } from '@/utils/settings/settingsOperations';
 
 type AppSettingsContextType = {
 	settings: AppSettingsType | null;

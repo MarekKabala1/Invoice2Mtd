@@ -6,7 +6,7 @@ import { InvoiceForUpdate } from '@/types';
 import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
 import AddToBudgetModal from '../AddToBudgetModal';
 import { addMtdTransaction, refreshCurrentYear } from '@/db/mtdOperations';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 
 interface MarkAsPaidWithBudgetProps {
 	invoice: InvoiceForUpdate;

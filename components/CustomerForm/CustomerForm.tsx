@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { customerSchema, CustomerType } from '@/db/zodSchema';
-import { handleSaveCustomer, getCustomers, handleDeleteCustomer } from '@/utils/customerOperations';
+import { handleSaveCustomer, getCustomers, handleDeleteCustomer } from '@/utils/invoice/customerOperations';
 import { CustomerList } from './CustomerList';
 import { CustomerFormModal } from './CustomerFormModal';
 

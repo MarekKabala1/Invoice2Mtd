@@ -19,7 +19,7 @@ import {
 	getOrCreateEstimateStorageDirectory,
 	resetInvoiceStorageDirectory,
 	resetEstimateStorageDirectory,
-} from './permissions';
+} from '@/utils/shared/permissions';
 
 type GeneratePdfParams = {
 	data: InvoiceType & {

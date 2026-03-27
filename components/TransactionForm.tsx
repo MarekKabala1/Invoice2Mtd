@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { categories } from '@/utils/categories';
+import { categories } from '@/utils/budget/categories';
 import BaseCard from '@/components/BaseCard';
 import { transactionSchema, TransactionType } from '@/db/zodSchema';
 import PickerWithTouchableOpacity from '@/components/Picker';
@@ -21,8 +21,8 @@ import { useTheme } from '@/context/ThemeContext';
 import DatePicker from '@/components/DatePicker';
 import { useTransaction } from '@/hooks/useTransaction';
 import { useMtdTransaction } from '@/hooks/useMtdTransaction';
-import { handleSaveTransaction } from '@/utils/transactionOperations';
-import { mapCategoryToHmrc } from '@/utils/mtdCategories';
+import { handleSaveTransaction } from '@/utils/budget/transactionOperations';
+import { mapCategoryToHmrc } from '@/utils/mtd/mtdCategories';
 
 const transactionTypes = [
 	{ id: 'EXPENSE', label: 'Expense' },

@@ -17,7 +17,7 @@ import { db } from '@/db/config';
 import { User, Invoice, Payment } from '@/db/schema';
 import { UserType, InvoiceType, PaymentType } from '@/db/zodSchema';
 import { eq, inArray } from 'drizzle-orm';
-import { calculateInvoiceTotal, calculateMonthlyTotals } from '@/utils/invoiceCalculations';
+import { calculateInvoiceTotal, calculateMonthlyTotals } from '@/utils/invoice/invoiceCalculations';
 import { format, parseISO } from 'date-fns';
 
 export type ViewMode = 'all' | 'monthly';

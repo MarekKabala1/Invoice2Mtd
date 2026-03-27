@@ -14,7 +14,7 @@ import {
 } from '@/db/zodSchema';
 import BaseCard from '../BaseCard';
 import EstimateSettingsModal from './EstimateSettingsModal';
-import { getUserAndBankDetails } from '@/utils/estimateOperations';
+import { getUserAndBankDetails } from '@/utils/invoice/estimateOperations';
 
 interface EstimateWithDetails {
 	id: string;

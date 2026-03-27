@@ -5,9 +5,9 @@
  * Create User A settings → Switch to User B → Verify isolation
  */
 
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 
-jest.mock('@/utils/getCurrentUser');
+jest.mock('@/utils/shared/getCurrentUser');
 jest.mock('@/db/config', () => ({
   db: {
     insert: jest.fn().mockReturnValue({ values: jest.fn().mockResolvedValue(undefined) }),

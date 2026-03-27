@@ -9,9 +9,9 @@ import {
 	Note,
 } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { generateId } from './generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { calculateInvoiceWorkItemTotals } from './invoiceCalculations';
-import { quarterForDate } from './mtdDates';
+import { quarterForDate } from '@/utils/mtd/mtdDates';
 import {
 	CustomerType,
 	InvoiceType,

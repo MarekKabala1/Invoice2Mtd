@@ -11,7 +11,7 @@
  */
 
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { parseTaxRates, RATES_2025_26 } from '@/utils/mtdTaxCalc';
+import { parseTaxRates, RATES_2025_26 } from '@/utils/mtd/mtdTaxCalc';
 import { TaxRates } from '@/types/mtd';
 
 export function useTaxRates(): TaxRates {

@@ -12,9 +12,9 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from './config';
 import { MtdAnnualSummary } from './schema';
-import { generateId } from '@/utils/generateUuid';
-import { taxYearForDate, toISO } from '@/utils/mtdDates';
-import { estimateTax } from '@/utils/mtdTaxCalc';
+import { generateId } from '@/utils/shared/generateUuid';
+import { taxYearForDate, toISO } from '@/utils/mtd/mtdDates';
+import { estimateTax } from '@/utils/mtd/mtdTaxCalc';
 import { TaxRates } from '@/types/mtd';
 import { refreshQuarterlySummary, getQuarterlySummaries } from './mtdQuarterlySummaryOps';
 

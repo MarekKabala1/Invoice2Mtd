@@ -13,7 +13,7 @@ import {
   formatGBP,
   formatPercent,
   RATES_2025_26,
-} from '@/utils/mtdTaxCalc';
+} from '@/utils/mtd/mtdTaxCalc';
 
 describe('mtdTaxCalc', () => {
   // ─── estimateTax ─────────────────────────────────────────────────────────

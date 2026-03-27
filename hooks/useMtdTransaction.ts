@@ -17,8 +17,8 @@ import { addMtdTransaction, deleteMtdTransaction, refreshCurrentYear } from '@/d
 import { NewMtdTransaction } from '@/types/mtd';
 import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
-import { generateId } from '@/utils/generateUuid';
-import { getCurrentUserId } from '@/utils/getCurrentUser';
+import { generateId } from '@/utils/shared/generateUuid';
+import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 import { eq } from 'drizzle-orm';
 
 // Maps HMRC categories back to budget category IDs

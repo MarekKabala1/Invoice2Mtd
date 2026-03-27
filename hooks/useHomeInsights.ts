@@ -17,7 +17,7 @@ import { aggregateQuarter, getPaidInvoiceTurnoverMissingMtd } from '@/db/mtdOper
 import { getUnpaidInvoicesTotals } from '@/db/invoiceOperations';
 import { getRecentActivity } from '@/db/homeInsightsOperations';
 import { useMtdDeadlines } from './useMtdDeadlines';
-import { currentTaxYearStart, taxYearLabel, quarterForDate } from '@/utils/mtdDates';
+import { currentTaxYearStart, taxYearLabel, quarterForDate } from '@/utils/mtd/mtdDates';
 import { ActivityItem, DeadlineItem } from '@/types/mtd';
 
 export interface UseHomeInsightsResult {

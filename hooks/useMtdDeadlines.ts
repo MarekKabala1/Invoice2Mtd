@@ -9,7 +9,7 @@
  */
 
 import { useMemo } from 'react';
-import { upcomingDeadlines, quarterForDate, toISO } from '@/utils/mtdDates';
+import { upcomingDeadlines, quarterForDate, toISO } from '@/utils/mtd/mtdDates';
 import { DeadlineItem } from '@/types/mtd';
 
 interface UseMtdDeadlinesResult {

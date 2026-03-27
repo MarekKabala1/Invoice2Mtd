@@ -16,7 +16,7 @@ import { useFocusEffect } from 'expo-router';
 import { db } from '@/db/config';
 import { Invoice } from '@/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { quartersForTaxYear, quarterForDate, currentTaxYearStart } from '@/utils/mtdDates';
+import { quartersForTaxYear, quarterForDate, currentTaxYearStart } from '@/utils/mtd/mtdDates';
 
 export function useUnpaidInvoicesForQuarter() {
 	const [unpaidCount, setUnpaidCount] = useState(0);

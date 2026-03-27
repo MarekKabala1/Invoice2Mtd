@@ -11,8 +11,8 @@
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 import { db } from './config';
 import { MtdTransactions, Invoice } from './schema';
-import { generateId } from '@/utils/generateUuid';
-import { taxYearForDate, quartersForTaxYear } from '@/utils/mtdDates';
+import { generateId } from '@/utils/shared/generateUuid';
+import { taxYearForDate, quartersForTaxYear } from '@/utils/mtd/mtdDates';
 import { NewMtdTransaction } from '@/types/mtd';
 
 /**

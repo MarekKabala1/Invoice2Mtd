@@ -5,7 +5,7 @@ import { InvoiceType, WorkInformationType, PaymentType } from '@/db/zodSchema';
 import PickerWithTouchableOpacity from '@/components/Picker';
 import DatePicker from '@/components/DatePicker';
 import { useTheme } from '@/context/ThemeContext';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 import TaxValueSwitch from '@/components/TaxValueSwitch';
 
 interface InvoiceHeaderSectionProps {

@@ -1,4 +1,4 @@
-import { chunkIntoPages } from '@/utils/homeActivityChunks';
+import { chunkIntoPages } from '@/utils/home/homeActivityChunks';
 
 describe('chunkIntoPages', () => {
   it('returns empty array for empty input', () => {

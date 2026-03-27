@@ -7,7 +7,7 @@ import { UserType, BankDetailsType, CustomerType } from '@/db/zodSchema';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import BaseCard from './BaseCard';
 import { router } from 'expo-router';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
 
 interface UserWithBankDetails extends UserType {

@@ -1,4 +1,4 @@
-import options from "./appSettingsOption";
+import options from "@/utils/settings/appSettingsOption";
 
 export function getReorderedQuarters(selectedValue: string) {
   const idx = options.quarters.findIndex((q) => q.value === selectedValue);

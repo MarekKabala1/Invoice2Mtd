@@ -8,7 +8,7 @@ import {
 	BankDetails,
 } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { generateId } from './generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { calculateEstimateTotals } from './estimateCalculations';
 import {
 	CustomerType,

@@ -13,7 +13,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { aggregateQuarter, getAnnualSummary, refreshCurrentYear } from '@/db/mtdOperations';
 import { QuarterAggregates } from '@/types/mtd';
-import { currentTaxYearStart } from '@/utils/mtdDates';
+import { currentTaxYearStart } from '@/utils/mtd/mtdDates';
 import { MtdAnnualSummary } from '@/db/schema';
 
 interface UseMtdDataParams {

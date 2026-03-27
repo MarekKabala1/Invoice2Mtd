@@ -36,8 +36,8 @@ import {
 	handleSendInvoice,
 	handleExportPdfInvoice,
 	handlePreviewInvoice,
-} from '@/utils/invoiceFormOperations';
-import { getCustomers } from '@/utils/customerOperations';
+} from '@/utils/invoice/invoiceFormOperations';
+import { getCustomers } from '@/utils/invoice/customerOperations';
 import { InvoiceHeaderSection } from './InvoiceHeaderSection';
 import { WorkItemsList } from './WorkItemsList';
 import { PaymentsList } from './PaymentsList';

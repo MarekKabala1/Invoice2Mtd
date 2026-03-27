@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { lightColors, darkColors } from '@/utils/theme';
+import { lightColors, darkColors } from '@/utils/shared/theme';
 
 type ColorScheme = typeof lightColors;
 

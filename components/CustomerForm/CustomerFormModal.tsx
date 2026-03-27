@@ -15,7 +15,7 @@ import {
 } from 'react-hook-form';
 import { CustomerType } from '@/db/zodSchema';
 import { useTheme } from '@/context/ThemeContext';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 
 interface CustomerFormModalProps {
 	modalVisible: boolean;

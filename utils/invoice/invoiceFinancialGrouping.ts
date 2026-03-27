@@ -1,6 +1,6 @@
 import { InvoiceForUpdate } from '@/types';
 import { AppSettingsType } from '@/db/zodSchema';
-import { getReorderedQuarters } from './yearQuarters';
+import { getReorderedQuarters } from '@/utils/mtd/yearQuarters';
 
 export interface GroupedByFinancialYear {
   yearLabel: string;

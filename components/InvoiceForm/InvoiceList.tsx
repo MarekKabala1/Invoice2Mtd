@@ -20,7 +20,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
 import { useInvoiceListData } from '@/hooks/useInvoiceListData';
-import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoiceSync';
+import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoice/invoiceSync';
 import AddToBudgetModal from '../AddToBudgetModal';
 import InvoiceEstimateSwitcher from '@/components/InvoiceEstimateSwitcher';
 import EstimateList from '../EstimateForm/EstimateList';

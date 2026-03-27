@@ -15,7 +15,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { SectionHeader, SettingsInputRow } from '../components';
 import { AppSettingsType } from '@/db/zodSchema';
-import options, { FinancialYearPreset } from '@/utils/appSettingsOption';
+import options, { FinancialYearPreset } from '@/utils/settings/appSettingsOption';
 
 interface FinancialYearSectionProps {
 	formState: Partial<AppSettingsType>;

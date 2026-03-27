@@ -1,7 +1,7 @@
 import { db } from '@/db/config';
 import { Customer } from '@/db/schema';
 import { CustomerType } from '@/db/zodSchema';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { eq } from 'drizzle-orm';
 
 export const getCustomers = async (): Promise<CustomerType[]> => {

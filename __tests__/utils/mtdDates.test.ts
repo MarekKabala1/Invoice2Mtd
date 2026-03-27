@@ -19,7 +19,7 @@ import {
   buildTaxYear,
   toISO,
   fromISO,
-} from '@/utils/mtdDates';
+} from '@/utils/mtd/mtdDates';
 
 describe('mtdDates', () => {
   // ─── Date conversions ───────────────────────────────────────────────────

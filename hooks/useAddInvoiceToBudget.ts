@@ -3,8 +3,8 @@ import { Alert } from 'react-native';
 import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
 import { InvoiceForUpdate } from '@/types';
-import { generateId } from '@/utils/generateUuid';
-import { categories } from '@/utils/categories';
+import { generateId } from '@/utils/shared/generateUuid';
+import { categories } from '@/utils/budget/categories';
 import { eq, and } from 'drizzle-orm';
 
 interface UseAddInvoiceToBudgetReturn {

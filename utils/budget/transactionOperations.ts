@@ -3,7 +3,7 @@ import { db } from '@/db/config';
 import { Transactions } from '@/db/schema';
 import { TransactionType } from '@/db/zodSchema';
 import { eq } from 'drizzle-orm';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { router } from 'expo-router';
 
 export type SaveTransactionResult =

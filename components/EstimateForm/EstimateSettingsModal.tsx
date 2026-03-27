@@ -3,9 +3,9 @@ import { View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CustomerType, EstimateType, UserType } from '@/db/zodSchema';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
-import { handleSendEstimate } from '@/utils/estimateOperations';
+import { handleSendEstimate } from '@/utils/invoice/estimateOperations';
 
 export default function EstimateSettingsModal({
 	showSettings,

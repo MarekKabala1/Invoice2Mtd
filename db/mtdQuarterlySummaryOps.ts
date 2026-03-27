@@ -16,9 +16,9 @@
 import { eq, and, gte, lte, isNull, or, ne } from 'drizzle-orm';
 import { db } from './config';
 import { MtdTransactions, MtdQuarterlySummary, Invoice, Transactions } from './schema';
-import { generateId } from '@/utils/generateUuid';
-import { quartersForTaxYear, toISO } from '@/utils/mtdDates';
-import { mapCategoryToHmrc } from '@/utils/mtdCategories';
+import { generateId } from '@/utils/shared/generateUuid';
+import { quartersForTaxYear, toISO } from '@/utils/mtd/mtdDates';
+import { mapCategoryToHmrc } from '@/utils/mtd/mtdCategories';
 import { EXPENSE_CATEGORIES, ExpenseCategory, QuarterAggregates } from '@/types/mtd';
 
 /**

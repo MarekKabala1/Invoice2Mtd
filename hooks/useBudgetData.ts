@@ -5,8 +5,8 @@ import { Transactions } from '@/db/schema';
 import { TransactionType } from '@/db/zodSchema';
 import { between, eq } from 'drizzle-orm';
 import { startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
-import { calculateTotals } from '@/utils/transactionCalculation';
-import { deleteBudgetTransaction } from '@/utils/invoiceSync';
+import { calculateTotals } from '@/utils/budget/transactionCalculation';
+import { deleteBudgetTransaction } from '@/utils/invoice/invoiceSync';
 
 export const useBudgetData = () => {
 	const [currentDate, setCurrentDate] = useState(new Date());

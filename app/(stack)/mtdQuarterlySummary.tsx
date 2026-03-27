@@ -16,13 +16,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useMtdData } from '@/hooks/useMtdData';
-import { EXPENSE_CATEGORY_LABELS, isAllowable } from '@/utils/mtdCategories';
-import { currentTaxYearStart, taxYearLabel } from '@/utils/mtdDates';
-import { estimateTax, formatGBP } from '@/utils/mtdTaxCalc';
+import { EXPENSE_CATEGORY_LABELS, isAllowable } from '@/utils/mtd/mtdCategories';
+import { currentTaxYearStart, taxYearLabel } from '@/utils/mtd/mtdDates';
+import { estimateTax, formatGBP } from '@/utils/mtd/mtdTaxCalc';
 import { useTaxRates } from '@/hooks/useTaxRates';
 import { ExpenseCategory, EXPENSE_CATEGORIES } from '@/types/mtd';
 import { Ionicons } from '@expo/vector-icons';
-import { deleteMtdTransactionSync } from '@/utils/invoiceSync';
+import { deleteMtdTransactionSync } from '@/utils/invoice/invoiceSync';
 import { useMtdTransactionsForQuarter, MtdTransactionRow } from '@/hooks/useMtdTransactionsForQuarter';
 
 const QUARTERS: Array<{ num: 1 | 2 | 3 | 4; label: string }> = [

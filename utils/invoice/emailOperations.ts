@@ -6,7 +6,7 @@ import {
 } from './invoiceFormOperations';
 import { getCustomerDetails } from './customerOperations';
 import { InvoiceType, CustomerType, UserType } from '@/db/zodSchema';
-import { convertHtmlToText } from './textHelpers';
+import { convertHtmlToText } from '@/utils/shared/textHelpers';
 
 export const sendPaymentReminder = async (
 	invoice: InvoiceType,

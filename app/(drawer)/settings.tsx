@@ -22,11 +22,11 @@ import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList, ActivityIndi
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { getAllUsers } from '@/utils/settingsOperations';
+import { getAllUsers } from '@/utils/settings/settingsOperations';
 import { AppSettingsType, appSettingsSchema } from '@/db/zodSchema';
 import { User } from '@/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
-import { getChangedFields } from '@/utils/diffSettings';
+import { getChangedFields } from '@/utils/settings/diffSettings';
 import {
 	TaxSettingsSection,
 	InvoiceSettingsSection,

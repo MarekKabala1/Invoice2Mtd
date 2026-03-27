@@ -8,8 +8,8 @@ import { useAppSettings } from '@/context/AppSettingsContext';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import Picker from './Picker';
 import BaseCard from './BaseCard';
-import options from '@/utils/appSettingsOption';
-import { getReorderedQuarters } from '@/utils/yearQuarters';
+import options from '@/utils/settings/appSettingsOption';
+import { getReorderedQuarters } from '@/utils/mtd/yearQuarters';
 import {
 	getInvoiceStorageDirectory,
 	getEstimateStorageDirectory,
@@ -20,7 +20,7 @@ import {
 	resetInvoiceStorageDirectory,
 	resetEstimateStorageDirectory,
 	resetBillStorageDirectory,
-} from '@/utils/permissions';
+} from '@/utils/shared/permissions';
 
 export default function AppSettingsForm({
 	initialValues,
