@@ -6,8 +6,8 @@ import { appSettingsSchema, AppSettingsType } from '@/db/zodSchema';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import Picker from './Picker';
-import BaseCard from './BaseCard';
+import Picker from '@/components/ui/Picker';
+import BaseCard from '@/components/ui/BaseCard';
 import options from '@/utils/settings/appSettingsOption';
 import { getReorderedQuarters } from '@/utils/mtd/yearQuarters';
 import {

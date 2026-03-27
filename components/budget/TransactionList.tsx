@@ -8,8 +8,8 @@ import {
 	PanResponder,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import TransactionCard from '@/components/TransactionCard';
-import BaseCard from '@/components/BaseCard';
+import TransactionCard from '@/components/budget/TransactionCard';
+import BaseCard from '@/components/ui/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
 import { TransactionType } from '@/db/zodSchema';

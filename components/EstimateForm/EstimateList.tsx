@@ -12,7 +12,7 @@ import {
 	UserType,
 	EstimateNotesType,
 } from '@/db/zodSchema';
-import BaseCard from '../BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import EstimateSettingsModal from './EstimateSettingsModal';
 import { getUserAndBankDetails } from '@/utils/invoice/estimateOperations';
 

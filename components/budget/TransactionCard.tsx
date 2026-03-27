@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCategoryById, getCategoryEmoji } from '@/utils/budget/categories';
 import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
-import BaseCard from './BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
 import { format } from 'date-fns';
 

@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BaseCard from './BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
-import TransactionList from '@/components/TransactionList';
-import { useBudgetData } from '@/hooks/useBudgetData';
+import TransactionList from '@/components/budget/TransactionList';
+import { useBudgetData } from '@/hooks/budget/useBudgetData';
 import { Ionicons } from '@expo/vector-icons';
 
 const BudgetScreen: React.FC = () => {

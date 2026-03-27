@@ -34,7 +34,7 @@ import { EstimateHeaderSection } from './EstimateHeaderSection';
 import { EstimateNotesSection } from './EstimateNotesSection';
 import { EstimateTermsSection } from './EstimateTermsSection';
 import { EstimateActionButtons } from './EstimateActionButtons';
-import TermsAndConditions from '@/components/TermsAndConditions';
+import TermsAndConditions from '@/components/email/TermsAndConditions';
 import { generateEstimateHtml } from '@/templates/estimateTemplate';
 import { getCustomers } from '@/utils/invoice/customerOperations';
 

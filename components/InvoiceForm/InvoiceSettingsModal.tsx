@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CustomerType, InvoiceType, UserType } from '@/db/zodSchema';
 import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
-import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
+import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
 import { sendPaymentReminder } from '@/utils/invoice/emailOperations';
 import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoice/invoiceFormOperations';
 import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoice/invoiceSync';

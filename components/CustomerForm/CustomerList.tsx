@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { PhoneNumber } from '../PhoneNumber';
+import { PhoneNumber } from '@/components/ui/PhoneNumber';
 import { CustomerType } from '@/db/zodSchema';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
-import { EmailAddress } from '../Email';
-import BaseCard from '../BaseCard';
+import { EmailAddress } from '@/components/email/Email';
+import BaseCard from '@/components/ui/BaseCard';
 
 interface CustomerListProps {
 	customers: CustomerType[];

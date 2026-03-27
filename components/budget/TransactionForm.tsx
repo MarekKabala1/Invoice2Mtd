@@ -14,13 +14,13 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch } from 'rea
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categories } from '@/utils/budget/categories';
-import BaseCard from '@/components/BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import { transactionSchema, TransactionType } from '@/db/zodSchema';
-import PickerWithTouchableOpacity from '@/components/Picker';
+import PickerWithTouchableOpacity from '@/components/ui/Picker';
 import { useTheme } from '@/context/ThemeContext';
-import DatePicker from '@/components/DatePicker';
-import { useTransaction } from '@/hooks/useTransaction';
-import { useMtdTransaction } from '@/hooks/useMtdTransaction';
+import DatePicker from '@/components/ui/DatePicker';
+import { useTransaction } from '@/hooks/shared/useTransaction';
+import { useMtdTransaction } from '@/hooks/mtd/useMtdTransaction';
 import { handleSaveTransaction } from '@/utils/budget/transactionOperations';
 import { mapCategoryToHmrc } from '@/utils/mtd/mtdCategories';
 

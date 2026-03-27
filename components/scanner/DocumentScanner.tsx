@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useCameraScanner } from '@/hooks/useCameraScanner';
+import { useCameraScanner } from '@/hooks/shared/useCameraScanner';
 import { useTheme } from '@/context/ThemeContext';
-import BaseCard from './BaseCard';
-import AddTransactionAfterScan from './AddTransactionAfterScann';
+import BaseCard from '@/components/ui/BaseCard';
+import AddTransactionAfterScan from '@/components/scanner/AddTransactionAfterScann';
 
 interface DocumentScannerProps {
 	onScanComplete?: (data: { pages: string[]; pdf?: string | null }) => void;

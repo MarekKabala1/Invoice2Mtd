@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, TextInput, Switch } from 'react-native';
 import { Control, Controller, UseFormSetValue } from 'react-hook-form';
 import { InvoiceType, WorkInformationType, PaymentType } from '@/db/zodSchema';
-import PickerWithTouchableOpacity from '@/components/Picker';
-import DatePicker from '@/components/DatePicker';
+import PickerWithTouchableOpacity from '@/components/ui/Picker';
+import DatePicker from '@/components/ui/DatePicker';
 import { useTheme } from '@/context/ThemeContext';
 import { color } from '@/utils/shared/theme';
-import TaxValueSwitch from '@/components/TaxValueSwitch';
+import TaxValueSwitch from '@/components/ui/TaxValueSwitch';
 
 interface InvoiceHeaderSectionProps {
 	control: Control<

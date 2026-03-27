@@ -15,7 +15,7 @@ import { db } from '@/db/config';
 import { EstimateTerms } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { generateId } from '@/utils/shared/generateUuid';
-import BaseCard from './BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import {
 	getEstimateTerms,
 	saveEstimateTerms,

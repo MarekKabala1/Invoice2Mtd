@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { InvoiceForUpdate } from '@/types';
-import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
-import AddToBudgetModal from '../AddToBudgetModal';
+import { useAddInvoiceToBudget } from '@/hooks/invoice/useAddInvoiceToBudget';
+import AddToBudgetModal from '@/components/budget/AddToBudgetModal';
 import { addMtdTransaction, refreshCurrentYear } from '@/db/mtdOperations';
 import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 

@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { Control, Controller, UseFormSetValue } from 'react-hook-form';
 import { EstimateType, EstimateNotesType } from '@/db/zodSchema';
-import PickerWithTouchableOpacity from '@/components/Picker';
-import DatePicker from '@/components/DatePicker';
-import { DiscountInput } from '@/components/DiscountInput';
-import TaxValueSwitch from '@/components/TaxValueSwitch';
+import PickerWithTouchableOpacity from '@/components/ui/Picker';
+import DatePicker from '@/components/ui/DatePicker';
+import { DiscountInput } from '@/components/ui/DiscountInput';
+import TaxValueSwitch from '@/components/ui/TaxValueSwitch';
 import { useTheme } from '@/context/ThemeContext';
 import currencyData from '@/assets/currency.json';
 

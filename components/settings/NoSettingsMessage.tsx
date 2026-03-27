@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-import BaseCard from './BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 
 export default function NoSettingsMessage() {
 	return (

@@ -10,12 +10,12 @@ import {
 	BankDetailsType,
 } from '@/db/zodSchema';
 import { useFocusEffect, useRouter } from 'expo-router';
-import BaseCard from '../BaseCard';
+import BaseCard from '@/components/ui/BaseCard';
 import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import InvoiceSettingsModal from './InvoiceSettingsModal';
-import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
+import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
 import { getUserAndBankDetails } from '@/utils/invoice/invoiceFormOperations';
 
 type InvoiceCardProps = {
