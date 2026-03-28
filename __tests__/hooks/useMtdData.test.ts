@@ -63,7 +63,7 @@ describe('useMtdData', () => {
     mockGetAnnualSummary.mockResolvedValue(null);
 
     // Import after mocks are set up
-    const { useMtdData } = require('@/hooks/useMtdData');
+    const { useMtdData } = require('@/hooks/mtd/useMtdData');
 
     // Test that the hook function exists and is callable
     expect(typeof useMtdData).toBe('function');

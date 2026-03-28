@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DocumentScanner from '@/components/DocumentScanner';
+import DocumentScanner from '@/components/scanner/DocumentScanner';
 
 export default function Scanner() {
 	const insets = useSafeAreaInsets();

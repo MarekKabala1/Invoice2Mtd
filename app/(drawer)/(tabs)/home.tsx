@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { useHomeInsights } from '@/hooks/useHomeInsights';
+import { useHomeInsights } from '@/hooks/home/useHomeInsights';
 import { formatGBP } from '@/utils/mtd/mtdTaxCalc';
 import { chunkIntoPages } from '@/utils/home/homeActivityChunks';
 

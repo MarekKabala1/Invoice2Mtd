@@ -14,7 +14,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
-import { useMtdDeadlines } from '@/hooks/useMtdDeadlines';
+import { useMtdDeadlines } from '@/hooks/mtd/useMtdDeadlines';
 import { Ionicons } from '@expo/vector-icons';
 import { DeadlineItem } from '@/types/mtd';
 

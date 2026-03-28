@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 
 const AnimatedTabLabel = ({

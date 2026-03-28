@@ -1,2 +1,2 @@
-import BudgetScreen from '@/components/BudgetScreen';
+import BudgetScreen from '@/components/budget/BudgetScreen';
 export default BudgetScreen;

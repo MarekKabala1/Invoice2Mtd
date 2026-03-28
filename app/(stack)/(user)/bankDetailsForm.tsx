@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { generateId } from '@/utils/shared/generateUuid';
-import PickerWithTouchableOpacity from '@/components/Picker';
+import PickerWithTouchableOpacity from '@/components/ui/Picker';
 import { userSchema } from '@/db/zodSchema';
 import { BankDetails as BankDetailsType, User as UserType } from '@/db/schema';
 import { eq } from 'drizzle-orm';

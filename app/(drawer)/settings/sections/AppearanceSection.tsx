@@ -7,7 +7,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { SectionHeader } from '../components';
 
 export const AppearanceSection: React.FC = () => {
