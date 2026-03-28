@@ -16,6 +16,7 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import { captureException } from '@/utils/shared/sentry';
 
 export type StorageType = 'invoice' | 'estimate' | 'bill';
 
@@ -71,7 +72,7 @@ export const getOrCreateStorageDirectory = async (type: StorageType) => {
 
     return directoryUri;
   } catch (error) {
-    console.error(`Error getting or creating ${config.alertNoun} storage directory:`, error);
+    captureException(error instanceof Error ? error : new Error(String(error)), { action: `getting or creating ${config.alertNoun} storage directory` });
     return null;
   }
 };
@@ -93,7 +94,7 @@ export const requestStorageDirectory = async (type: StorageType) => {
       return null;
     }
   } catch (error) {
-    console.error(`Error requesting ${config.alertNoun} storage directory:`, error);
+    captureException(error instanceof Error ? error : new Error(String(error)), { action: `requesting ${config.alertNoun} storage directory` });
     return null;
   }
 };

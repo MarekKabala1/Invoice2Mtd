@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightColors, darkColors } from '@/utils/shared/theme';
+import { captureException } from '@/utils/shared/sentry';
 
 type ColorScheme = typeof lightColors;
 
@@ -31,7 +32,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 					setColorScheme(savedTheme as 'light' | 'dark');
 				}
 			} catch (error) {
-				console.error('Failed to load theme:', error);
+				captureException(error instanceof Error ? error : new Error(String(error)), { action: 'loading theme' });
 			} finally {
 				setIsLoading(false);
 			}
@@ -46,7 +47,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 			toggleColorScheme();
 			await AsyncStorage.setItem('theme', newScheme);
 		} catch (error) {
-			console.error('Failed to save theme:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving theme' });
 		}
 	};
 

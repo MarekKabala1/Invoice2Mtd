@@ -37,6 +37,7 @@ import { EstimateActionButtons } from './EstimateActionButtons';
 import TermsAndConditions from '@/components/email/TermsAndConditions';
 import { generateEstimateHtml } from '@/templates/estimateTemplate';
 import { getCustomers } from '@/utils/invoice/customerOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 interface EstimateFormProps {
 	isUpdateMode?: boolean;
@@ -243,7 +244,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 
 			router.back();
 		} catch (error) {
-			console.error('Error saving estimate:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving estimate' });
 			if (error instanceof Error) {
 				Alert.alert('Error', error.message);
 			} else {
@@ -260,7 +261,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		},
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'sending estimate' });
 			return;
 		}
 		try {
@@ -270,7 +271,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 			};
 			await handleSendEstimate(formData, selectedUser, selectedCustomer, bankDetails, note);
 		} catch (error) {
-			console.error('Error sending estimate:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'sending estimate' });
 		}
 	};
 
@@ -280,7 +281,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		},
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'exporting PDF estimate' });
 			return;
 		}
 		const formData = {
@@ -311,7 +312,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		},
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'previewing estimate' });
 			return;
 		}
 		const formData = {

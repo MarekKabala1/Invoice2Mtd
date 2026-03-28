@@ -25,6 +25,7 @@ import * as FileSystem from 'expo-file-system';
 import { generateEstimateHtml } from '@/templates/estimateTemplate';
 import { generateAndSaveEstimatePdf } from './pdfOperations';
 import { getCustomers, getCustomerDetails } from './customerOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 export const getLastEstimateId = async (): Promise<string> => {
 	try {
@@ -53,7 +54,7 @@ export const getLastEstimateId = async (): Promise<string> => {
 		}
 		return mostRecentId;
 	} catch (error) {
-		console.error('Error getting estimates:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting estimates' });
 		return '0';
 	}
 };
@@ -76,7 +77,7 @@ export const getNextSequentialEstimateId = async (): Promise<string> => {
 
 		return String(maxNumber + 1);
 	} catch (error) {
-		console.error('Error getting next sequential estimate ID:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting next sequential estimate ID' });
 		return '1';
 	}
 };
@@ -107,7 +108,7 @@ export const getUsers = async (
 
 		return userOptions;
 	} catch (error) {
-		console.error('Error fetching users:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching users' });
 		return [];
 	}
 };
@@ -135,7 +136,7 @@ export const getUserAndBankDetails = async (
 			bankDetails: bankDetails[0] as BankDetailsType,
 		};
 	} catch (error) {
-		console.error('Error fetching user and bank details:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching user and bank details' });
 		throw error;
 	}
 };
@@ -206,7 +207,7 @@ export const handleSaveEstimate = async (
 
 		await handleEstimateNotes(id, data, note, noteItemId, isUpdateMode);
 	} catch (error) {
-		console.error('Database error in handleSaveEstimate:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving estimate to database' });
 		throw error;
 	}
 };
@@ -290,7 +291,7 @@ export const handleSendEstimate = async (
 			throw new Error('Sharing is not available on this device.');
 		}
 	} catch (error) {
-		console.error('Error generating or sharing PDF:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'generating or sharing estimate PDF' });
 		throw error;
 	}
 };
@@ -375,7 +376,7 @@ export const getEstimateTerms = async (
 			createdAt: term.createdAt || '',
 		}));
 	} catch (error) {
-		console.error('Error fetching estimate terms:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching estimate terms' });
 		return [];
 	}
 };
@@ -402,7 +403,7 @@ export const saveEstimateTerms = async (
 			}
 		});
 	} catch (error) {
-		console.error('Error saving estimate terms:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving estimate terms' });
 		throw error;
 	}
 };
@@ -415,7 +416,7 @@ export const deleteEstimateTerms = async (
 			.delete(EstimateTerms)
 			.where(eq(EstimateTerms.estimateId, estimateId));
 	} catch (error) {
-		console.error('Error deleting estimate terms:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'deleting estimate terms' });
 		throw error;
 	}
 };

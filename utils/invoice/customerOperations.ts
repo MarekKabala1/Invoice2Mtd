@@ -3,6 +3,7 @@ import { Customer } from '@/db/schema';
 import { CustomerType } from '@/db/zodSchema';
 import { generateId } from '@/utils/shared/generateUuid';
 import { eq } from 'drizzle-orm';
+import { captureException } from '@/utils/shared/sentry';
 
 export const getCustomers = async (): Promise<CustomerType[]> => {
 	try {
@@ -16,7 +17,7 @@ export const getCustomers = async (): Promise<CustomerType[]> => {
 			createdAt: customer.createdAt || '',
 		}));
 	} catch (error) {
-		console.error('Error fetching customers:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching customers' });
 		return [];
 	}
 };
@@ -40,7 +41,7 @@ export const getCustomerDetails = async (
 			createdAt: customer[0].createdAt || '',
 		};
 	} catch (error) {
-		console.error('Error fetching customer details:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching customer details' });
 		return null;
 	}
 };
@@ -70,7 +71,7 @@ export const handleSaveCustomer = async (
 			await db.insert(Customer).values(formData).returning();
 		}
 	} catch (error) {
-		console.error('Error saving customer:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving customer' });
 		throw error;
 	}
 };
@@ -81,7 +82,7 @@ export const handleDeleteCustomer = async (
 	try {
 		await db.delete(Customer).where(eq(Customer.id, customerId));
 	} catch (error) {
-		console.error('Error deleting customer:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'deleting customer' });
 		throw error;
 	}
 };

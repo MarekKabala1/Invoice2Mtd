@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { customerSchema, CustomerType } from '@/db/zodSchema';
 import { handleSaveCustomer, getCustomers, handleDeleteCustomer } from '@/utils/invoice/customerOperations';
+import { captureException } from '@/utils/shared/sentry';
 import { CustomerList } from './CustomerList';
 import { CustomerFormModal } from './CustomerFormModal';
 
@@ -45,7 +46,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isUpdateMode = false, custo
 			const customersData = await getCustomers();
 			setCustomers(customersData);
 		} catch (error) {
-			console.error('Error fetching customers:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching customers' });
 		}
 	};
 
@@ -87,7 +88,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isUpdateMode = false, custo
 						await handleDeleteCustomer(customer.id!);
 						await fetchCustomers();
 					} catch (error) {
-						console.error('Error deleting customer:', error);
+						captureException(error instanceof Error ? error : new Error(String(error)), { action: 'deleting customer' });
 						Alert.alert('Error', 'Failed to delete customer');
 					}
 				},
@@ -104,7 +105,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isUpdateMode = false, custo
 			setEditingCustomer(null);
 			await fetchCustomers();
 		} catch (error) {
-			console.error('Error saving customer:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving customer' });
 			Alert.alert('Error', 'Failed to save customer');
 		} finally {
 			setIsLoading(false);

@@ -2,6 +2,7 @@ import { db } from '@/db/config';
 import { appSettings, User } from '@/db/schema';
 import { AppSettingsType } from '@/db/zodSchema';
 import { eq } from 'drizzle-orm';
+import { captureException } from '@/utils/shared/sentry';
 
 export async function getAppSettingsFromDb(userId?: string): Promise<AppSettingsType | null> {
   try {
@@ -30,7 +31,7 @@ export async function updateAppSettingsInDb(id: number, values: Partial<AppSetti
   try {
     await db.update(appSettings).set(values).where(eq(appSettings.id, id));
   } catch (e) {
-    console.error('Failed to update app settings:', e);
+    captureException(e instanceof Error ? e : new Error(String(e)), { action: 'updating app settings' });
   }
 }
 
@@ -38,7 +39,7 @@ export async function insertAppSettingsInDb(values: Partial<AppSettingsType>): P
   try {
     await db.insert(appSettings).values(values);
   } catch (e) {
-    console.error('Failed to insert app settings:', e);
+    captureException(e instanceof Error ? e : new Error(String(e)), { action: 'inserting app settings' });
   }
 }
 
@@ -46,6 +47,6 @@ export async function deleteAppSettingsInDb(id: number): Promise<void> {
   try {
     await db.delete(appSettings).where(eq(appSettings.id, id));
   } catch (e) {
-    console.error('Failed to delete app settings:', e);
+    captureException(e instanceof Error ? e : new Error(String(e)), { action: 'deleting app settings' });
   }
 }

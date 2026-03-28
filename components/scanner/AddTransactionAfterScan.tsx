@@ -22,6 +22,7 @@ import React, { useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import DatePicker from '@/components/ui/DatePicker';
 import { categories } from '@/utils/budget/categories';
+import { captureException } from '@/utils/shared/sentry';
 
 interface AddTransactionAfterScanProps {
 	isAddToBudgetModalVisible: boolean;
@@ -67,7 +68,7 @@ const AddTransactionAfterScan = ({ closeModal }: AddTransactionAfterScanProps) =
 
 			Alert.alert('Success', 'Transaction added to budget');
 		} catch (error) {
-			console.error('Error adding to budget:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'adding to budget' });
 			Alert.alert('Error', 'Failed to add to budget');
 		} finally {
 			reset();

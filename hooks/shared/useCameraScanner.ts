@@ -3,6 +3,7 @@ import { launchDocumentScannerAsync, ResultFormatOptions, ScannerModeOptions } f
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import { getOrCreateStorageDirectory } from '@/utils/shared/permissions';
+import { captureException } from '@/utils/shared/sentry';
 
 
 const DEFAULT_FILE_NAME = `Bill_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -61,7 +62,7 @@ export const useCameraScanner = () => {
         setScannedData({ pages: pages || [], pdf: pdf?.uri ?? null });
       }
     } catch (error) {
-      console.error('Scanning failed:', error);
+      captureException(error instanceof Error ? error : new Error(String(error)), { action: 'scanning' });
       setScannedData(null);
     } finally {
       setIsCameraOpen(false);

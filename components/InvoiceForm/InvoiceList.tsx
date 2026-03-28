@@ -27,6 +27,7 @@ import EstimateList from '../EstimateForm/EstimateList';
 import { db } from '@/db/config';
 import { Invoice } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { captureException } from '@/utils/shared/sentry';
 
 export default function InvoiceList() {
 	const { memoizedInvoices, sectionedInvoices, error, setError, isLoading, loadData } = useInvoiceListData();
@@ -123,7 +124,7 @@ export default function InvoiceList() {
 					},
 				]);
 			} catch (err) {
-				console.error('Error deleting invoice:', err);
+				captureException(err instanceof Error ? err : new Error(String(err)), { action: 'deleting invoice' });
 				Alert.alert('Error', 'Failed to delete invoice. Please try again.');
 			}
 		},

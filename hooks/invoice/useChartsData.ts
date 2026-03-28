@@ -19,6 +19,7 @@ import { UserType, InvoiceType, PaymentType } from '@/db/zodSchema';
 import { eq, inArray } from 'drizzle-orm';
 import { calculateInvoiceTotal, calculateMonthlyTotals } from '@/utils/invoice/invoiceCalculations';
 import { format, parseISO } from 'date-fns';
+import { captureException } from '@/utils/shared/sentry';
 
 export type ViewMode = 'all' | 'monthly';
 
@@ -54,7 +55,7 @@ export function useChartsData() {
 			}));
 			setUserOptions(options);
 		} catch (err) {
-			console.error('Failed to get user data:', err);
+			captureException(err instanceof Error ? err : new Error(String(err)), { action: 'getting user data' });
 			setError('Unable to retrieve users. Please check your connection and try again.');
 		} finally {
 			setIsLoading(false);
@@ -94,7 +95,7 @@ export function useChartsData() {
 
 			setTotals(calculatedTotals);
 		} catch (err) {
-			console.error('Failed to get invoice data:', err);
+			captureException(err instanceof Error ? err : new Error(String(err)), { action: 'getting invoice data' });
 			setError('Unable to retrieve invoices. Please check your connection and try again.');
 			setInvoices([]);
 			setPayments([]);

@@ -28,6 +28,7 @@ import * as FileSystem from 'expo-file-system';
 import { generateInvoiceHtml } from '@/templates/invoiceTemplate';
 import { generateAndSavePdf } from './pdfOperations';
 import { getCustomers, getCustomerDetails } from './customerOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 export const getInvoiceForNumber = async (): Promise<string> => {
 	try {
@@ -48,7 +49,7 @@ export const getInvoiceForNumber = async (): Promise<string> => {
 		}
 		return mostRecentId;
 	} catch (error) {
-		console.error('Error getting invoices:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting invoices' });
 		return 'An error occurred while getting invoices';
 	}
 };
@@ -71,7 +72,7 @@ export const getNextSequentialInvoiceId = async (): Promise<string> => {
 
 		return String(maxNumber + 1);
 	} catch (error) {
-		console.error('Error getting next sequential invoice ID:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting next sequential invoice ID' });
 		return '1';
 	}
 };
@@ -443,7 +444,7 @@ export const handleSendInvoice = async (
 			throw new Error('Sharing is not available on this device.');
 		}
 	} catch (error) {
-		console.error('Error generating or sharing PDF:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'generating or sharing PDF' });
 		throw error;
 	}
 };

@@ -17,6 +17,7 @@ import { useTheme } from '@/context/ThemeContext';
 import InvoiceSettingsModal from './InvoiceSettingsModal';
 import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
 import { getUserAndBankDetails } from '@/utils/invoice/invoiceFormOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 type InvoiceCardProps = {
 	invoice: InvoiceType;
@@ -88,7 +89,7 @@ const InvoiceCard = ({
 			setUserData(userDetails);
 			setBankDetails(bankDetails);
 		} catch (error) {
-			console.error('Error fetching user data:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching user data' });
 		}
 	}, [invoice.userId]);
 

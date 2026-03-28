@@ -13,6 +13,7 @@
 
 import React, { Component, ReactNode } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { captureException } from '@/utils/shared/sentry';
 
 interface ErrorBoundaryProps {
 	children: ReactNode;
@@ -33,7 +34,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 	}
 
 	componentDidCatch(error: Error) {
-		console.error(`[ErrorBoundary] ${this.props.label ?? 'Unknown'}:`, error);
+		captureException(error, { action: `ErrorBoundary ${this.props.label ?? 'Unknown'}` });
 	}
 
 	reset = () => this.setState({ hasError: false, error: null });

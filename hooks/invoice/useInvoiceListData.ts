@@ -20,6 +20,7 @@ import { InvoiceType, WorkInformationType, PaymentType, NoteType, CustomerType }
 import { InvoiceForUpdate } from '@/types';
 import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoice/invoiceFinancialGrouping';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { captureException } from '@/utils/shared/sentry';
 
 interface InvoiceListData {
 	invoices: InvoiceType[];
@@ -61,7 +62,7 @@ export function useInvoiceListData() {
 				db.select().from(Customer),
 			]);
 		} catch (e) {
-			console.error('Failed to load invoice tables:', e);
+			captureException(e instanceof Error ? e : new Error(String(e)), { action: 'loading invoice tables' });
 		}
 
 		try {
@@ -116,7 +117,7 @@ export function useInvoiceListData() {
 				})),
 			});
 		} catch (err) {
-			console.error('Error loading data:', err);
+			captureException(err instanceof Error ? err : new Error(String(err)), { action: 'loading data' });
 			setError('Failed to load data');
 		} finally {
 			setIsLoading(false);

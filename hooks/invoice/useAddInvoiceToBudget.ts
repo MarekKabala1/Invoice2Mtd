@@ -6,6 +6,7 @@ import { InvoiceForUpdate } from '@/types';
 import { generateId } from '@/utils/shared/generateUuid';
 import { categories } from '@/utils/budget/categories';
 import { eq, and } from 'drizzle-orm';
+import { captureException } from '@/utils/shared/sentry';
 
 interface UseAddInvoiceToBudgetReturn {
 	isCategoryModalVisible: boolean;
@@ -89,7 +90,7 @@ export const useAddInvoiceToBudget = (): UseAddInvoiceToBudgetReturn => {
 					);
 				}
 			} catch (error) {
-				console.error('Error adding to budget:', error);
+				captureException(error instanceof Error ? error : new Error(String(error)), { action: 'adding to budget' });
 				Alert.alert('Error', 'Failed to add invoices to budget');
 			}
 		},

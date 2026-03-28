@@ -43,6 +43,7 @@ import { WorkItemsList } from './WorkItemsList';
 import { PaymentsList } from './PaymentsList';
 import { NotesSection } from './NotesSection';
 import { ActionButtons } from './ActionButtons';
+import { captureException } from '@/utils/shared/sentry';
 
 interface InvoiceFormProps {
 	isUpdateMode?: boolean;
@@ -253,7 +254,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 			reset();
 			router.navigate('/(tabs)/invoices');
 		} catch (error) {
-			console.error('Error saving invoice:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving invoice' });
 			if (error instanceof Error) {
 				Alert.alert('Error', error.message);
 			} else {
@@ -269,7 +270,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'sending invoice' });
 			return;
 		}
 		await handleSendInvoice(
@@ -288,7 +289,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'exporting PDF invoice' });
 			return;
 		}
 		await handleExportPdfInvoice(
@@ -308,7 +309,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): void => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'previewing invoice' });
 			return;
 		}
 		const html = handlePreviewInvoice(

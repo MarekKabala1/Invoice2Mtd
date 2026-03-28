@@ -4,6 +4,7 @@ import { db } from '@/db/config';
 import { User } from '@/db/schema';
 import { TransactionType } from '@/db/zodSchema';
 import currencyData from '@/assets/currency.json';
+import { captureException } from '@/utils/shared/sentry';
 
 export const useTransaction = () => {
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
@@ -26,7 +27,7 @@ export const useTransaction = () => {
       }));
       setUsers(formattedUsers);
     } catch (error) {
-      console.error('Error getting users:', error);
+      captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting users' });
       Alert.alert('Error', 'Failed to load users');
     }
   };

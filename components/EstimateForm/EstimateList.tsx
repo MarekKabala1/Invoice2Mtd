@@ -15,6 +15,7 @@ import {
 import BaseCard from '@/components/ui/BaseCard';
 import EstimateSettingsModal from './EstimateSettingsModal';
 import { getUserAndBankDetails } from '@/utils/invoice/estimateOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 interface EstimateWithDetails {
 	id: string;
@@ -97,7 +98,7 @@ const EstimateList: React.FC = () => {
 
 			setEstimates(estimatesWithDetails);
 		} catch (error) {
-			console.error('Error fetching estimates:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching estimates' });
 		}
 	};
 
@@ -111,7 +112,7 @@ const EstimateList: React.FC = () => {
 			setSelectedUser(userDetails);
 			setSelectedBankDetails(bankDetails);
 		} catch (error) {
-			console.error('Error fetching user and bank details:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching user and bank details' });
 		}
 
 		setShowSettings(true);
@@ -174,7 +175,7 @@ const EstimateList: React.FC = () => {
 							});
 							await fetchEstimates();
 						} catch (error) {
-							console.error('Error deleting estimate:', error);
+							captureException(error instanceof Error ? error : new Error(String(error)), { action: 'deleting estimate' });
 							Alert.alert(
 								'Error',
 								'Failed to delete estimate. Please try again.'

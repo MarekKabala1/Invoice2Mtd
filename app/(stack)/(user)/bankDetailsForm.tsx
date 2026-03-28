@@ -13,6 +13,7 @@ import { eq } from 'drizzle-orm';
 import { BankDetailsToUpdate, BankDetailsUpdateParams } from '@/types';
 import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
+import { captureException } from '@/utils/shared/sentry';
 
 const bankDetailsSchema = z.object({
 	accountName: z.string().min(1, 'Account Name is required'),
@@ -83,7 +84,7 @@ export default function BankDetailsForm({ onSuccess, dataToUpdate, update }: Ban
 			}
 
 			alert(errorMessage);
-			console.error('Error submitting data:', err);
+			captureException(err instanceof Error ? err : new Error(String(err)), { action: 'submitting data' });
 		}
 	};
 	const accountNameRef = useRef<TextInput>(null);

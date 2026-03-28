@@ -5,6 +5,7 @@ import { TransactionType } from '@/db/zodSchema';
 import { eq } from 'drizzle-orm';
 import { generateId } from '@/utils/shared/generateUuid';
 import { router } from 'expo-router';
+import { captureException } from '@/utils/shared/sentry';
 
 export type SaveTransactionResult =
   | { saved: false }
@@ -73,7 +74,7 @@ export const handleSaveTransaction = async (
     ]);
     return { saved: true, transactionId: id, mode: 'insert' };
   } catch (error) {
-    console.error('Failed to add transaction:', error);
+    captureException(error instanceof Error ? error : new Error(String(error)), { action: 'adding transaction' });
     Alert.alert('Error', 'Failed to add transaction. Please try again.');
     return { saved: false };
   }

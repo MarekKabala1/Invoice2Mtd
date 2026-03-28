@@ -18,6 +18,7 @@ import {
 	getOrCreateStorageDirectory,
 	resetStorageDirectory,
 } from '@/utils/shared/permissions';
+import { captureException } from '@/utils/shared/sentry';
 
 type GeneratePdfParams = {
 	data: InvoiceType & {
@@ -65,7 +66,7 @@ export const generateAndSavePdf = async (params: GeneratePdfParams) => {
 
 		return true;
 	} catch (error) {
-		console.error('Error generating or saving PDF:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'generating or saving PDF' });
 		Alert.alert(
 			'Error',
 			`Failed to generate or save PDF: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -96,7 +97,7 @@ const handleAndroidInvoicePdfSave = async (tempUri: string, filename: string) =>
 			encoding: FileSystem.EncodingType.Base64,
 		});
 	} catch (error) {
-		console.error('Error saving invoice PDF on Android:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving invoice PDF on Android' });
 		if (error instanceof Error && error.message.includes('Permission denied')) {
 			await resetStorageDirectory('invoice');
 		} else {
@@ -127,7 +128,7 @@ const handleAndroidEstimatePdfSave = async (tempUri: string, filename: string) =
 			encoding: FileSystem.EncodingType.Base64,
 		});
 	} catch (error) {
-		console.error('Error saving estimate PDF on Android:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving estimate PDF on Android' });
 		if (error instanceof Error && error.message.includes('Permission denied')) {
 			await resetStorageDirectory('estimate');
 		} else {
@@ -163,7 +164,7 @@ const cleanupTempFile = async (tempUri: string) => {
 	try {
 		await FileSystem.deleteAsync(tempUri, { idempotent: true });
 	} catch (error) {
-		console.error('Error cleaning up temp file:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'cleaning up temp file' });
 	}
 };
 
@@ -216,7 +217,7 @@ export const generateAndSaveEstimatePdf = async (
 
 		return true;
 	} catch (error) {
-		console.error('Error generating or saving Estimate PDF:', error);
+		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'generating or saving estimate PDF' });
 		Alert.alert(
 			'Error',
 			`Failed to generate or save Estimate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`

@@ -1,6 +1,7 @@
 import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Alert, TouchableOpacity, Text, View } from 'react-native';
+import { captureException } from '@/utils/shared/sentry';
 
 type TEmail = {
 	email: string;
@@ -26,7 +27,7 @@ export const EmailAddress = ({ email, customerName }: TEmail) => {
 								Alert.alert('Error', 'Email is not supported on this device');
 							}
 						})
-						.catch((err) => console.error('Error opening email app:', err));
+						.catch((err) => captureException(err instanceof Error ? err : new Error(String(err)), { action: 'opening email app' }));
 				},
 			},
 		]);
