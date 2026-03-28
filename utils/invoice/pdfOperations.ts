@@ -15,10 +15,8 @@ import { generateEstimateHtml } from '@/templates/estimateTemplate';
 import { EstimateType, EstimateNotesType } from '@/db/zodSchema';
 import {
 	requestMediaLibraryPermission,
-	getOrCreateInvoiceStorageDirectory,
-	getOrCreateEstimateStorageDirectory,
-	resetInvoiceStorageDirectory,
-	resetEstimateStorageDirectory,
+	getOrCreateStorageDirectory,
+	resetStorageDirectory,
 } from '@/utils/shared/permissions';
 
 type GeneratePdfParams = {
@@ -78,7 +76,7 @@ export const generateAndSavePdf = async (params: GeneratePdfParams) => {
 
 const handleAndroidInvoicePdfSave = async (tempUri: string, filename: string) => {
 	try {
-		const directoryUri = await getOrCreateInvoiceStorageDirectory();
+		const directoryUri = await getOrCreateStorageDirectory('invoice');
 
 		if (!directoryUri) {
 			return;
@@ -100,7 +98,7 @@ const handleAndroidInvoicePdfSave = async (tempUri: string, filename: string) =>
 	} catch (error) {
 		console.error('Error saving invoice PDF on Android:', error);
 		if (error instanceof Error && error.message.includes('Permission denied')) {
-			await resetInvoiceStorageDirectory();
+			await resetStorageDirectory('invoice');
 		} else {
 			throw error;
 		}
@@ -109,7 +107,7 @@ const handleAndroidInvoicePdfSave = async (tempUri: string, filename: string) =>
 
 const handleAndroidEstimatePdfSave = async (tempUri: string, filename: string) => {
 	try {
-		const directoryUri = await getOrCreateEstimateStorageDirectory();
+		const directoryUri = await getOrCreateStorageDirectory('estimate');
 
 		if (!directoryUri) {
 			return;
@@ -131,7 +129,7 @@ const handleAndroidEstimatePdfSave = async (tempUri: string, filename: string) =
 	} catch (error) {
 		console.error('Error saving estimate PDF on Android:', error);
 		if (error instanceof Error && error.message.includes('Permission denied')) {
-			await resetEstimateStorageDirectory();
+			await resetStorageDirectory('estimate');
 		} else {
 			throw error;
 		}
@@ -169,7 +167,7 @@ const cleanupTempFile = async (tempUri: string) => {
 	}
 };
 
-export const resetStoredDirectoryPermissions = resetInvoiceStorageDirectory;
+export const resetStoredDirectoryPermissions = () => resetStorageDirectory('invoice');
 
 type GenerateEstimatePdfParams = {
 	data: EstimateType & {
@@ -250,8 +248,8 @@ const handleIosEstimatePdfSave = async (html: string, filename: string) => {
 	await FileSystem.deleteAsync(pdfPath, { idempotent: true });
 };
 
-export const resetInvoiceStorage = resetInvoiceStorageDirectory;
-export const resetEstimateStorage = resetEstimateStorageDirectory;
+export const resetInvoiceStorage = () => resetStorageDirectory('invoice');
+export const resetEstimateStorage = () => resetStorageDirectory('estimate');
 export const getInvoiceStorageLocation = async () => {
 	return await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 };

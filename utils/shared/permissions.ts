@@ -1,11 +1,47 @@
+/**
+ * permissions.ts
+ *
+ * Device permission helpers: media library access and per-type storage directory
+ * management (invoice, estimate, bill).
+ *
+ * WHY: Storage directory functions were 3 near-identical copy-paste sets of 4 functions
+ * each, differing only by AsyncStorage key and alert message. Parameterized into 4
+ * generic functions with a StorageType config map.
+ *
+ * Depends on: expo-file-system, expo-media-library, @react-native-async-storage/async-storage
+ * Used by: utils/invoice/pdfOperations.ts, hooks/shared/useCameraScanner.ts
+ */
+
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 
-const INVOICE_STORAGE_DIRECTORY_URI_KEY = 'invoice_storage_directory_uri';
-const ESTIMATE_STORAGE_DIRECTORY_URI_KEY = 'estimate_storage_directory_uri';
-const BILL_STORAGE_DIRECTORY_URI_KEY = 'bill_storage_directory_uri';
+export type StorageType = 'invoice' | 'estimate' | 'bill';
+
+interface StorageConfig {
+  key: string;
+  label: string;
+  alertNoun: string;
+}
+
+const STORAGE_CONFIG: Record<StorageType, StorageConfig> = {
+  invoice: {
+    key: 'invoice_storage_directory_uri',
+    label: 'Invoice',
+    alertNoun: 'invoice',
+  },
+  estimate: {
+    key: 'estimate_storage_directory_uri',
+    label: 'Estimate',
+    alertNoun: 'estimate',
+  },
+  bill: {
+    key: 'bill_storage_directory_uri',
+    label: 'Bill',
+    alertNoun: 'bill',
+  },
+};
 
 export const requestMediaLibraryPermission = async () => {
   const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -16,158 +52,61 @@ export const requestMediaLibraryPermission = async () => {
   return true;
 };
 
-export const getOrCreateInvoiceStorageDirectory = async () => {
+export const getOrCreateStorageDirectory = async (type: StorageType) => {
+  const config = STORAGE_CONFIG[type];
   try {
-    let directoryUri = await AsyncStorage.getItem(INVOICE_STORAGE_DIRECTORY_URI_KEY);
+    let directoryUri = await AsyncStorage.getItem(config.key);
 
     if (!directoryUri) {
       const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
       if (permissions.granted) {
-        await AsyncStorage.setItem(INVOICE_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
+        await AsyncStorage.setItem(config.key, permissions.directoryUri);
         directoryUri = permissions.directoryUri;
       } else {
-        Alert.alert('Permission Denied', 'Unable to save invoice without storage access permission');
+        Alert.alert('Permission Denied', `Unable to save ${config.alertNoun} without storage access permission`);
         return null;
       }
     }
 
     return directoryUri;
   } catch (error) {
-    console.error('Error getting or creating invoice storage directory:', error);
+    console.error(`Error getting or creating ${config.alertNoun} storage directory:`, error);
     return null;
   }
 };
 
-export const getOrCreateEstimateStorageDirectory = async () => {
-  try {
-    let directoryUri = await AsyncStorage.getItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY);
-
-    if (!directoryUri) {
-      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-      if (permissions.granted) {
-        await AsyncStorage.setItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
-        directoryUri = permissions.directoryUri;
-      } else {
-        Alert.alert('Permission Denied', 'Unable to save estimate without storage access permission');
-        return null;
-      }
-    }
-
-    return directoryUri;
-  } catch (error) {
-    console.error('Error getting or creating estimate storage directory:', error);
-    return null;
-  }
+export const getStorageDirectory = async (type: StorageType) => {
+  return await AsyncStorage.getItem(STORAGE_CONFIG[type].key);
 };
 
-export const getInvoiceStorageDirectory = async () => {
-  return await AsyncStorage.getItem(INVOICE_STORAGE_DIRECTORY_URI_KEY);
-};
-
-export const getEstimateStorageDirectory = async () => {
-  return await AsyncStorage.getItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY);
-};
-
-export const requestInvoiceStorageDirectory = async () => {
+export const requestStorageDirectory = async (type: StorageType) => {
+  const config = STORAGE_CONFIG[type];
   try {
     const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
     if (permissions.granted) {
-      await AsyncStorage.setItem(INVOICE_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
+      await AsyncStorage.setItem(config.key, permissions.directoryUri);
       return permissions.directoryUri;
     } else {
-      Alert.alert('Permission Denied', 'Unable to save invoice without storage access permission');
+      Alert.alert('Permission Denied', `Unable to save ${config.alertNoun} without storage access permission`);
       return null;
     }
   } catch (error) {
-    console.error('Error requesting invoice storage directory:', error);
+    console.error(`Error requesting ${config.alertNoun} storage directory:`, error);
     return null;
   }
 };
 
-export const requestEstimateStorageDirectory = async () => {
-  try {
-    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-    if (permissions.granted) {
-      await AsyncStorage.setItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
-      return permissions.directoryUri;
-    } else {
-      Alert.alert('Permission Denied', 'Unable to save estimate without storage access permission');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error requesting estimate storage directory:', error);
-    return null;
-  }
-};
-
-export const resetInvoiceStorageDirectory = async () => {
-  await AsyncStorage.removeItem(INVOICE_STORAGE_DIRECTORY_URI_KEY);
-  Alert.alert('Success', 'Invoice storage directory has been reset. You will be prompted to select a new location next time you save an invoice.');
-};
-
-export const resetEstimateStorageDirectory = async () => {
-  await AsyncStorage.removeItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY);
-  Alert.alert('Success', 'Estimate storage directory has been reset. You will be prompted to select a new location next time you save an estimate.');
+export const resetStorageDirectory = async (type: StorageType) => {
+  const config = STORAGE_CONFIG[type];
+  await AsyncStorage.removeItem(config.key);
+  Alert.alert('Success', `${config.label} storage directory has been reset. You will be prompted to select a new location next time you save a ${config.alertNoun}.`);
 };
 
 export const resetAllStorageDirectories = async () => {
-  await AsyncStorage.removeItem(INVOICE_STORAGE_DIRECTORY_URI_KEY);
-  await AsyncStorage.removeItem(ESTIMATE_STORAGE_DIRECTORY_URI_KEY);
-  await AsyncStorage.removeItem(BILL_STORAGE_DIRECTORY_URI_KEY);
+  for (const config of Object.values(STORAGE_CONFIG)) {
+    await AsyncStorage.removeItem(config.key);
+  }
   Alert.alert('Success', 'All storage directories have been reset. You will be prompted to select new locations next time you save documents.');
 };
-
-export const getOrCreateBillStorageDirectory = async () => {
-  try {
-    let directoryUri = await AsyncStorage.getItem(BILL_STORAGE_DIRECTORY_URI_KEY);
-
-    if (!directoryUri) {
-      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-      if (permissions.granted) {
-        await AsyncStorage.setItem(BILL_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
-        directoryUri = permissions.directoryUri;
-      } else {
-        Alert.alert('Permission Denied', 'Unable to save bill without storage access permission');
-        return null;
-      }
-    }
-
-    return directoryUri;
-  } catch (error) {
-    console.error('Error getting or creating bill storage directory:', error);
-    return null;
-  }
-};
-
-export const getBillStorageDirectory = async () => {
-  return await AsyncStorage.getItem(BILL_STORAGE_DIRECTORY_URI_KEY);
-};
-
-export const requestBillStorageDirectory = async () => {
-  try {
-    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-    if (permissions.granted) {
-      await AsyncStorage.setItem(BILL_STORAGE_DIRECTORY_URI_KEY, permissions.directoryUri);
-      return permissions.directoryUri;
-    } else {
-      Alert.alert('Permission Denied', 'Unable to save bill without storage access permission');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error requesting bill storage directory:', error);
-    return null;
-  }
-};
-
-export const resetBillStorageDirectory = async () => {
-  await AsyncStorage.removeItem(BILL_STORAGE_DIRECTORY_URI_KEY);
-  Alert.alert('Success', 'Bill storage directory has been reset. You will be prompted to select a new location next time you scan a bill.');
-};
-
-
