@@ -35,8 +35,10 @@ jest.mock('react-native', () => ({
 
 jest.mock('@/utils/shared/permissions', () => ({
   requestMediaLibraryPermission: jest.fn().mockResolvedValue(true),
-  getOrCreateStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
-  resetStorageDirectory: jest.fn().mockResolvedValue(undefined),
+  getOrCreateInvoiceStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
+  getOrCreateEstimateStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
+  resetInvoiceStorageDirectory: jest.fn().mockResolvedValue(undefined),
+  resetEstimateStorageDirectory: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('PDF Operations', () => {

@@ -1,5 +1,5 @@
 /**
- * AddTransactionAfterScann.tsx
+ * AddTransactionAfterScan.tsx
  *
  * Modal for adding a transaction after scanning a receipt.
  * Now includes HMRC category picker so scanned receipts can be

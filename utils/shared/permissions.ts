@@ -170,6 +170,4 @@ export const resetBillStorageDirectory = async () => {
   Alert.alert('Success', 'Bill storage directory has been reset. You will be prompted to select a new location next time you scan a bill.');
 };
 
-// Legacy functions for backward compatibility
-export const getOrCreateStorageDirectory = getOrCreateInvoiceStorageDirectory;
-export const resetStorageDirectory = resetInvoiceStorageDirectory;
+

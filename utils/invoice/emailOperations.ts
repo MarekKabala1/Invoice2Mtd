@@ -1,5 +1,5 @@
 import { Linking } from 'react-native';
-import { emailReminderTemplate } from '@/templates/emailRemaiderTemplate';
+import { emailReminderTemplate } from '@/templates/emailReminderTemplate';
 import {
 	getUserAndBankDetails,
 	getUsers,

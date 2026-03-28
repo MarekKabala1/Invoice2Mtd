@@ -8,9 +8,7 @@ import {
   requestEstimateStorageDirectory,
 } from '@/utils/shared/permissions';
 
-// Alias for backward compatibility
-const getOrCreateStorageDirectory = getOrCreateInvoiceStorageDirectory;
-const resetStorageDirectory = resetInvoiceStorageDirectory;
+
 
 // Mock expo modules
 jest.mock('expo-media-library', () => ({
@@ -70,12 +68,12 @@ describe('Permissions', () => {
     });
   });
 
-  describe('getOrCreateStorageDirectory', () => {
+  describe('getOrCreateInvoiceStorageDirectory', () => {
     it('should return cached directory URI if it exists', async () => {
       const AsyncStorage = require('@react-native-async-storage/async-storage');
       AsyncStorage.getItem.mockResolvedValueOnce('dir://cached');
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateInvoiceStorageDirectory();
       expect(result).toBe('dir://cached');
     });
 
@@ -91,7 +89,7 @@ describe('Permissions', () => {
         }
       );
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateInvoiceStorageDirectory();
       expect(result).toBe('dir://new');
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         'invoice_storage_directory_uri',
@@ -111,7 +109,7 @@ describe('Permissions', () => {
         }
       );
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateInvoiceStorageDirectory();
       expect(result).toBeNull();
       expect(Alert.alert).toHaveBeenCalledWith(
         'Permission Denied',
@@ -123,17 +121,17 @@ describe('Permissions', () => {
       const AsyncStorage = require('@react-native-async-storage/async-storage');
       AsyncStorage.getItem.mockRejectedValueOnce(new Error('Storage error'));
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateInvoiceStorageDirectory();
       expect(result).toBeNull();
     });
   });
 
-  describe('resetStorageDirectory', () => {
+  describe('resetInvoiceStorageDirectory', () => {
     it('should remove cached directory URI and show success alert', async () => {
       const { Alert } = require('react-native');
       const AsyncStorage = require('@react-native-async-storage/async-storage');
 
-      await resetStorageDirectory();
+      await resetInvoiceStorageDirectory();
 
       expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
         'invoice_storage_directory_uri'

@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCameraScanner } from '@/hooks/shared/useCameraScanner';
 import { useTheme } from '@/context/ThemeContext';
 import BaseCard from '@/components/ui/BaseCard';
-import AddTransactionAfterScan from '@/components/scanner/AddTransactionAfterScann';
+import AddTransactionAfterScan from '@/components/scanner/AddTransactionAfterScan';
 
 interface DocumentScannerProps {
 	onScanComplete?: (data: { pages: string[]; pdf?: string | null }) => void;
