@@ -12,7 +12,7 @@ import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 import { db } from './config';
 import { MtdTransactions, Invoice } from './schema';
 import { generateId } from '@/utils/shared/generateUuid';
-import { taxYearForDate, quartersForTaxYear } from '@/utils/mtd/mtdDates';
+import { taxYearForDate, quartersForTaxYear, quarterForDate } from '@/utils/mtd/mtdDates';
 import { NewMtdTransaction } from '@/types/mtd';
 
 /**
@@ -26,7 +26,7 @@ export async function addMtdTransaction(
 	const date = new Date(data.date);
 	const ty = taxYearForDate(date);
 	const tyLabel = `${ty}-${String(ty + 1).slice(-2)}`;
-	const quarter = quarterForDateValue(date);
+	const quarter = quarterForDate(date).quarter;
 
 	await db.insert(MtdTransactions).values({
 		id: await generateId(),
@@ -43,22 +43,6 @@ export async function addMtdTransaction(
 		receiptRef: data.receiptRef,
 		notes: data.notes,
 	});
-}
-
-/**
- * Determine UK tax year quarter (1-4) for a given date.
- * UK tax year: Q1 Apr 6 - Jul 5, Q2 Jul 6 - Oct 5, Q3 Oct 6 - Jan 5, Q4 Jan 6 - Apr 5
- *
- * WHY: Parentheses required — && binds tighter than ||, but explicit grouping
- * prevents bugs if someone adds conditions without remembering precedence rules.
- */
-function quarterForDateValue(date: Date): 1 | 2 | 3 | 4 {
-	const m = date.getMonth(); // 0-indexed
-	const d = date.getDate();
-	if ((m === 3 && d >= 6) || m === 4 || (m === 5 && d <= 5)) return 1;
-	if ((m === 6 && d >= 6) || m === 7 || (m === 8 && d <= 5)) return 2;
-	if ((m === 9 && d >= 6) || m === 10 || m === 11) return 3;
-	return 4; // Jan 6 - Apr 5
 }
 
 /**

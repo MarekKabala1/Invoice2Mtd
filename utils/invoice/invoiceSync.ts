@@ -17,18 +17,10 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db/config';
 import { Invoice, Transactions, MtdTransactions, WorkInformation, Payment, Note } from '@/db/schema';
 import { generateId } from '@/utils/shared/generateUuid';
-import { taxYearForDate } from '@/utils/mtd/mtdDates';
+import { taxYearForDate, quarterForDate } from '@/utils/mtd/mtdDates';
 import { refreshCurrentYear } from '@/db/mtdOperations';
 import { getCurrentUserId } from '@/utils/shared/getCurrentUser';
 
-function quarterForDateValue(date: Date): 1 | 2 | 3 | 4 {
-  const m = date.getMonth();
-  const d = date.getDate();
-  if ((m === 3 && d >= 6) || m === 4 || (m === 5 && d <= 5)) return 1;
-  if ((m === 6 && d >= 6) || m === 7 || (m === 8 && d <= 5)) return 2;
-  if ((m === 9 && d >= 6) || m === 10 || m === 11) return 3;
-  return 4;
-}
 
 // ─── Mark Invoice as Paid ──────────────────────────────────────────────────
 // Sets Invoice.isPayed = true, creates Transactions income row,
@@ -50,7 +42,7 @@ export async function markInvoiceAsPaid(
   const date = new Date(paymentDate);
   const ty = taxYearForDate(date);
   const tyLabel = `${ty}-${String(ty + 1).slice(-2)}`;
-  const quarter = quarterForDateValue(date);
+  const quarter = quarterForDate(date).quarter;
 
   await db.transaction(async (tx) => {
     // 1. Set invoice as paid
