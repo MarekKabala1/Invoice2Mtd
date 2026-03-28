@@ -1,384 +1,331 @@
 # Refactoring Plan — Invoice2Mtd
 
 **Created**: 2026-03-26
+**Updated**: 2026-03-28 (post-audit)
 **Branch**: `refactor/screen-slimming-and-file-org`
-**Goal**: Slim screens, domain-organised folders, error boundaries, extract inline DB queries.
+**Goal**: Codebase audit cleanup — dead code, duplication, conventions compliance.
 
 ---
 
-## Core Principle: Screen Files Must Be Minimal
+## Completed Phases (DONE)
 
-**Every file in `app/` must be pure composition — no logic, no state, no DB calls.**
-
-- Maximum ~15 lines, ≤6 imports
-- No `useState`, `useCallback`, `useMemo`, `useEffect`
-- No `db` imports ever
-- No business logic — delegate everything to components and hooks
-- Screen = `<ErrorBoundary>` wrapper + one root component
-- Use `@/` import aliases everywhere
-
-**Example — `app/(drawer)/(tabs)/tax.tsx` (after)**:
-```tsx
-import React from 'react';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import TaxHub from '@/components/mtd/TaxHub';
-
-export default function TaxScreen() {
-  return <ErrorBoundary label="Tax"><TaxHub /></ErrorBoundary>;
-}
-```
-
-**Example — `app/(stack)/mtdQuarterlySummary.tsx` (after)**:
-```tsx
-import React from 'react';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import QuarterlySummaryHub from '@/components/mtd/QuarterlySummaryHub';
-
-export default function MtdQuarterlySummaryScreen() {
-  return <ErrorBoundary label="Quarterly Summary"><QuarterlySummaryHub /></ErrorBoundary>;
-}
-```
+- [x] **Phase 0** — Pre-flight: branch created, baseline verified
+- [x] **Phase 1** — Extract inline DB queries to hooks (`useUnpaidInvoicesForQuarter`, `useMtdDataAllQuarters`, `useChartsData`, `useInvoiceListData`)
+- [x] **Phase 2** — Reorganise `utils/` into domain subdirectories
+- [x] **Phase 3** — Reorganise `hooks/` into domain subdirectories
+- [x] **Phase 4** — Reorganise `components/` into domain subdirectories
+- [x] **Phase 5** — Add ErrorBoundary (`components/ui/ErrorBoundary.tsx`)
+- [x] **Phase 6** — Remove unused InvoiceContext
+- [x] **Phase 7** — Slim screen files to pure composition
 
 ---
 
-## Phase 0 — Pre-flight (branch + baseline)
-
-| Step | Action | Verify |
-|------|--------|--------|
-| 0.1 | Create branch `git checkout -b refactor/screen-slimming-and-file-org` | branch exists |
-| 0.2 | Run `npx tsc --noEmit` — zero errors required | passes |
-| 0.3 | Run `npm test` — note any pre-existing failures | document results |
-| 0.4 | If any test fails even before changes, **fix it first** (commit separately) | all green |
-| 0.5 | Tag baseline: `git tag refactor-baseline` | tag exists |
-
-**Baseline results**: TypeScript 0 errors, 16 test suites / 194 tests all passing.
-
-**Commit**: `[CHORE] Create refactor branch and verify baseline`
+## Remaining Phases (TODO)
 
 ---
 
-## Phase 1 — Extract Inline DB Queries to Hooks
+## Phase 8 — Dead Code Removal & Filename Fixes
 
-### 1.1 `tax.tsx` — extract `useUnpaidInvoicesForQuarter`
+### Step 8.1 — Delete dead files
+- [ ] Delete `db/queries.ts` (never imported — 19 lines, uses `any` type)
+- [ ] Delete `components/settings/NoSettingsMessage.tsx` (never imported)
+- [ ] Delete `components/settings/AppSettingsForm.tsx` (replaced by settings sections architecture)
 
-**Problem**: Lines 69-84 call `db.select().from(Invoice)` directly in the screen.
-**Fix**: Create `hooks/invoice/useUnpaidInvoicesForQuarter.ts`:
+### Step 8.2 — Remove dead legacy aliases
+- [ ] Remove `getOrCreateStorageDirectory` and `resetStorageDirectory` aliases from `utils/shared/permissions.ts:173-175`
 
+### Step 8.3 — Fix filename typos
+- [ ] Rename `templates/emailRemaiderTemplate.ts` → `emailReminderTemplate.ts` + update import in `utils/invoice/emailOperations.ts:2`
+- [ ] Rename `components/scanner/AddTransactionAfterScann.tsx` → `AddTransactionAfterScan.tsx` + update import in `components/scanner/DocumentScanner.tsx:7`
+- [ ] Rename `DOCKS_PLAN.MD` → `DOCS_PLAN.MD`
+
+**Commit**: `[CHORE] Remove dead code and fix filename typos`
+
+---
+
+## Phase 9 — Permissions.ts Parameterized Factory
+
+### Problem
+12 near-identical functions for Invoice/Estimate/Bill storage directories. Each set is copy-paste with only the AsyncStorage key and alert message different.
+
+### Fix
+Replace with 4 parameterized functions + 1 config map.
+
+- [ ] Define `StorageType = 'invoice' | 'estimate' | 'bill'` and config map at top of `utils/shared/permissions.ts`
+- [ ] Create `getOrCreateStorageDirectory(type: StorageType)`
+- [ ] Create `getStorageDirectory(type: StorageType)`
+- [ ] Create `requestStorageDirectory(type: StorageType)`
+- [ ] Create `resetStorageDirectory(type: StorageType)`
+- [ ] Keep `resetAllStorageDirectories` and `requestMediaLibraryPermission` as-is
+- [ ] Update callers: `utils/invoice/pdfOperations.ts`, `hooks/shared/useCameraScanner.ts`, tests
+
+**Commit**: `[REFACTOR] Parameterize permissions.ts storage directory functions`
+
+---
+
+## Phase 10 — Extract Shared Invoice/Estimate Utils
+
+### Problem
+`utils/invoice/invoiceFormOperations.ts` (520 lines) and `utils/invoice/estimateOperations.ts` (421 lines) share:
+- `getUsers()` — identical name, near-identical logic
+- `getUserAndBankDetails()` — identical name, ~90% identical logic
+- `getNextSequentialId()` — functionally identical pattern
+- `handleSend/ExportPdf/Preview` — same calculate→template→share flow
+
+### Fix
+Create `utils/invoice/documentOperations.ts` with shared functions.
+
+- [ ] Create `utils/invoice/documentOperations.ts`
+- [ ] Extract `getUsers(isUpdateMode, selectedId?)` — merge both versions (estimate has reorder logic — keep it)
+- [ ] Extract `getUserAndBankDetails(userId)` — use estimate version (non-nullable, cleaner)
+- [ ] Extract `getNextSequentialId(table)` — generic, takes Drizzle table as param
+- [ ] Extract `shareDocument(html, fileName, dialogTitle)` — from handleSendInvoice/Estimate
+- [ ] Slim `invoiceFormOperations.ts` — import from documentOperations, keep invoice-specific logic
+- [ ] Slim `estimateOperations.ts` — import from documentOperations, keep estimate-specific logic
+- [ ] Update all consumers: `InvoiceForm.tsx`, `EstimateForm.tsx`, `InvoiceCard.tsx`, `EstimateList.tsx`, `InvoiceSettingsModal.tsx`, `EstimateSettingsModal.tsx`, `emailOperations.ts`, tests
+
+**Commit**: `[REFACTOR] Extract shared invoice/estimate utils into documentOperations`
+
+---
+
+## Phase 11 — Remove Duplicated quarterForDateValue
+
+### Problem
+Private `quarterForDateValue` function duplicated in 2 files. Public `quarterForDate` already exists in `utils/mtd/mtdDates.ts`.
+
+### Fix
+- [ ] Remove `quarterForDateValue` from `db/mtdTransactionOps.ts:55-62`, import `quarterForDate` from `@/utils/mtd/mtdDates`, use `.quarter` property at call site
+- [ ] Remove `quarterForDateValue` from `utils/invoice/invoiceSync.ts:24-31`, import `quarterForDate` from `@/utils/mtd/mtdDates` (already imports `taxYearForDate` from same module), use `.quarter` property at call site
+
+**Commit**: `[REFACTOR] Remove duplicated quarterForDateValue, use shared quarterForDate`
+
+---
+
+## Phase 12 — Replace console.log/error with Sentry (62 occurrences)
+
+### Problem
+AGENTS.md: "No `console.log` in production code — use Sentry utilities from `utils/shared/sentry.ts`"
+
+### Pattern
 ```typescript
-// hooks/invoice/useUnpaidInvoicesForQuarter.ts
-// WHY: tax.tsx queries Invoice table directly. All DB access must go through hooks.
-import { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { db } from '@/db/config';
-import { Invoice } from '@/db/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
-import { quartersForTaxYear, quarterForDate, currentTaxYearStart } from '@/utils/mtd/mtdDates';
-
-export function useUnpaidInvoicesForQuarter() {
-  const [unpaidCount, setUnpaidCount] = useState(0);
-  const [unpaidTotal, setUnpaidTotal] = useState(0);
-
-  const fetch = useCallback(async () => {
-    try {
-      const q = quartersForTaxYear(currentTaxYearStart());
-      const currentQ = quarterForDate(new Date());
-      const quarter = q.find((x) => x.quarter === currentQ.quarter);
-      if (!quarter) return;
-      const rows = await db
-        .select({ amountAfterTax: Invoice.amountAfterTax })
-        .from(Invoice)
-        .where(and(
-          eq(Invoice.isPayed, false),
-          gte(Invoice.invoiceDate, quarter.periodStart),
-          lte(Invoice.invoiceDate, quarter.periodEnd + 'T23:59:59.999Z')
-        ));
-      setUnpaidCount(rows.length);
-      setUnpaidTotal(rows.reduce((sum, r) => sum + (r.amountAfterTax ?? 0), 0));
-    } catch { /* table may not exist yet */ }
-  }, []);
-
-  useFocusEffect(useCallback(() => { fetch(); }, [fetch]));
-
-  return { unpaidCount, unpaidTotal, refresh: fetch };
-}
+// Before:
+console.error('Error doing X:', error);
+// After:
+import { captureException } from '@/utils/shared/sentry';
+captureException(error instanceof Error ? error : new Error(String(error)), { action: 'doing X' });
 ```
 
-### 1.2 `tax.tsx` — consolidate 5x `useMtdData` into `useMtdDataAllQuarters`
+### Files to update (by group)
 
-**Problem**: Lines 56, 93-96 call `useMtdData` 5 separate times.
-**Fix**: Create `hooks/mtd/useMtdDataAllQuarters.ts`:
+**Components** (~20 occurrences)
+- [ ] `components/ui/ErrorBoundary.tsx` (1)
+- [ ] `components/InvoiceForm/InvoiceCard.tsx` (1)
+- [ ] `components/InvoiceForm/InvoiceList.tsx` (1)
+- [ ] `components/InvoiceForm/InvoiceForm.tsx` (4)
+- [ ] `components/InvoiceForm/InvoiceSettingsModal.tsx` (3)
+- [ ] `components/EstimateForm/EstimateList.tsx` (3)
+- [ ] `components/EstimateForm/EstimateForm.tsx` (5)
+- [ ] `components/EstimateForm/EstimateSettingsModal.tsx` (1)
+- [ ] `components/scanner/AddTransactionAfterScann.tsx` (1)
+- [ ] `components/CustomerForm/CustomerForm.tsx` (3)
+- [ ] `components/email/Email.tsx` (1)
 
-```typescript
-// hooks/mtd/useMtdDataAllQuarters.ts
-// WHY: tax.tsx and mtdAnnualEstimate.tsx both call useMtdData 4+ times. One hook reduces duplication.
-import { useMtdData } from './useMtdData';
+**Hooks** (~4 occurrences)
+- [ ] `hooks/invoice/useAddInvoiceToBudget.ts` (1)
+- [ ] `hooks/invoice/useChartsData.ts` (2)
+- [ ] `hooks/invoice/useInvoiceListData.ts` (2)
+- [ ] `hooks/shared/useCameraScanner.ts` (1)
+- [ ] `hooks/shared/useTransaction.ts` (1)
 
-export function useMtdDataAllQuarters(taxYear: string, userId: string) {
-  const q1 = useMtdData({ taxYear, quarter: 1, userId });
-  const q2 = useMtdData({ taxYear, quarter: 2, userId });
-  const q3 = useMtdData({ taxYear, quarter: 3, userId });
-  const q4 = useMtdData({ taxYear, quarter: 4, userId });
+**Utils** (~30 occurrences)
+- [ ] `utils/invoice/invoiceFormOperations.ts` (3)
+- [ ] `utils/invoice/estimateOperations.ts` (11)
+- [ ] `utils/invoice/pdfOperations.ts` (5)
+- [ ] `utils/invoice/customerOperations.ts` (4)
+- [ ] `utils/shared/permissions.ts` (6)
+- [ ] `utils/settings/settingsOperations.ts` (3)
+- [ ] `utils/budget/transactionOperations.ts` (1)
 
-  const isLoading = [q1, q2, q3, q4].some((q) => q.isLoading);
-  const error = [q1, q2, q3, q4].find((q) => q.error)?.error ?? null;
+**Other** (~4 occurrences)
+- [ ] `app/(stack)/(user)/bankDetailsForm.tsx` (1)
+- [ ] `context/ThemeContext.tsx` (2)
+- [ ] Leave `utils/shared/sentry.ts` lines 52, 68 as-is (fallback logging in dev mode)
 
-  return { q1, q2, q3, q4, allQuarters: [q1, q2, q3, q4], isLoading, error };
-}
-```
-
-### 1.3 `charts.tsx` — extract `useChartsData` hook
-
-**Problem**: 3 inline DB queries (Users, Invoices, Payments) with `useState`/`useCallback`/`useFocusEffect`.
-**Fix**: Create `hooks/invoice/useChartsData.ts` — move all state and queries into hook.
-
-### 1.4 `InvoiceList.tsx` — extract `useInvoiceListData` hook
-
-**Problem**: Lines 60-138 — 5 parallel DB queries with manual type mapping inside the component.
-**Fix**: Create `hooks/invoice/useInvoiceListData.ts` — move loadData and mapping logic into hook.
-
-**Commit**: `[REFACTOR] Extract inline DB queries to custom hooks`
+**Commit**: `[REFACTOR] Replace console.log/error with Sentry captureException`
 
 ---
 
-## Phase 2 — Reorganise `utils/` into Subdirectories
+## Phase 13 — Replace All any Types (32 occurrences)
 
-### Target structure
+### Problem
+AGENTS.md: "Strict mode required — no `any` types"
 
-```
-utils/
-├── invoice/
-│   ├── invoiceCalculations.ts
-│   ├── invoiceFormOperations.ts
-│   ├── invoiceGrouping.ts
-│   ├── invoiceFinancialGrouping.ts
-│   ├── invoiceSync.ts
-│   ├── estimateCalculations.ts
-│   ├── estimateOperations.ts
-│   ├── pdfOperations.ts
-│   ├── emailOperations.ts
-│   └── customerOperations.ts
-├── mtd/
-│   ├── mtdDates.ts
-│   ├── mtdTaxCalc.ts
-│   ├── mtdCategories.ts
-│   └── yearQuarters.ts
-├── budget/
-│   ├── categories.ts
-│   ├── transactionCalculation.ts
-│   └── transactionOperations.ts
-├── settings/
-│   ├── settingsOperations.ts
-│   ├── appSettingsOption.ts
-│   └── diffSettings.ts
-├── home/
-│   └── homeActivityChunks.ts
-└── shared/
-    ├── generateUuid.ts
-    ├── getCurrencySymbol.ts
-    ├── getCurrentUser.ts
-    ├── permissions.ts
-    ├── sentry.ts
-    ├── textHelpers.ts
-    └── theme.ts
-```
+### Files to fix
 
-### Process
+**hooks/invoice/useInvoiceListData.ts** (5 occurrences)
+- [ ] Type `invoicesData`, `paymentsData`, `notesData`, `workItemsData`, `customersData` with proper Drizzle `$inferSelect[]`
 
-1. Create subdirectories
-2. `git mv` each file to its subdirectory
-3. Update all imports across the codebase (grep for each old path)
-4. Update `__tests__/utils/` test imports
+**components/InvoiceForm/InvoiceList.tsx** (2)
+- [ ] Type `section` param with `SectionListData<InvoiceForUpdate>`
 
-**Files affected**: ~50 import statements across `hooks/`, `components/`, `app/`, `__tests__/`
+**components/InvoiceForm/InvoiceHeaderSection.tsx** (1)
+- [ ] Type `errors` with `FieldErrors<invoiceSchema>` from react-hook-form
 
-**Commit**: `[REFACTOR] Organise utils/ into domain subdirectories`
+**components/InvoiceForm/PaymentsList.tsx** (1)
+- [ ] Type `errors` properly
 
----
+**components/InvoiceForm/WorkItemsList.tsx** (1)
+- [ ] Type `errors` properly
 
-## Phase 3 — Reorganise `hooks/` into Subdirectories
+**components/InvoiceForm/InvoiceSettingsModal.tsx** (7)
+- [ ] Type `workItems: WorkInformationType[]`, `payments: PaymentType[]`, `bankDetails: BankDetailsType`
+- [ ] Type catch blocks properly (4 catch blocks)
 
-### Target structure
+**components/EstimateForm/EstimateSettingsModal.tsx** (2)
+- [ ] Type `bankDetails: BankDetailsType`, catch block
 
-```
-hooks/
-├── mtd/
-│   ├── useMtdData.ts
-│   ├── useMtdDataAllQuarters.ts      (new)
-│   ├── useMtdDeadlines.ts
-│   ├── useMtdTransaction.ts
-│   ├── useMtdTransactionsForQuarter.ts
-│   └── useTaxRates.ts
-├── invoice/
-│   ├── useInvoiceData.ts
-│   ├── useInvoiceListData.ts         (new)
-│   ├── useIsInvoicePaid.ts
-│   ├── useCustomerData.ts
-│   ├── useAddInvoiceToBudget.ts
-│   ├── useUnpaidInvoicesForQuarter.ts (new)
-│   └── useChartsData.ts              (new)
-├── estimate/
-│   └── useEstimateData.ts
-├── budget/
-│   └── useBudgetData.ts
-├── home/
-│   └── useHomeInsights.ts
-└── shared/
-    ├── useAppSettings.ts
-    ├── useCameraScanner.ts
-    ├── useTransaction.ts
-    └── useUserData.ts
-```
+**components/EstimateForm/EstimateHeaderSection.tsx** (1)
+- [ ] Type `errors` properly
 
-**Commit**: `[REFACTOR] Organise hooks/ into domain subdirectories`
+**components/EstimateForm/EstimateForm.tsx** (2)
+- [ ] Remove `as any` casts — type formData correctly with EstimateType
+
+**components/ui/DiscountInput.tsx** (3)
+- [ ] Make generic or use specific schema type for `Control`, `errors`, `UseFormSetValue`
+
+**components/scanner/AddTransactionAfterScann.tsx** (2)
+- [ ] Fix `setValue` type casts
+
+**components/budget/TransactionCard.tsx** (2)
+- [ ] Type `transaction` with `typeof Transactions.$inferSelect`
+
+**app/(drawer)/(tabs)/_layout.tsx** (1)
+- [ ] Type `children` as `React.ReactNode`
+
+**context/AppSettingsContext.tsx** (1)
+- [ ] Type `valuesObj` properly
+
+**Commit**: `[REFACTOR] Remove all any types for strict TypeScript compliance`
 
 ---
 
-## Phase 4 — Reorganise `components/` Root
+## Phase 14 — Replace Hardcoded Hex Colors (47 occurrences)
 
-### Target structure
+### Problem
+AGENTS.md: "Colors: always from `useTheme()` context or `tailwind.config.ts` — never hardcode hex values"
 
-```
-components/
-├── ui/
-│   ├── BaseCard.tsx
-│   ├── Card.tsx
-│   ├── DatePicker.tsx
-│   ├── DiscountInput.tsx
-│   ├── Picker.tsx
-│   ├── PhoneNumber.tsx
-│   ├── TaxBandBar.tsx
-│   ├── TaxValueSwitch.tsx
-│   ├── ThemeToggle.tsx
-│   └── ErrorBoundary.tsx        (new — Phase 5)
-├── InvoiceForm/                 (unchanged)
-├── EstimateForm/                (unchanged)
-├── CustomerForm/                (unchanged)
-├── UserForm/                    (unchanged)
-├── budget/
-│   ├── BudgetScreen.tsx
-│   ├── AddToBudgetModal.tsx
-│   ├── TransactionCard.tsx
-│   ├── TransactionForm.tsx
-│   └── TransactionList.tsx
-├── scanner/
-│   ├── DocumentScanner.tsx
-│   └── AddTransactionAfterScan.tsx  (fix typo)
-├── email/
-│   ├── Email.tsx
-│   └── TermsAndConditions.tsx
-├── navigation/
-│   ├── DrawerContent.tsx
-│   └── InvoiceEstimateSwitcher.tsx
-└── settings/
-    ├── AppSettingsForm.tsx
-    └── NoSettingsMessage.tsx
-```
+### Color mapping
+| Hardcoded | Replacement | Tailwind class |
+|-----------|-------------|----------------|
+| `#ee1c1c` | `colors.error` | `text-red-500`, `bg-red-500` |
+| `#2563eb`, `#1d4ed8` | `colors.primary` | `bg-blue-600`, `text-blue-600` |
+| `#39AD6A` | `colors.success` | `text-green-500`, `bg-green-500` |
+| `#93c5fd` | — | `bg-blue-200` |
+| `#f59e0b` | — | `text-amber-500` |
+| `#fca5a5`, `#991b1b` | — | `bg-red-200`, `text-red-900` |
+| `#c7d2fe`, `#e0e7ff` | — | `bg-indigo-200`, `bg-indigo-100` |
+| `#F3EDE2`, `#1a1a2e` | theme-aware | use `useTheme()` |
+| `#486581` | — | `text-slate-600` |
+| `#92400e` | — | `text-amber-800` |
 
-**Commit**: `[REFACTOR] Organise components/ into domain subdirectories`
+### Files to update (by group)
 
----
+**components/mtd/** (~20 occurrences)
+- [ ] `AddMtdTransactionForm.tsx` (5)
+- [ ] `AnnualEstimateHub.tsx` (1)
+- [ ] `QuarterlySummaryHub.tsx` (10)
+- [ ] `TaxHub.tsx` (6)
 
-## Phase 5 — Add Error Boundaries
+**components/InvoiceForm/** (~10)
+- [ ] `InvoiceList.tsx` (3)
+- [ ] `InvoiceSettingsModal.tsx` (7)
 
-Create `components/ui/ErrorBoundary.tsx`. Wrap each tab and stack screen.
+**components/budget/** (~8)
+- [ ] `BudgetScreen.tsx` (2)
+- [ ] `TransactionForm.tsx` (6)
 
-**Commit**: `[REFACTOR] Add ErrorBoundary to prevent single-screen crashes`
+**components/scanner/** (3)
+- [ ] `AddTransactionAfterScann.tsx` (3)
+
+**app/ screens** (3)
+- [ ] `app/(stack)/mtdDeadlines.tsx` (2)
+- [ ] `app/(drawer)/(tabs)/home.tsx` (2)
+- [ ] `app/(drawer)/settings.tsx` (1)
+
+**Commit**: `[STYLE] Replace hardcoded hex colors with theme tokens`
 
 ---
 
-## Phase 6 — Remove Dead Code
+## Phase 15 — Import Order & File Comments
 
-Delete `context/InvoiceContext.tsx` (legacy, unused, no DB integration).
+### Step 15.1 — Fix import order (19 files)
+Order: (1) Expo/React Native, (2) expo-router, (3) Third-party, (4) Local `@/`
 
-**Commit**: `[REFACTOR] Remove unused InvoiceContext`
+- [ ] `app/(drawer)/(tabs)/_layout.tsx` — expo-router before React Native
+- [ ] `app/(drawer)/_layout.tsx` — expo-router before React Native
+- [ ] `app/index.tsx` — drizzle-orm before React Native
+- [ ] `components/InvoiceForm/InvoiceSettingsModal.tsx` — expo-router after third-party
+- [ ] `components/InvoiceForm/InvoiceForm.tsx` — expo-router after third-party
+- [ ] `components/EstimateForm/EstimateForm.tsx` — expo-router after third-party
+- [ ] `components/CustomerForm/CustomerForm.tsx` — expo-router after third-party
+- [ ] `components/InvoiceForm/InvoiceCard.tsx` — expo-router after third-party
+- [ ] `components/budget/TransactionList.tsx` — expo-router after third-party
+- [ ] `components/ui/Card.tsx` — expo-router after third-party
+- [ ] `components/navigation/DrawerContent.tsx` — expo-router after third-party
+- [ ] `app/(drawer)/(tabs)/home.tsx` — expo-router before many third-party
+- [ ] `app/(stack)/(user)/userInfoForm.tsx` — local imports after third-party
+- [ ] `app/(stack)/(user)/bankDetailsForm.tsx` — local imports after third-party
+- [ ] `components/email/Email.tsx` — local imports after React Native
+- [ ] `app/(drawer)/(tabs)/invoices.tsx` — local imports after React Native
+- [ ] `components/InvoiceForm/InvoiceSettingsModal.tsx` — fix duplicate useTheme import
 
----
+### Step 15.2 — Fix architectural violation
+- [ ] `utils/budget/transactionOperations.ts:7` — remove `import { router } from 'expo-router'` (pure util shouldn't import router), move navigation to caller
 
-## Phase 7 — Slim Screen Files to Pure Composition
+### Step 15.3 — Add file-level comments to production files
+Add `// filename.ts — what it does, why it exists, dependencies` at top of every file missing one.
 
-**Target**: Every `app/` screen ≤15 lines, ≤6 imports, no logic.
+- [ ] All `db/` files (10 files)
+- [ ] All `context/` files (2 files)
+- [ ] All `types/` files (2 files)
+- [ ] All `components/` files (~40 files)
+- [ ] All `app/` screen files (~20 files)
+- [ ] All `templates/` files (3 files)
+- [ ] Hooks missing comments
+- [ ] Utils missing comments
 
-Create wrapper components that absorb all logic from screens:
-
-| Screen file | Wrapper component to create |
-|-------------|---------------------------|
-| `app/(drawer)/(tabs)/tax.tsx` (360 lines) | `components/mtd/TaxHub.tsx` |
-| `app/(stack)/mtdQuarterlySummary.tsx` (418 lines) | `components/mtd/QuarterlySummaryHub.tsx` |
-| `app/(stack)/mtdAnnualEstimate.tsx` (504 lines) | `components/mtd/AnnualEstimateHub.tsx` |
-| `app/(drawer)/charts.tsx` (301 lines) | `components/invoice/ChartsHub.tsx` |
-| `app/(stack)/addMtdTransaction.tsx` (439 lines) | `components/mtd/AddMtdTransactionForm.tsx` |
-| `app/(drawer)/info.tsx` (233 lines) | `components/mtd/InfoContent.tsx` |
-
-Each screen becomes:
-```tsx
-import React from 'react';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import ComponentName from '@/components/domain/ComponentName';
-
-export default function ScreenName() {
-  return <ErrorBoundary label="Name"><ComponentName /></ErrorBoundary>;
-}
-```
-
-**Commit**: `[REFACTOR] Slim screen files by extracting UI components`
-
----
-
-## Phase 8 — Final Verification
-
-| Step | Action | Expected |
-|------|--------|----------|
-| 8.1 | `npx tsc --noEmit` | Zero errors |
-| 8.2 | `npm test` | All tests pass |
-| 8.3 | `npx expo start` | App boots, all tabs load |
+**Commit**: `[STYLE] Fix import order and add file-level comments`
 
 ---
 
-## Git Commit Sequence
+## Phase 16 — Final Verification
+
+- [ ] `npx tsc --noEmit` — zero errors
+- [ ] `npm test` — all tests pass
+- [ ] `npx expo start` — app boots, all tabs load
+
+---
+
+## Git Commit Sequence (remaining)
 
 ```
-1. [CHORE] Create refactor branch and verify baseline
-2. [FIX] Fix any pre-existing test failures
-3. [REFACTOR] Extract inline DB queries to custom hooks
-4. [REFACTOR] Organise utils/ into domain subdirectories
-5. [REFACTOR] Organise hooks/ into domain subdirectories
-6. [REFACTOR] Organise components/ into domain subdirectories
-7. [REFACTOR] Add ErrorBoundary to prevent single-screen crashes
-8. [REFACTOR] Remove unused InvoiceContext
-9. [REFACTOR] Slim screen files by extracting UI components
-10. [TEST] Verify all tests pass after refactoring
+1.  [CHORE] Remove dead code and fix filename typos
+2.  [REFACTOR] Parameterize permissions.ts storage directory functions
+3.  [REFACTOR] Extract shared invoice/estimate utils into documentOperations
+4.  [REFACTOR] Remove duplicated quarterForDateValue, use shared quarterForDate
+5.  [REFACTOR] Replace console.log/error with Sentry captureException
+6.  [REFACTOR] Remove all any types for strict TypeScript compliance
+7.  [STYLE] Replace hardcoded hex colors with theme tokens
+8.  [STYLE] Fix import order and add file-level comments
+9.  [TEST] Final verification — typecheck + tests + boot
 ```
 
-**Rules**:
+---
+
+## Rules
+
 - Run `npx tsc --noEmit` before EVERY commit — zero errors
-- Run `npm test` before final commit — all pass
+- Run `npm test` before merge — all pass
 - One logical change per commit
 - Never `git add .` — always stage specific files
 - Use `@/` import aliases everywhere
-
----
-
-## Import Path Changes Summary
-
-All `@/utils/X` → `@/utils/domain/X` where domain is:
-`invoice/`, `mtd/`, `budget/`, `settings/`, `home/`, `shared/`
-
-All `@/hooks/X` → `@/hooks/domain/X` where domain is:
-`mtd/`, `invoice/`, `estimate/`, `budget/`, `home/`, `shared/`
-
-All `@/components/X` → `@/components/domain/X` where domain is:
-`ui/`, `budget/`, `scanner/`, `email/`, `navigation/`, `settings/`, `mtd/`, `invoice/`
-
----
-
-## Refactoring Principles
-
-1. **Screen = pure composition** — imports hooks + components, renders layout, no logic
-2. **Hook = data fetching + business logic** — returns clean typed data
-3. **Component = UI + local logic** — receives props, manages own state, no direct DB calls
-4. **One crash = one screen** — error boundaries everywhere
-5. **Domain folders** — find invoice code in `invoice/`, not mixed with MTD
-6. **No `any` types** — strict TypeScript always
-7. **WHY comments** — on financial calculations, date logic, and architectural decisions
-8. **Test first** — if a test was broken before refactoring, fix it before moving files
-9. **Import aliases** — always use `@/` prefix, never relative paths like `../../`
