@@ -287,16 +287,12 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		const formData = {
 			...data,
 			amountAfterTax: calculatedAmountAfterTax,
-		} as EstimateType;
+		};
 		const terms = await getEstimateTerms(formData.id);
 		await handleExportPdfEstimate(
 			{
-				...(formData as any),
-				user: selectedUser,
-				customer: selectedCustomer,
-				bankDetails: bankDetails,
-				notesText: note,
-				terms: terms.map((t) => t.termText),
+				...formData,
+				notes: data.notes,
 			},
 			selectedUser,
 			selectedCustomer,
@@ -318,7 +314,7 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		const formData = {
 			...data,
 			amountAfterTax: calculatedAmountAfterTax,
-		} as EstimateType;
+		};
 		let terms: string[] = [];
 		if (!isUpdateMode && estimateTerms.length > 0) {
 			terms = estimateTerms;
@@ -328,7 +324,8 @@ const EstimateForm: React.FC<EstimateFormProps> = ({ isUpdateMode = false, estim
 		}
 		const html = generateEstimateHtml({
 			data: {
-				...(formData as any),
+				...formData,
+				notes: data.notes,
 				user: selectedUser,
 				customer: selectedCustomer,
 				bankDetails: bankDetails,

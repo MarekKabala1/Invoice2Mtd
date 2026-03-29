@@ -81,7 +81,7 @@ const AnimatedIcons = ({
 	children,
 }: {
 	focused: boolean;
-	children: any;
+	children: React.ReactNode;
 }) => {
 	const scale = useSharedValue(1);
 	const { colors } = useTheme();

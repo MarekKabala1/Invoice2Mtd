@@ -157,7 +157,16 @@ export default function InvoiceList() {
 		[router, loadData, filteredInvoices],
 	);
 
-	const renderSectionHeader = ({ section }: any) => {
+	interface InvoiceSection {
+		title: string;
+		subtitle: string;
+		data: InvoiceForUpdate[];
+		key: string;
+		hasUnpaid: boolean;
+		unpaidCount: number;
+	}
+
+	const renderSectionHeader = ({ section }: { section: InvoiceSection }) => {
 		const isCollapsed = collapsedSections.has(section.key);
 
 		return (
@@ -194,7 +203,7 @@ export default function InvoiceList() {
 		);
 	};
 
-	const renderInvoiceItem = ({ item, section }: { item: InvoiceForUpdate; section: any }) => {
+	const renderInvoiceItem = ({ item, section }: { item: InvoiceForUpdate; section: InvoiceSection }) => {
 		const isCollapsed = collapsedSections.has(section.key);
 
 		if (isCollapsed) {

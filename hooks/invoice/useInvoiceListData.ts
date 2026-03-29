@@ -47,11 +47,11 @@ export function useInvoiceListData() {
 
 	const loadData = useCallback(async () => {
 		setIsLoading(true);
-		let invoicesData: any[] = [];
-		let paymentsData: any[] = [];
-		let notesData: any[] = [];
-		let workItemsData: any[] = [];
-		let customersData: any[] = [];
+		let invoicesData: (typeof Invoice.$inferSelect)[] = [];
+		let paymentsData: (typeof Payment.$inferSelect)[] = [];
+		let notesData: (typeof Note.$inferSelect)[] = [];
+		let workItemsData: (typeof WorkInformation.$inferSelect)[] = [];
+		let customersData: (typeof Customer.$inferSelect)[] = [];
 
 		try {
 			[invoicesData, paymentsData, notesData, workItemsData, customersData] = await Promise.all([

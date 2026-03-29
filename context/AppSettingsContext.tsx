@@ -47,7 +47,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 
 	const update = async (values: Partial<AppSettingsType>) => {
 		if (!settings || typeof settings.id !== 'number') {
-			const valuesObj: any = { ...values };
+			const valuesObj: Partial<AppSettingsType> = { ...values };
 			if (selectedUserId) valuesObj.userId = selectedUserId;
 			await insertAppSettingsInDb(valuesObj);
 			await loadSettings(selectedUserId ?? undefined);

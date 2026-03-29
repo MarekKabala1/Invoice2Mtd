@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CustomerType, InvoiceType, UserType } from '@/db/zodSchema';
+import { CustomerType, InvoiceType, UserType, WorkInformationType, PaymentType, BankDetailsType } from '@/db/zodSchema';
 import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
 import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
@@ -43,10 +43,10 @@ export default function InvoiceSettingsModal({
 	user: UserType;
 	onUpdate: (id: string, updateData?: Partial<InvoiceType>) => void;
 	setIsPayedOptimistic: (isPayed: boolean) => void;
-	workItems: any[];
-	payments: any[];
+	workItems: WorkInformationType[];
+	payments: PaymentType[];
 	notes: string;
-	bankDetails: any;
+	bankDetails: BankDetailsType | null;
 	onSyncComplete?: () => void;
 }) {
 	const [localInvoice, setLocalInvoice] = useState(invoice);
@@ -170,8 +170,9 @@ export default function InvoiceSettingsModal({
 				false
 			);
 			Alert.alert('Saved', 'PDF saved to device.');
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to save PDF.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to save PDF.');
 		}
 	};
 
@@ -179,8 +180,9 @@ export default function InvoiceSettingsModal({
 		try {
 			await sendPaymentReminder(invoice, customer!, user);
 			Alert.alert('Success', 'Payment reminder email composed.');
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to send payment reminder.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to send payment reminder.');
 		}
 	};
 
@@ -198,8 +200,9 @@ export default function InvoiceSettingsModal({
 				bankDetails,
 				notes
 			);
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to share invoice.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to share invoice.');
 		}
 	};
 

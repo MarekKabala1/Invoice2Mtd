@@ -26,6 +26,7 @@ import { generateEstimateHtml } from '@/templates/estimateTemplate';
 import { generateAndSaveEstimatePdf } from './pdfOperations';
 import { getCustomers, getCustomerDetails } from './customerOperations';
 import { captureException } from '@/utils/shared/sentry';
+import { getNextSequentialId } from './documentOperations';
 
 export const getLastEstimateId = async (): Promise<string> => {
 	try {
@@ -59,28 +60,7 @@ export const getLastEstimateId = async (): Promise<string> => {
 	}
 };
 
-export const getNextSequentialEstimateId = async (): Promise<string> => {
-	try {
-		const getEstimates = await db.select().from(Estimate);
-		if (!getEstimates || getEstimates.length === 0) {
-			return '1';
-		}
-
-		let maxNumber = 0;
-
-		for (const estimate of getEstimates) {
-			const num = Number(estimate.id);
-			if (!isNaN(num) && num > maxNumber) {
-				maxNumber = num;
-			}
-		}
-
-		return String(maxNumber + 1);
-	} catch (error) {
-		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting next sequential estimate ID' });
-		return '1';
-	}
-};
+export const getNextSequentialEstimateId = () => getNextSequentialId(Estimate);
 
 export const getUsers = async (
 	isUpdateMode: boolean,

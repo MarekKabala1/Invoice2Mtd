@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput } from 'react-native';
-import { Control, Controller, UseFormSetValue } from 'react-hook-form';
+import { Control, Controller, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { EstimateType, EstimateNotesType } from '@/db/zodSchema';
 import PickerWithTouchableOpacity from '@/components/ui/Picker';
 import DatePicker from '@/components/ui/DatePicker';
@@ -11,7 +11,7 @@ import currencyData from '@/assets/currency.json';
 
 interface EstimateHeaderSectionProps {
 	control: Control<EstimateType & { notes: EstimateNotesType[] }>;
-	errors: any;
+	errors: FieldErrors<EstimateType & { notes: EstimateNotesType[] }>;
 	isUpdateMode: boolean;
 	users: Array<{ label: string; value: string }>;
 	customers: Array<{ label: string; value: string }>;

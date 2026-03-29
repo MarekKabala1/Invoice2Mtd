@@ -18,17 +18,15 @@ import {
 	PaymentType,
 	WorkInformationType,
 	BankDetailsType,
-	NoteType,
 	UserType,
 } from '@/db/zodSchema';
-import { Linking } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import { generateInvoiceHtml } from '@/templates/invoiceTemplate';
 import { generateAndSavePdf } from './pdfOperations';
-import { getCustomers, getCustomerDetails } from './customerOperations';
 import { captureException } from '@/utils/shared/sentry';
+import { getNextSequentialId } from './documentOperations';
 
 export const getInvoiceForNumber = async (): Promise<string> => {
 	try {
@@ -54,28 +52,7 @@ export const getInvoiceForNumber = async (): Promise<string> => {
 	}
 };
 
-export const getNextSequentialInvoiceId = async (): Promise<string> => {
-	try {
-		const getInvoices = await db.select().from(Invoice);
-		if (!getInvoices || getInvoices.length === 0) {
-			return '1';
-		}
-
-		let maxNumber = 0;
-
-		for (const invoice of getInvoices) {
-			const num = Number(invoice.id);
-			if (!isNaN(num) && num > maxNumber) {
-				maxNumber = num;
-			}
-		}
-
-		return String(maxNumber + 1);
-	} catch (error) {
-		captureException(error instanceof Error ? error : new Error(String(error)), { action: 'getting next sequential invoice ID' });
-		return '1';
-	}
-};
+export const getNextSequentialInvoiceId = () => getNextSequentialId(Invoice);
 
 export const getUsers = async (
 	isUpdateMode: boolean,
@@ -159,7 +136,7 @@ export const handleSaveInvoice = async (
 		? data.id
 		: data.id && data.id.trim() !== ''
 			? data.id
-			: await getNextSequentialInvoiceId();
+			: await getNextSequentialId(Invoice);
 
 	if (!isUpdateMode && data.id && data.id.trim() !== '') {
 		const existingInvoice = await db

@@ -97,10 +97,10 @@ const AddTransactionAfterScan = ({ closeModal }: AddTransactionAfterScanProps) =
 								<TouchableOpacity
 									key={t}
 									onPress={() => {
-										setValue('type' as any, t);
+										setValue('type', t as 'EXPENSE' | 'INCOME');
 										const cats = t === 'EXPENSE' ? categories.EXPENSE : categories.INCOME;
 										if (!cats.find(c => c.id === watchedCategory)) {
-											setValue('categoryId' as any, cats[0]?.id ?? '');
+											setValue('categoryId', cats[0]?.id ?? '');
 										}
 									}}
 									className='flex-1 p-3 rounded-lg'

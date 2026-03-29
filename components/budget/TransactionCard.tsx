@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCategoryById, getCategoryEmoji } from '@/utils/budget/categories';
+import { TransactionType } from '@/db/zodSchema';
 import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import BaseCard from '@/components/ui/BaseCard';
 import { useTheme } from '@/context/ThemeContext';
@@ -12,9 +13,9 @@ const TransactionCard = ({
 	onDelete,
 	onUpdate,
 }: {
-	transaction: any;
+	transaction: TransactionType;
 	onDelete: (id: string) => void;
-	onUpdate: (transaction: any) => void;
+	onUpdate: (transaction: TransactionType) => void;
 }) => {
 	const { colors, isDark } = useTheme();
 	const isIncome = transaction.type === 'INCOME';
