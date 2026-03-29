@@ -110,7 +110,7 @@ export default function TaxHub() {
 					</View>
 					<TouchableOpacity
 						className='mt-6 px-8 py-4 rounded-lg'
-						style={{ backgroundColor: isDark ? '#2563eb' : '#1d4ed8' }}
+						style={{ backgroundColor: colors.secondary }}
 						onPress={() => update({ quarterlyTaxEnabled: true })}>
 						<Text className='text-white font-bold text-base'>Enable MTD</Text>
 					</TouchableOpacity>
@@ -123,11 +123,11 @@ export default function TaxHub() {
 	return (
 		<ScrollView className='flex-1' style={{ backgroundColor: colors.primary }}>
 			{/* Header — mtd-accent-600 full-bleed */}
-			<View className='px-5 pt-6 pb-8' style={{ backgroundColor: isDark ? '#1e3a8a' : '#2563eb' }}>
+			<View className='px-5 pt-6 pb-8' style={{ backgroundColor: colors.secondary }}>
 				<View className='flex-row items-center justify-between'>
 					<Text className='text-2xl font-bold text-white'>Tax</Text>
 					<View className='px-3 py-1 rounded-full' style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.15)' }}>
-						<Text className='text-xs font-bold' style={{ color: isDark ? '#c7d2fe' : '#e0e7ff' }}>
+						<Text className='text-xs font-bold' style={{ color: isDark ? colors.accent : '#e0e7ff' }}>
 							{tyLabel}
 						</Text>
 					</View>
@@ -167,16 +167,16 @@ export default function TaxHub() {
 								className='rounded-lg p-3 mb-2 flex-row items-center gap-2'
 								style={{ backgroundColor: isDark ? 'rgba(238,28,28,0.15)' : 'rgba(238,28,28,0.08)' }}
 								onPress={() => router.push('/(drawer)/(tabs)/invoices')}>
-								<Ionicons name='alert-circle-outline' size={20} color='#ee1c1c' />
+								<Ionicons name='alert-circle-outline' size={20} color={colors.danger} />
 								<View className='flex-1'>
-									<Text className='text-sm font-bold' style={{ color: '#ee1c1c' }}>
+									<Text className='text-sm font-bold' style={{ color: colors.danger }}>
 										{unpaidCount} unpaid invoice{unpaidCount > 1 ? 's' : ''}
 									</Text>
-									<Text className='text-xs' style={{ color: isDark ? '#fca5a5' : '#991b1b' }}>
+									<Text className='text-xs' style={{ color: isDark ? colors.danger : '#991b1b' }}>
 										Total: {formatGBP(unpaidTotal)} — not yet in MTD records
 									</Text>
 								</View>
-								<Ionicons name='chevron-forward' size={16} color='#ee1c1c' />
+								<Ionicons name='chevron-forward' size={16} color={colors.danger} />
 							</TouchableOpacity>
 						)}
 
@@ -186,7 +186,7 @@ export default function TaxHub() {
 								<Text className='text-xs' style={{ color: colors.noActive }}>
 									Net profit
 								</Text>
-								<Text className='text-xl font-bold mt-1 tabular-nums' style={{ color: (aggregates?.netProfit ?? 0) >= 0 ? '#39AD6A' : '#ee1c1c' }}>
+								<Text className='text-xl font-bold mt-1 tabular-nums' 							style={{ color: (aggregates?.netProfit ?? 0) >= 0 ? colors.success : colors.danger }}>
 									{formatGBP(aggregates?.netProfit ?? 0)}
 								</Text>
 							</View>
@@ -222,12 +222,12 @@ export default function TaxHub() {
 										<Ionicons
 											name='time-outline'
 											size={24}
-											color={nextDeadline.status === 'overdue' ? '#ee1c1c' : nextDeadline.status === 'urgent' ? '#f59e0b' : colors.noActive}
+											color={nextDeadline.status === 'overdue' ? colors.danger : nextDeadline.status === 'urgent' ? colors.warning : colors.noActive}
 										/>
 										<Text
 											className='text-xs font-bold mt-1'
 											style={{
-												color: nextDeadline.status === 'overdue' ? '#ee1c1c' : nextDeadline.status === 'urgent' ? '#f59e0b' : colors.noActive,
+												color: nextDeadline.status === 'overdue' ? colors.danger : nextDeadline.status === 'urgent' ? colors.warning : colors.noActive,
 											}}>
 											{nextDeadline.daysUntil < 0
 												? `${Math.abs(nextDeadline.daysUntil)}d overdue`

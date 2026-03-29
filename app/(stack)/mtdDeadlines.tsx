@@ -19,10 +19,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { DeadlineItem } from '@/types/mtd';
 
 const statusColor: Record<string, string> = {
-  overdue: '#ee1c1c',
-  urgent: '#f59e0b',
-  soon: '#f59e0b',
-  ok: '#39AD6A',
+  overdue: 'rgb(238, 28, 28)',
+  urgent: 'rgb(245, 158, 11)',
+  soon: 'rgb(245, 158, 11)',
+  ok: 'rgb(57, 173, 106)',
 };
 
 const statusBg: Record<string, string> = {
@@ -42,10 +42,12 @@ const statusLabel: Record<string, string> = {
 function DeadlineCard({
   item,
   isDark,
+  colors,
   onPress,
 }: {
   item: DeadlineItem;
   isDark: boolean;
+  colors: ReturnType<typeof useTheme>['colors'];
   onPress: () => void;
 }) {
   const color = statusColor[item.status] ?? '#64748b';
@@ -68,10 +70,10 @@ function DeadlineCard({
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 mr-3">
-          <Text className="font-bold text-base" style={{ color: isDark ? '#F3EDE2' : '#1a1a2e' }}>
+          <Text className="font-bold text-base" style={{ color: isDark ? colors.text : '#1a1a2e' }}>
             {item.label}
           </Text>
-          <Text className="text-sm mt-1" style={{ color: isDark ? '#93c5fd' : '#64748b' }}>
+          <Text className="text-sm mt-1" style={{ color: colors.noActive }}>
             {item.deadlineFormatted}
           </Text>
         </View>
@@ -149,12 +151,13 @@ export default function MtdDeadlinesScreen() {
           {/* Overdue */}
           {overdue.length > 0 && (
             <View>
-              <SectionHeader title="Overdue" color="#ee1c1c" />
+              <SectionHeader title="Overdue" color={colors.danger} />
               {overdue.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
                   item={item}
                   isDark={isDark}
+                  colors={colors}
                   onPress={() => handlePress(item)}
                 />
               ))}
@@ -164,12 +167,13 @@ export default function MtdDeadlinesScreen() {
           {/* This quarter */}
           {thisQuarter.length > 0 && (
             <View>
-              <SectionHeader title="This Quarter" color="#f59e0b" />
+              <SectionHeader title="This Quarter" color={colors.warning} />
               {thisQuarter.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
                   item={item}
                   isDark={isDark}
+                  colors={colors}
                   onPress={() => handlePress(item)}
                 />
               ))}
@@ -179,12 +183,13 @@ export default function MtdDeadlinesScreen() {
           {/* End of year — final declaration */}
           {endOfYear.length > 0 && (
             <View>
-              <SectionHeader title="End of Year Declaration" color={isDark ? '#93c5fd' : '#1d4ed8'} />
+              <SectionHeader title="End of Year Declaration" color={colors.secondary} />
               {endOfYear.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
                   item={item}
                   isDark={isDark}
+                  colors={colors}
                   onPress={() => handlePress(item)}
                 />
               ))}
@@ -194,12 +199,13 @@ export default function MtdDeadlinesScreen() {
           {/* Upcoming — future quarters only */}
           {upcoming.length > 0 && (
             <View>
-              <SectionHeader title="Upcoming" color={isDark ? '#93c5fd' : '#2563eb'} />
+              <SectionHeader title="Upcoming" color={colors.secondary} />
               {upcoming.map((item) => (
                 <DeadlineCard
                   key={`${item.type}-${item.deadline}`}
                   item={item}
                   isDark={isDark}
+                  colors={colors}
                   onPress={() => handlePress(item)}
                 />
               ))}

@@ -163,8 +163,8 @@ export default function SettingsScreen() {
 			{/* Unsaved changes warning */}
 			{hasChanges && (
 				<View className='bg-amber-100 px-4 py-2 flex-row items-center gap-2'>
-					<Ionicons name='alert-circle' size={16} color='#92400e' />
-					<Text className='text-xs' style={{ color: '#92400e' }}>
+					<Ionicons name='alert-circle' size={16} color={colors.warning} />
+					<Text className='text-xs' style={{ color: colors.warning }}>
 						You have unsaved changes
 					</Text>
 				</View>
