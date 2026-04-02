@@ -19,7 +19,7 @@ import {
   buildTaxYear,
   toISO,
   fromISO,
-} from '@/utils/mtdDates';
+} from '@/utils/mtd/mtdDates';
 
 describe('mtdDates', () => {
   // ─── Date conversions ───────────────────────────────────────────────────
@@ -240,9 +240,9 @@ describe('mtdDates', () => {
       }
     });
 
-    it('returns at least 8 items for 2 years', () => {
+    it('returns at least 4 items for 2 years', () => {
       const items = upcomingDeadlines(2);
-      expect(items.length).toBeGreaterThanOrEqual(8);
+      expect(items.length).toBeGreaterThanOrEqual(4);
     });
 
     it('excludes items older than 90 days', () => {

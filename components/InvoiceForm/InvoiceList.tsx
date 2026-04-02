@@ -1,39 +1,36 @@
+/**
+ * InvoiceList.tsx
+ *
+ * Main invoice list component. Shows sectioned invoices grouped by financial
+ * year and quarter, with filtering, selection, and add-to-budget functionality.
+ *
+ * Depends on: hooks/useInvoiceListData, hooks/useAddInvoiceToBudget,
+ *             components/InvoiceCard, components/AddToBudgetModal, utils/invoiceSync
+ * Used by: app/(drawer)/(tabs)/invoices.tsx
+ */
+
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, SectionList, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import InvoiceCard from './InvoiceCard';
-import { Invoice, Payment, Note, WorkInformation, Customer } from '@/db/schema';
-import { db } from '@/db/config';
-import { InvoiceType, WorkInformationType, PaymentType, NoteType, CustomerType } from '@/db/zodSchema';
+import { InvoiceType } from '@/db/zodSchema';
 import { InvoiceForUpdate } from '@/types';
-import { eq } from 'drizzle-orm';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '../ThemeToggle';
-import { groupInvoicesByFinancialYearAndQuarter } from '@/utils/invoiceFinancialGrouping';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
-import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoiceSync';
-import AddToBudgetModal from '../AddToBudgetModal';
-import InvoiceEstimateSwitcher from '@/components/InvoiceEstimateSwitcher';
-import { EstimateList } from '../EstimateForm';
+import { useAddInvoiceToBudget } from '@/hooks/invoice/useAddInvoiceToBudget';
+import { useInvoiceListData } from '@/hooks/invoice/useInvoiceListData';
+import { deleteInvoiceFull, findLinkedRecordsForInvoice } from '@/utils/invoice/invoiceSync';
+import AddToBudgetModal from '@/components/budget/AddToBudgetModal';
+import InvoiceEstimateSwitcher from '@/components/navigation/InvoiceEstimateSwitcher';
+import EstimateList from '../EstimateForm/EstimateList';
+import { db } from '@/db/config';
+import { Invoice } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { captureException } from '@/utils/shared/sentry';
 
 export default function InvoiceList() {
-	const [data, setData] = useState<{
-		invoices: InvoiceType[];
-		payments: PaymentType[];
-		notes: NoteType[];
-		workItems: WorkInformationType[];
-		customers: CustomerType[];
-	}>({
-		invoices: [],
-		payments: [],
-		notes: [],
-		workItems: [],
-		customers: [],
-	});
-	const [error, setError] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
+	const { memoizedInvoices, sectionedInvoices, error, setError, isLoading, loadData } = useInvoiceListData();
 	const [filterCustomer, setFilterCustomer] = useState<string>('');
 	const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
 	const [addInvoiceToBudget, setAddInvoiceToBudget] = useState(false);
@@ -58,152 +55,36 @@ export default function InvoiceList() {
 		});
 	}, []);
 
-	const loadData = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const [invoicesData, paymentsData, notesData, workItemsData, customersData] = await Promise.all([
-				db.select().from(Invoice),
-				db.select().from(Payment),
-				db.select().from(Note),
-				db.select().from(WorkInformation),
-				db.select().from(Customer),
-			]);
+	const filteredInvoices = useMemo(() => {
+		if (filterCustomer === '') return memoizedInvoices;
+		return memoizedInvoices.filter((invoice) =>
+			invoice.customer.name.toLowerCase().includes(filterCustomer.toLowerCase()),
+		);
+	}, [memoizedInvoices, filterCustomer]);
 
-			setData({
-				invoices: invoicesData.map((invoice) => ({
-					...invoice,
-					userId: invoice?.userId!,
-					customerId: invoice.customerId!,
-					invoiceDate: invoice.invoiceDate!,
-					dueDate: invoice.dueDate!,
-					amountAfterTax: invoice.amountAfterTax!,
-					amountBeforeTax: invoice.amountBeforeTax!,
-					taxRate: invoice.taxRate!,
-					pdfPath: invoice.pdfPath!,
-					createdAt: invoice.createdAt!,
-					currency: 'GBP',
-					taxValue: invoice.taxValue!,
-					isPayed: invoice.isPayed!,
-					discount: invoice.discount!,
-				})),
-				payments: paymentsData.map((payment) => ({
-					...payment,
-					invoiceId: payment.invoiceId ?? '',
-					paymentDate: payment.paymentDate ?? '',
-					amountPaid: payment.amountPaid ?? 0,
-					createdAt: payment.createdAt ?? '',
-				})),
-				notes: notesData.map((note) => ({
-					...note,
-					invoiceId: note.invoiceId!,
-					noteDate: note.noteDate!,
-					noteText: note.noteText ?? 'No text',
-					createdAt: note.createdAt!,
-				})),
-				workItems: workItemsData.map((workItem) => ({
-					...workItem,
-					invoiceId: workItem.invoiceId ?? '',
-					descriptionOfWork: workItem.descriptionOfWork ?? 'No description',
-					unitPrice: workItem.unitPrice ?? 0,
-					date: workItem.date ?? '',
-					totalToPayMinusTax: workItem.totalToPayMinusTax ?? 0,
-					createdAt: workItem.createdAt ?? '',
-				})),
-				customers: customersData.map((customer) => ({
-					...customer,
-					emailAddress: customer.emailAddress ?? '',
-					name: customer.name ?? '',
-					id: customer.id,
-					address: customer.address ?? undefined,
-					phoneNumber: customer.phoneNumber ?? undefined,
-					createdAt: customer.createdAt ?? '',
-				})),
-			});
-		} catch (error) {
-			console.error('Error loading data:', error);
-			setError('Failed to load data');
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	useFocusEffect(
-		useCallback(() => {
-			loadData();
-		}, [loadData])
-	);
-
-	const memoizedInvoices = useMemo(() => {
-		return data.invoices
-			.map((invoice) => {
-				const invoicePayments = data.payments.filter((p) => p.invoiceId === invoice.id);
-				const invoiceNotes = data.notes.filter((n) => n.invoiceId === invoice.id);
-				const invoiceWorkItems = data.workItems.filter((w) => w.invoiceId === invoice.id);
-				const customer = data.customers.find((c) => c.id === invoice.customerId) || {
-					name: 'Unknown',
-					emailAddress: 'unknown@example.com',
-					id: invoice.customerId,
-				};
-
-				return {
-					...invoice,
-					payments: invoicePayments,
-					notes: invoiceNotes,
-					workItems: invoiceWorkItems,
-					customer,
-				} as InvoiceForUpdate;
-			})
-			.filter((invoice) => filterCustomer === '' || invoice.customer.name.toLowerCase().includes(filterCustomer.toLowerCase()));
-	}, [data, filterCustomer]);
+	const filteredSections = useMemo(() => {
+		if (filterCustomer === '') return sectionedInvoices;
+		return sectionedInvoices.map((section) => ({
+			...section,
+			data: section.data.filter((invoice) =>
+				invoice.customer.name.toLowerCase().includes(filterCustomer.toLowerCase()),
+			),
+		})).filter((section) => section.data.length > 0);
+	}, [sectionedInvoices, filterCustomer]);
 
 	const { settings } = useAppSettings();
 
 	const unpaidInvoicesCount = useMemo(() => {
-		return memoizedInvoices.filter((invoice) => !invoice.isPayed).length;
-	}, [memoizedInvoices]);
+		return filteredInvoices.filter((invoice) => !invoice.isPayed).length;
+	}, [filteredInvoices]);
 
 	const unpaidInvoicesTotal = useMemo(() => {
-		return memoizedInvoices.filter((invoice) => !invoice.isPayed).reduce((sum, invoice) => sum + invoice.amountAfterTax, 0);
-	}, [memoizedInvoices]);
-
-	const sectionedInvoices = useMemo(() => {
-		if (!settings) return [];
-		const grouped = groupInvoicesByFinancialYearAndQuarter(memoizedInvoices, settings);
-
-		const sections: Array<{
-			title: string;
-			subtitle: string;
-			data: InvoiceForUpdate[];
-			key: string;
-			hasUnpaid: boolean;
-			unpaidCount: number;
-		}> = [];
-
-		grouped.forEach((yearGroup) => {
-			yearGroup.quarters.forEach((quarter) => {
-				const sectionKey = `${yearGroup.yearLabel}-${quarter.quarterLabel}`;
-				const unpaidInvoices = quarter.invoices.filter((invoice) => !invoice.isPayed);
-				const hasUnpaid = unpaidInvoices.length > 0;
-				sections.push({
-					title: yearGroup.yearLabel,
-					subtitle: quarter.quarterLabel,
-					data: quarter.invoices,
-					key: sectionKey,
-					hasUnpaid,
-					unpaidCount: unpaidInvoices.length,
-				});
-			});
-		});
-
-		return sections;
-	}, [memoizedInvoices, settings]);
+		return filteredInvoices.filter((invoice) => !invoice.isPayed).reduce((sum, invoice) => sum + invoice.amountAfterTax, 0);
+	}, [filteredInvoices]);
 
 	const hasInitialized = useRef(false);
 
 	useEffect(() => {
-		// Only collapse sections on first load — not on every data change.
-		// Without this guard, any action (mark paid, delete, etc.) causes
-		// all quarter sections to fold back up automatically.
 		if (sectionedInvoices.length > 0 && !hasInitialized.current) {
 			hasInitialized.current = true;
 			const allSectionKeys = new Set(sectionedInvoices.map((section) => section.key));
@@ -212,11 +93,11 @@ export default function InvoiceList() {
 	}, [sectionedInvoices]);
 
 	const handleAddToBudget = useCallback(async () => {
-		const selectedInvoiceDetails = memoizedInvoices.filter((invoice) => selectedInvoices.includes(invoice.id));
+		const selectedInvoiceDetails = filteredInvoices.filter((invoice) => selectedInvoices.includes(invoice.id));
 		await handleAddInvoicesToBudget(selectedInvoiceDetails);
 		setSelectedInvoices([]);
 		await loadData();
-	}, [memoizedInvoices, selectedInvoices, handleAddInvoicesToBudget, loadData]);
+	}, [filteredInvoices, selectedInvoices, handleAddInvoicesToBudget, loadData]);
 
 	const handleToggleInvoiceSelection = useCallback((invoiceId: string) => {
 		setSelectedInvoices((prev) => (prev.includes(invoiceId) ? prev.filter((id) => id !== invoiceId) : [...prev, invoiceId]));
@@ -229,31 +110,25 @@ export default function InvoiceList() {
 				const warnings: string[] = [];
 				if (linked.hasLinkedBudget) warnings.push('linked budget entry');
 				if (linked.hasLinkedMtd) warnings.push('linked MTD record');
-				const warningText = warnings.length > 0
-					? `\n\nThis will also delete: ${warnings.join(', ')}.`
-					: '';
+				const warningText = warnings.length > 0 ? `\n\nThis will also delete: ${warnings.join(', ')}.` : '';
 
-				Alert.alert(
-					'Delete Invoice',
-					`Are you sure you want to delete this invoice?${warningText}`,
-					[
-						{ text: 'Cancel', style: 'cancel' },
-						{
-							text: 'Delete',
-							style: 'destructive',
-							onPress: async () => {
-								await deleteInvoiceFull(invoiceId);
-								await loadData();
-							},
+				Alert.alert('Delete Invoice', `Are you sure you want to delete this invoice?${warningText}`, [
+					{ text: 'Cancel', style: 'cancel' },
+					{
+						text: 'Delete',
+						style: 'destructive',
+						onPress: async () => {
+							await deleteInvoiceFull(invoiceId);
+							await loadData();
 						},
-					]
-				);
-			} catch (error) {
-				console.error('Error deleting invoice:', error);
+					},
+				]);
+			} catch (err) {
+				captureException(err instanceof Error ? err : new Error(String(err)), { action: 'deleting invoice' });
 				Alert.alert('Error', 'Failed to delete invoice. Please try again.');
 			}
 		},
-		[loadData]
+		[loadData],
 	);
 
 	const handleUpdateInvoice = useCallback(
@@ -262,7 +137,7 @@ export default function InvoiceList() {
 				await db.update(Invoice).set(updateData).where(eq(Invoice.id, invoiceId));
 				await loadData();
 			} else {
-				const invoice = memoizedInvoices.find((inv) => inv.id === invoiceId);
+				const invoice = filteredInvoices.find((inv) => inv.id === invoiceId);
 				if (!invoice) return;
 
 				await loadData();
@@ -279,10 +154,19 @@ export default function InvoiceList() {
 				});
 			}
 		},
-		[router, loadData, memoizedInvoices]
+		[router, loadData, filteredInvoices],
 	);
 
-	const renderSectionHeader = ({ section }: any) => {
+	interface InvoiceSection {
+		title: string;
+		subtitle: string;
+		data: InvoiceForUpdate[];
+		key: string;
+		hasUnpaid: boolean;
+		unpaidCount: number;
+	}
+
+	const renderSectionHeader = ({ section }: { section: InvoiceSection }) => {
 		const isCollapsed = collapsedSections.has(section.key);
 
 		return (
@@ -296,12 +180,11 @@ export default function InvoiceList() {
 					shadowOpacity: 0.15,
 					shadowRadius: 6,
 					elevation: 3,
-				}}
-			>
+				}}>
 				<View className='flex-row justify-between items-center'>
 					<View className='flex-1'>
 						<View className='flex-row items-center'>
-							<Text className='text-xl font-bold' style={{ color: isDark ? '#a5b4fc' : '#486581' }}>
+							<Text className='text-xl font-bold' style={{ color: isDark ? '#93c5fd' : '#486581' }}>
 								{section.title}
 							</Text>
 							{section.hasUnpaid && (
@@ -320,7 +203,7 @@ export default function InvoiceList() {
 		);
 	};
 
-	const renderInvoiceItem = ({ item, section }: { item: InvoiceForUpdate; section: any }) => {
+	const renderInvoiceItem = ({ item, section }: { item: InvoiceForUpdate; section: InvoiceSection }) => {
 		const isCollapsed = collapsedSections.has(section.key);
 
 		if (isCollapsed) {
@@ -357,7 +240,6 @@ export default function InvoiceList() {
 	const ListHeaderComponent = () => (
 		<>
 			<View className='flex-row justify-between p-4'>
-				<ThemeToggle size={24} />
 				{activeTab === 'invoices' ? (
 					<TouchableOpacity onPress={() => router.push('/(stack)/createInvoice')} className='flex-row gap-1 items-center'>
 						<View>
@@ -436,7 +318,6 @@ export default function InvoiceList() {
 		return (
 			<View className='flex-1 bg-light-primary dark:bg-dark-primary'>
 				<View className='flex-row justify-between p-4'>
-					<ThemeToggle size={24} />
 					<TouchableOpacity onPress={() => router.push('/(stack)/createEstimate')} className='flex-row gap-1 items-center'>
 						<View>
 							<Ionicons name='add-circle-outline' size={24} color={colors.text} />
@@ -462,7 +343,7 @@ export default function InvoiceList() {
 			/>
 
 			<SectionList
-				sections={sectionedInvoices}
+				sections={filteredSections}
 				keyExtractor={(item) => item.id}
 				renderItem={renderInvoiceItem}
 				renderSectionHeader={renderSectionHeader}

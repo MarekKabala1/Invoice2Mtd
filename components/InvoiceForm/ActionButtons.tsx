@@ -37,7 +37,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 				onPress={onSave}
 				className='p-4 rounded-lg flex-row items-center justify-center gap-2'
 				style={{
-					backgroundColor: isDark ? '#4f46e5' : '#4338ca',
+					backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
 					...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
 				}}
 			>
@@ -66,7 +66,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 					onPress={onExportPdf}
 					className='flex-1 p-3 rounded-lg flex-row items-center justify-center gap-2'
 					style={{
-						backgroundColor: isDark ? '#7c3aed' : '#6d28d9',
+						backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
 						...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
 					}}
 				>

@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { Control, Controller, UseFieldArrayReturn } from 'react-hook-form';
+import { Control, Controller, FieldErrors, UseFieldArrayReturn } from 'react-hook-form';
 import { InvoiceType, PaymentType, WorkInformationType } from '@/db/zodSchema';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 
 interface PaymentsListProps {
 	control: Control<InvoiceType & { workItems: WorkInformationType[]; payments: PaymentType[] }>;
-	errors: any;
+	errors: FieldErrors<InvoiceType & { workItems: WorkInformationType[]; payments: PaymentType[] }>;
 	paymentFields: UseFieldArrayReturn<InvoiceType & { workItems: WorkInformationType[]; payments: PaymentType[] }, 'payments'>['fields'];
 	appendPayment: UseFieldArrayReturn<InvoiceType & { workItems: WorkInformationType[]; payments: PaymentType[] }, 'payments'>['append'];
 	removePayment: UseFieldArrayReturn<InvoiceType & { workItems: WorkInformationType[]; payments: PaymentType[] }, 'payments'>['remove'];

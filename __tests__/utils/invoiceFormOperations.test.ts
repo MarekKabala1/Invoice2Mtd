@@ -32,11 +32,11 @@ jest.mock('@/db/config', () => ({
 }));
 
 // Mock other dependencies
-jest.mock('@/utils/generateUuid', () => ({
+jest.mock('@/utils/shared/generateUuid', () => ({
   generateId: jest.fn().mockResolvedValue('mock-uuid-123'),
 }));
 
-jest.mock('@/utils/invoiceCalculations', () => ({
+jest.mock('@/utils/invoice/invoiceCalculations', () => ({
   calculateInvoiceWorkItemTotals: jest.fn().mockReturnValue({
     subtotal: 100,
     tax: 20,
@@ -45,11 +45,11 @@ jest.mock('@/utils/invoiceCalculations', () => ({
   }),
 }));
 
-jest.mock('@/utils/pdfOperations', () => ({
+jest.mock('@/utils/invoice/pdfOperations', () => ({
   generateAndSavePdf: jest.fn(),
 }));
 
-jest.mock('@/utils/customerOperations', () => ({
+jest.mock('@/utils/invoice/customerOperations', () => ({
   getCustomers: jest.fn(),
   getCustomerDetails: jest.fn(),
 }));
@@ -58,7 +58,7 @@ import {
   getNextSequentialInvoiceId,
   getUsers,
   getUserAndBankDetails,
-} from '@/utils/invoiceFormOperations';
+} from '@/utils/invoice/invoiceFormOperations';
 
 describe('Invoice Form Operations', () => {
   describe('getNextSequentialInvoiceId', () => {

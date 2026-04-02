@@ -9,9 +9,9 @@ import Animated, {
 	withSpring,
 	withTiming,
 } from 'react-native-reanimated';
-import { color } from '@/utils/theme';
+import { color } from '@/utils/shared/theme';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 
 const AnimatedTabLabel = ({
@@ -81,7 +81,7 @@ const AnimatedIcons = ({
 	children,
 }: {
 	focused: boolean;
-	children: any;
+	children: React.ReactNode;
 }) => {
 	const scale = useSharedValue(1);
 	const { colors } = useTheme();

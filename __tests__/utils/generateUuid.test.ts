@@ -1,4 +1,4 @@
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 
 // Mock react-native-uuid
 jest.mock('react-native-uuid', () => ({

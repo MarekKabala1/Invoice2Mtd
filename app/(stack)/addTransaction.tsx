@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import TransactionForm from '@/components/TransactionForm';
+import TransactionForm from '@/components/budget/TransactionForm';
 import { TransactionType } from '@/db/zodSchema';
 
 const AddTransactionPage: React.FC = () => {

@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CustomerType, EstimateType, UserType } from '@/db/zodSchema';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import { CustomerType, EstimateType, UserType, BankDetailsType } from '@/db/zodSchema';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
-import { handleSendEstimate } from '@/utils/estimateOperations';
+import { handleSendEstimate } from '@/utils/invoice/estimateOperations';
 
 export default function EstimateSettingsModal({
 	showSettings,
@@ -26,7 +26,7 @@ export default function EstimateSettingsModal({
 	onUpdate: (id: string, updateData?: Partial<EstimateType>) => void;
 	setIsAcceptedOptimistic: (isAccepted: boolean) => void;
 	notes: string;
-	bankDetails: any;
+	bankDetails: BankDetailsType | null;
 }) {
 	const [localEstimate, setLocalEstimate] = useState(estimate);
 	const { colors } = useTheme();
@@ -79,8 +79,9 @@ export default function EstimateSettingsModal({
 				bankDetails,
 				notes
 			);
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to share estimate.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to share estimate.');
 		}
 	};
 

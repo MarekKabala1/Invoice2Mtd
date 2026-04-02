@@ -1,6 +1,6 @@
 import React from 'react';
 import InvoiceForm from '@/components/InvoiceForm/InvoiceForm';
-import { useInvoiceData } from '@/hooks/useInvoiceData';
+import { useInvoiceData } from '@/hooks/invoice/useInvoiceData';
 
 const InvoiceFormPage: React.FC = () => {
 	const { isUpdateMode, invoiceData, workItemsData, paymentsData, notes } = useInvoiceData();

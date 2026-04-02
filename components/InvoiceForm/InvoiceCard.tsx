@@ -10,13 +10,14 @@ import {
 	BankDetailsType,
 } from '@/db/zodSchema';
 import { useFocusEffect, useRouter } from 'expo-router';
-import BaseCard from '../BaseCard';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import BaseCard from '@/components/ui/BaseCard';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import InvoiceSettingsModal from './InvoiceSettingsModal';
-import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
-import { getUserAndBankDetails } from '@/utils/invoiceFormOperations';
+import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
+import { getUserAndBankDetails } from '@/utils/invoice/invoiceFormOperations';
+import { captureException } from '@/utils/shared/sentry';
 
 type InvoiceCardProps = {
 	invoice: InvoiceType;
@@ -88,7 +89,7 @@ const InvoiceCard = ({
 			setUserData(userDetails);
 			setBankDetails(bankDetails);
 		} catch (error) {
-			console.error('Error fetching user data:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching user data' });
 		}
 	}, [invoice.userId]);
 

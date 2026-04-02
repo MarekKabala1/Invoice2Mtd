@@ -1,16 +1,8 @@
 import {
   requestMediaLibraryPermission,
-  getOrCreateInvoiceStorageDirectory,
-  resetInvoiceStorageDirectory,
-  getInvoiceStorageDirectory,
-  getEstimateStorageDirectory,
-  requestInvoiceStorageDirectory,
-  requestEstimateStorageDirectory,
-} from '@/utils/permissions';
-
-// Alias for backward compatibility
-const getOrCreateStorageDirectory = getOrCreateInvoiceStorageDirectory;
-const resetStorageDirectory = resetInvoiceStorageDirectory;
+  getOrCreateStorageDirectory,
+  resetStorageDirectory,
+} from '@/utils/shared/permissions';
 
 // Mock expo modules
 jest.mock('expo-media-library', () => ({
@@ -75,7 +67,7 @@ describe('Permissions', () => {
       const AsyncStorage = require('@react-native-async-storage/async-storage');
       AsyncStorage.getItem.mockResolvedValueOnce('dir://cached');
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateStorageDirectory('invoice');
       expect(result).toBe('dir://cached');
     });
 
@@ -91,7 +83,7 @@ describe('Permissions', () => {
         }
       );
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateStorageDirectory('invoice');
       expect(result).toBe('dir://new');
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         'invoice_storage_directory_uri',
@@ -111,7 +103,7 @@ describe('Permissions', () => {
         }
       );
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateStorageDirectory('invoice');
       expect(result).toBeNull();
       expect(Alert.alert).toHaveBeenCalledWith(
         'Permission Denied',
@@ -123,8 +115,24 @@ describe('Permissions', () => {
       const AsyncStorage = require('@react-native-async-storage/async-storage');
       AsyncStorage.getItem.mockRejectedValueOnce(new Error('Storage error'));
 
-      const result = await getOrCreateStorageDirectory();
+      const result = await getOrCreateStorageDirectory('invoice');
       expect(result).toBeNull();
+    });
+
+    it('should work for estimate type', async () => {
+      const AsyncStorage = require('@react-native-async-storage/async-storage');
+      AsyncStorage.getItem.mockResolvedValueOnce('dir://estimate');
+
+      const result = await getOrCreateStorageDirectory('estimate');
+      expect(result).toBe('dir://estimate');
+    });
+
+    it('should work for bill type', async () => {
+      const AsyncStorage = require('@react-native-async-storage/async-storage');
+      AsyncStorage.getItem.mockResolvedValueOnce('dir://bill');
+
+      const result = await getOrCreateStorageDirectory('bill');
+      expect(result).toBe('dir://bill');
     });
   });
 
@@ -133,7 +141,7 @@ describe('Permissions', () => {
       const { Alert } = require('react-native');
       const AsyncStorage = require('@react-native-async-storage/async-storage');
 
-      await resetStorageDirectory();
+      await resetStorageDirectory('invoice');
 
       expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
         'invoice_storage_directory_uri'

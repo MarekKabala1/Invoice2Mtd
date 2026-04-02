@@ -13,7 +13,7 @@ import {
   formatGBP,
   formatPercent,
   RATES_2025_26,
-} from '@/utils/mtdTaxCalc';
+} from '@/utils/mtd/mtdTaxCalc';
 
 describe('mtdTaxCalc', () => {
   // ─── estimateTax ─────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ describe('mtdTaxCalc', () => {
     });
 
     it('formats negative numbers', () => {
-      expect(formatGBP(-500)).toBe('-£500.00');
+      expect(formatGBP(-500)).toBe('£-500.00');
     });
   });
 

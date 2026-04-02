@@ -3,7 +3,7 @@ import {
   getCustomerDetails,
   handleSaveCustomer,
   handleDeleteCustomer,
-} from '@/utils/customerOperations';
+} from '@/utils/invoice/customerOperations';
 
 // Mock the database module
 jest.mock('@/db/config', () => ({
@@ -19,7 +19,7 @@ jest.mock('@/db/config', () => ({
 }));
 
 // Mock the generateUuid module
-jest.mock('@/utils/generateUuid', () => ({
+jest.mock('@/utils/shared/generateUuid', () => ({
   generateId: jest.fn().mockResolvedValue('mock-uuid-123'),
 }));
 
@@ -222,7 +222,7 @@ describe('Customer Operations', () => {
     });
 
     it('should throw an error when ID generation fails', async () => {
-      const { generateId } = require('@/utils/generateUuid');
+      const { generateId } = require('@/utils/shared/generateUuid');
       generateId.mockResolvedValue('');
 
       const customerData = {

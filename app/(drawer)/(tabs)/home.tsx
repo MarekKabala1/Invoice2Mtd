@@ -27,9 +27,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { useHomeInsights } from '@/hooks/useHomeInsights';
-import { formatGBP } from '@/utils/mtdTaxCalc';
-import { chunkIntoPages } from '@/utils/homeActivityChunks';
+import { useHomeInsights } from '@/hooks/home/useHomeInsights';
+import { formatGBP } from '@/utils/mtd/mtdTaxCalc';
+import { chunkIntoPages } from '@/utils/home/homeActivityChunks';
 
 const ACTIVITY_PAGE_SIZE = 5;
 
@@ -81,7 +81,7 @@ export default function Home() {
 				) : (
 					<>
 						{error ? (
-							<Text className='text-sm mb-4 text-center' style={{ color: '#ee1c1c' }}>
+							<Text className='text-sm mb-4 text-center' style={{ color: colors.danger }}>
 								{error}
 							</Text>
 						) : null}
@@ -92,7 +92,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(drawer)/(tabs)/invoices')}>
-								<Ionicons name='document-text-outline' size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='document-text-outline' size={24} color={colors.secondary} />
 								<Text className='text-xs mt-2' style={{ color: colors.noActive }}>
 									Unpaid invoices
 								</Text>
@@ -105,11 +105,11 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(drawer)/(tabs)/tax')}>
-								<Ionicons name='calculator-outline' size={24} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='calculator-outline' size={24} color={colors.secondary} />
 								<Text className='text-xs mt-2' style={{ color: colors.noActive }}>
 									Q{currentQuarter} net profit
 								</Text>
-								<Text className='text-lg font-bold tabular-nums mt-1' style={{ color: currentQuarterNetProfit >= 0 ? '#39AD6A' : '#ee1c1c' }}>
+								<Text className='text-lg font-bold tabular-nums mt-1' style={{ color: currentQuarterNetProfit >= 0 ? colors.success : colors.danger }}>
 									{formatGBP(currentQuarterNetProfit)}
 								</Text>
 							</TouchableOpacity>
@@ -121,7 +121,7 @@ export default function Home() {
 								className='rounded-lg p-4 mb-4 border-l-4'
 								style={{
 									backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.15)',
-									borderLeftColor: '#f59e0b',
+									borderLeftColor: colors.warning,
 								}}
 								onPress={() => router.push('/(stack)/addMtdTransaction')}>
 								<Text className='text-sm font-bold mb-1' style={{ color: colors.text }}>
@@ -144,7 +144,7 @@ export default function Home() {
 									<Ionicons
 										name='time-outline'
 										size={20}
-										color={nextDeadline.status === 'overdue' ? '#ee1c1c' : nextDeadline.status === 'urgent' ? '#f59e0b' : colors.noActive}
+										color={nextDeadline.status === 'overdue' ? colors.danger : nextDeadline.status === 'urgent' ? colors.warning : colors.noActive}
 									/>
 									<View className='flex-1'>
 										<Text className='text-xs' style={{ color: colors.noActive }}>
@@ -158,7 +158,7 @@ export default function Home() {
 								<Text
 									className='text-xs font-bold'
 									style={{
-										color: nextDeadline.status === 'overdue' ? '#ee1c1c' : nextDeadline.status === 'urgent' ? '#f59e0b' : colors.noActive,
+										color: nextDeadline.status === 'overdue' ? colors.danger : nextDeadline.status === 'urgent' ? colors.warning : colors.noActive,
 									}}>
 									{nextDeadline.daysUntil < 0
 										? `${Math.abs(nextDeadline.daysUntil)}d overdue`
@@ -253,7 +253,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/createInvoice')}>
-								<Ionicons name='add-circle-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='add-circle-outline' size={28} color={colors.secondary} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									New Invoice
 								</Text>
@@ -263,7 +263,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/addMtdTransaction')}>
-								<Ionicons name='receipt-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='receipt-outline' size={28} color={colors.secondary} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									Add MTD Record
 								</Text>
@@ -273,7 +273,7 @@ export default function Home() {
 								className='flex-1 rounded-lg p-4 items-center'
 								style={{ backgroundColor: isDark ? colors.nav : colors.card }}
 								onPress={() => router.push('/(stack)/createEstimate')}>
-								<Ionicons name='document-outline' size={28} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+								<Ionicons name='document-outline' size={28} color={colors.secondary} />
 								<Text className='text-xs font-bold mt-2 text-center' style={{ color: colors.text }}>
 									New Estimate
 								</Text>

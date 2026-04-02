@@ -11,9 +11,9 @@
 
 import { Drawer } from 'expo-router/drawer';
 import { DrawerToggleButton } from '@react-navigation/drawer';
-import DrawerContent from '@/components/DrawerContent';
+import DrawerContent from '@/components/navigation/DrawerContent';
 import { useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { View } from 'react-native';
 
 export default function DrawerLayout() {

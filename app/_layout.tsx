@@ -7,7 +7,7 @@ import { Stack, useNavigationContainerRef, useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { useQuickActionRouting, RouterAction } from 'expo-quick-actions/router';
 import * as QuickActions from 'expo-quick-actions';
 import { AppSettingsProvider } from '@/context/AppSettingsContext';
