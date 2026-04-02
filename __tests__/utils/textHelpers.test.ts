@@ -1,4 +1,4 @@
-import { convertHtmlToText } from '@/utils/textHelpers';
+import { convertHtmlToText } from '@/utils/shared/textHelpers';
 
 describe('Text Helpers', () => {
   describe('convertHtmlToText', () => {

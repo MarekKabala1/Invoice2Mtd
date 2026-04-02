@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface ActionButtonsProps {
 	isUpdateMode: boolean;
@@ -9,6 +11,16 @@ interface ActionButtonsProps {
 	onPreview: () => void;
 }
 
+const btnShadow = {
+	ios: {
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+	},
+	android: { elevation: 4 },
+};
+
 export const ActionButtons: React.FC<ActionButtonsProps> = ({
 	isUpdateMode,
 	onSave,
@@ -16,26 +28,67 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 	onExportPdf,
 	onPreview,
 }) => {
+	const { colors, isDark } = useTheme();
+
 	return (
-		<View className='gap-4'>
-			<TouchableOpacity onPress={onSave}>
-				<Text className='bg-light-secondary text-light-primary text-center p-2 rounded'>
-					{isUpdateMode ? 'Update Invoice' : 'Save Invoice to Db'}
+		<View className='gap-3 mt-4'>
+			{/* Save button — primary */}
+			<TouchableOpacity
+				onPress={onSave}
+				className='p-4 rounded-lg flex-row items-center justify-center gap-2'
+				style={{
+					backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+					...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
+				}}
+			>
+				<MaterialCommunityIcons name="content-save" size={20} color="white" />
+				<Text className='text-white font-bold text-base'>
+					{isUpdateMode ? 'Update Invoice' : 'Save Invoice'}
 				</Text>
 			</TouchableOpacity>
-			<TouchableOpacity onPress={onSend}>
-				<Text className='bg-success text-light-primary text-center p-2 rounded'>
+
+			{/* Row: Preview and Export PDF */}
+			<View className='flex-row gap-3'>
+				<TouchableOpacity
+					onPress={onPreview}
+					className='flex-1 p-3 rounded-lg flex-row items-center justify-center gap-2'
+					style={{
+						backgroundColor: isDark ? colors.nav : colors.card,
+						...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
+					}}
+				>
+					<MaterialCommunityIcons name="eye-outline" size={18} color={colors.text} />
+					<Text className='font-bold text-sm' style={{ color: colors.text }}>
+						Preview
+					</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={onExportPdf}
+					className='flex-1 p-3 rounded-lg flex-row items-center justify-center gap-2'
+					style={{
+						backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+						...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
+					}}
+				>
+					<MaterialCommunityIcons name="file-pdf-box" size={18} color="white" />
+					<Text className='font-bold text-white text-sm'>
+						Save PDF
+					</Text>
+				</TouchableOpacity>
+			</View>
+
+			{/* Send button — green */}
+			<TouchableOpacity
+				onPress={onSend}
+				className='p-4 rounded-lg flex-row items-center justify-center gap-2'
+				style={{
+					backgroundColor: '#39AD6A',
+					...(Platform.OS === 'ios' ? btnShadow.ios : btnShadow.android),
+				}}
+			>
+				<MaterialCommunityIcons name="send" size={20} color="white" />
+				<Text className='text-white font-bold text-base'>
 					Export Invoice
-				</Text>
-			</TouchableOpacity>
-			<TouchableOpacity onPress={onExportPdf}>
-				<Text className='bg-yellow-600 text-light-primary text-center p-2 rounded'>
-					Save to File
-				</Text>
-			</TouchableOpacity>
-			<TouchableOpacity onPress={onPreview}>
-				<Text className='bg-purple-600 text-light-primary text-center p-2 rounded'>
-					Preview Invoice
 				</Text>
 			</TouchableOpacity>
 		</View>

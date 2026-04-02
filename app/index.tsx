@@ -13,7 +13,7 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Image } from 'expo-image';
 import { expoDb } from '@/db/config';
 
-export const dbStudio = openDatabaseSync('invoice.db');
+export const dbStudio = openDatabaseSync('invoice2mtd.db');
 
 const blurHash = 'LFNwNOa}~Ut7fSazoej[_1j[IWay';
 const img = require('../assets/images/icon.png');
@@ -42,7 +42,7 @@ export default function Index() {
 		);
 	}
 	const handleNavigation = () => {
-		router.push('/home');
+		router.push('/(drawer)/(tabs)/home');
 	};
 
 	return (

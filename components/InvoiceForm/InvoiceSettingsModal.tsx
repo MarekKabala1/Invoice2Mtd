@@ -1,15 +1,26 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CustomerType, InvoiceType, UserType } from '@/db/zodSchema';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import { CustomerType, InvoiceType, UserType, WorkInformationType, PaymentType, BankDetailsType } from '@/db/zodSchema';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 import { useEffect, useState } from 'react';
-import { useIsInvoicePaid } from '@/hooks/useIsInvoicePaid';
-import { useAddInvoiceToBudget } from '@/hooks/useAddInvoiceToBudget';
-import AddToBudgetModal from '../AddToBudgetModal';
-import { sendPaymentReminder } from '@/utils/emailOperations';
-import { handleSendInvoice } from '@/utils/invoiceFormOperations';
+import { useIsInvoicePaid } from '@/hooks/invoice/useIsInvoicePaid';
+import { sendPaymentReminder } from '@/utils/invoice/emailOperations';
+import { handleSendInvoice, handleExportPdfInvoice } from '@/utils/invoice/invoiceFormOperations';
+import { markInvoiceAsPaid, markInvoiceAsUnpaid } from '@/utils/invoice/invoiceSync';
+import { toISO, quarterForDate } from '@/utils/mtd/mtdDates';
+import { router } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTheme as useThemeHook } from '@/context/ThemeContext';
+
+const INCOME_CATEGORIES = [
+	{ id: 'turnover', label: 'Turnover / Sales' },
+	{ id: 'other_business_income', label: 'Other Business Income' },
+	{ id: 'uk_property_non_fhl_income', label: 'UK Property (non-FHL)' },
+	{ id: 'foreign_property_fhl_eea_income', label: 'Foreign Property FHL (EEA)' },
+	{ id: 'foreign_property_fhl_non_eea_income', label: 'Foreign Property FHL (non-EEA)' },
+];
 
 export default function InvoiceSettingsModal({
 	showSettings,
@@ -23,6 +34,7 @@ export default function InvoiceSettingsModal({
 	payments,
 	notes,
 	bankDetails,
+	onSyncComplete,
 }: {
 	showSettings: boolean;
 	setShowSettings: (show: boolean) => void;
@@ -31,91 +43,92 @@ export default function InvoiceSettingsModal({
 	user: UserType;
 	onUpdate: (id: string, updateData?: Partial<InvoiceType>) => void;
 	setIsPayedOptimistic: (isPayed: boolean) => void;
-	workItems: any[];
-	payments: any[];
+	workItems: WorkInformationType[];
+	payments: PaymentType[];
 	notes: string;
-	bankDetails: any;
+	bankDetails: BankDetailsType | null;
+	onSyncComplete?: () => void;
 }) {
 	const [localInvoice, setLocalInvoice] = useState(invoice);
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	const { isPayed } = useIsInvoicePaid(localInvoice);
 
-	const {
-		isCategoryModalVisible,
-		selectedCategory,
-		showCategoryModal,
-		hideCategoryModal,
-		setSelectedCategory,
-		handleAddInvoicesToBudget,
-		incomeCategories,
-	} = useAddInvoiceToBudget();
+	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+	const [selectedIncomeCategory, setSelectedIncomeCategory] = useState('turnover');
+	const [paymentDate, setPaymentDate] = useState(invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date()));
 
 	useEffect(() => {
 		setLocalInvoice(invoice);
 	}, [invoice.id]);
 
 	const handleMarkAsPayed = async () => {
-		const newPayedStatus = !isPayed;
-		setIsPayedOptimistic(newPayedStatus);
-
-		if (newPayedStatus) {
-			Alert.alert(
-				'Mark as Paid',
-				'Would you like to add this paid invoice to your transactions/budget?',
-				[
-					{
-						text: 'No, just mark as paid',
-						style: 'cancel',
-						onPress: async () => {
-							setLocalInvoice((prev) => ({ ...prev, isPayed: newPayedStatus }));
-							setIsPayedOptimistic(newPayedStatus);
-							try {
-								onUpdate(invoice.id, { isPayed: newPayedStatus });
-							} catch (error) {
-								setLocalInvoice((prev) => ({
-									...prev,
-									isPayed: !newPayedStatus,
-								}));
-								setIsPayedOptimistic(!newPayedStatus);
-							}
-						},
+		if (isPayed) {
+			// Mark as UNPAID
+			Alert.alert('Mark as Unpaid', 'This will also delete the linked budget entry and MTD record. Continue?', [
+				{ text: 'Cancel', style: 'cancel' },
+				{
+					text: 'Mark Unpaid',
+					style: 'destructive',
+					onPress: async () => {
+						try {
+							await markInvoiceAsUnpaid(invoice.id!);
+							setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
+							setIsPayedOptimistic(false);
+							onSyncComplete?.();
+						} catch (error) {
+							Alert.alert('Error', 'Failed to mark as unpaid.');
+						}
 					},
-					{
-						text: 'Yes, add to budget',
-						onPress: showCategoryModal,
-					},
-				]
-			);
+				},
+			]);
 		} else {
-			setLocalInvoice((prev) => ({ ...prev, isPayed: newPayedStatus }));
-			setIsPayedOptimistic(newPayedStatus);
-			try {
-				onUpdate(invoice.id, { isPayed: newPayedStatus });
-			} catch (error) {
-				setLocalInvoice((prev) => ({ ...prev, isPayed: !newPayedStatus }));
-				setIsPayedOptimistic(!newPayedStatus);
-			}
+			// Mark as PAID — show category picker first
+			setShowCategoryPicker(true);
 		}
 	};
 
-	const handleConfirmAddToBudget = async () => {
-		setLocalInvoice((prev) => ({ ...prev, isPayed: true }));
-		setIsPayedOptimistic(true);
-		try {
-			onUpdate(invoice.id, { isPayed: true });
-			await handleAddInvoicesToBudget([
+	const handleCategorySelected = () => {
+		setShowCategoryPicker(false);
+		// Date defaults to due date, user can change
+		setPaymentDate(invoice.dueDate ? toISO(new Date(invoice.dueDate)) : toISO(new Date()));
+		setShowDatePicker(true);
+	};
+
+	const handleConfirmPaid = async () => {
+		setShowDatePicker(false);
+		const q = quarterForDate(new Date(paymentDate));
+		const catLabel = INCOME_CATEGORIES.find((c) => c.id === selectedIncomeCategory)?.label ?? 'Turnover';
+		Alert.alert(
+			'Confirm Payment',
+			`Category: ${catLabel}\n` +
+				`Date: ${new Date(paymentDate).toLocaleDateString()}\n` +
+				`Amount: ${getCurrencySymbol(invoice.currency)}${invoice.amountAfterTax?.toFixed(2)}\n` +
+				`MTD quarter: Q${q.quarter} (${q.label})`,
+			[
+				{ text: 'Cancel', style: 'cancel' },
 				{
-					...invoice,
-					customer: customer!,
-					payments: [],
-					notes: [],
-					workItems: [],
+					text: 'Confirm',
+					onPress: async () => {
+						try {
+							await markInvoiceAsPaid(
+								invoice.id!,
+								invoice.amountAfterTax!,
+								invoice.currency,
+								paymentDate,
+								selectedIncomeCategory,
+								customer?.name ?? 'customer',
+							);
+							setLocalInvoice((prev) => ({ ...prev, isPayed: true }));
+							setIsPayedOptimistic(true);
+							onSyncComplete?.();
+						} catch (error) {
+							Alert.alert('Error', 'Failed to mark invoice as paid.');
+						}
+					},
 				},
-			]);
-		} catch (error) {
-			setLocalInvoice((prev) => ({ ...prev, isPayed: false }));
-			setIsPayedOptimistic(false);
-		}
+			],
+		);
 	};
 
 	const howManyDaysOverdue = () => {
@@ -126,15 +139,56 @@ export default function InvoiceSettingsModal({
 		return diffDays;
 	};
 	const handleEditInvoice = () => {
-		onUpdate(invoice.id);
+		setShowSettings(false);
+		router.push({
+			pathname: '/(stack)/createInvoice',
+			params: {
+				mode: 'update',
+				invoiceId: invoice.id,
+				invoice: JSON.stringify(invoice),
+				workItems: JSON.stringify(workItems),
+				notes: JSON.stringify(typeof notes === 'string' ? notes.split('\n').map((text, i) => ({ id: String(i), noteText: text })) : notes),
+				payments: JSON.stringify(payments),
+			},
+		});
+	};
+
+	const handlePreview = () => {
+		setShowSettings(false);
+		router.push({
+			pathname: '/(stack)/createInvoice',
+			params: {
+				mode: 'update',
+				invoiceId: invoice.id,
+				invoice: JSON.stringify(invoice),
+				workItems: JSON.stringify(workItems),
+				notes: JSON.stringify(typeof notes === 'string' ? notes.split('\n').map((text, i) => ({ id: String(i), noteText: text })) : notes),
+				payments: JSON.stringify(payments),
+			},
+		});
+	};
+
+	const handleSavePdf = async () => {
+		if (!user || !customer || !bankDetails) {
+			Alert.alert('Error', 'Missing customer or bank details.');
+			return;
+		}
+		try {
+			await handleExportPdfInvoice({ ...invoice, workItems, payments }, user, customer, bankDetails, typeof notes === 'string' ? notes : '', false);
+			Alert.alert('Saved', 'PDF saved to device.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to save PDF.');
+		}
 	};
 
 	const handleSendPaymentReminder = async () => {
 		try {
 			await sendPaymentReminder(invoice, customer!, user);
 			Alert.alert('Success', 'Payment reminder email composed.');
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to send payment reminder.');
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to send payment reminder.');
 		}
 	};
 
@@ -145,208 +199,243 @@ export default function InvoiceSettingsModal({
 		}
 
 		try {
-			await handleSendInvoice(
-				{ ...invoice, workItems, payments },
-				user,
-				customer,
-				bankDetails,
-				notes
-			);
-		} catch (error: any) {
-			Alert.alert('Error', error.message || 'Failed to share invoice.');
+			await handleSendInvoice({ ...invoice, workItems, payments }, user, customer, bankDetails, notes);
+		} catch (error: unknown) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			Alert.alert('Error', err.message || 'Failed to share invoice.');
 		}
 	};
 
 	return (
 		<>
-			<Modal
-				visible={showSettings}
-				animationType='slide'
-				transparent={true}
-				onRequestClose={() => setShowSettings(false)}>
-				<View className='flex-1 justify-end  bg-light-text/30 dark:bg-dark-text/30'>
-					<View className='bg-light-primary dark:bg-dark-primary w-full h-fit rounded-t-lg p-6 gap-4'>
-						<View className='flex-row w-full items-center justify-between  '>
-							<View>
-								<Text className='text-lg font-bold text-light-text dark:text-dark-text'>
+			<Modal visible={showSettings} animationType='slide' transparent={true} onRequestClose={() => setShowSettings(false)}>
+				<View className='flex-1 justify-end' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+					<View className='w-full h-fit rounded-t-lg p-6 gap-4' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+						<View className='flex-row w-full items-center justify-between'>
+							<View className='flex-1'>
+								<Text className='text-lg font-bold' style={{ color: colors.text }}>
 									Invoice # {localInvoice.id} to {customer?.name}
 								</Text>
-								<Text className='text-sm text-danger dark:text-danger'>
-									{isPayed ? '' : `${howManyDaysOverdue()} days overdue`}{' '}
-								</Text>
+								{!isPayed && (
+									<Text className='text-sm mt-1' style={{ color: '#ee1c1c' }}>
+										{howManyDaysOverdue()} days overdue
+									</Text>
+								)}
 							</View>
-							<TouchableOpacity
-								onPress={() => setShowSettings(false)}
-								className='mb-4'>
-								<MaterialCommunityIcons
-									name='close'
-									size={20}
-									color={colors.text}
-								/>
+							<TouchableOpacity onPress={() => setShowSettings(false)} className='p-2'>
+								<MaterialCommunityIcons name='close' size={20} color={colors.text} />
 							</TouchableOpacity>
 						</View>
-						<View className=' w-full gap-2 items-center justify-center'>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+						<View className='w-full gap-2 items-center justify-center'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
 								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='cash-multiple'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										{isPayed ? 'Payed' : 'To Be Payed'}
+									<MaterialCommunityIcons name='cash-multiple' size={40} color={colors.text} />
+									<Text className='text-sm' style={{ color: colors.text }}>
+										{isPayed ? 'Paid' : 'To Be Paid'}
 									</Text>
 								</View>
 								{isPayed ? (
-									<Text className='text-sm text-success dark:text-success'>
+									<Text className='text-sm font-bold' style={{ color: '#39AD6A' }}>
 										{getCurrencySymbol(localInvoice.currency)}
 										{localInvoice.amountAfterTax.toFixed(2)}
 									</Text>
 								) : (
-									<Text className='text-sm text-danger dark:text-danger'>
+									<Text className='text-sm font-bold' style={{ color: '#ee1c1c' }}>
 										{getCurrencySymbol(localInvoice.currency)}
 										{localInvoice.amountAfterTax.toFixed(2)}
 									</Text>
 								)}
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
 								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='calendar-range'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<MaterialCommunityIcons name='calendar-range' size={40} color={colors.text} />
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Invoice Due Date
 									</Text>
 								</View>
-								<Text className='text-sm text-light-text dark:text-dark-text'>
+								<Text className='text-sm' style={{ color: colors.text }}>
 									{new Date(localInvoice.dueDate).toLocaleDateString()}
 								</Text>
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
 								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='file-document'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<MaterialCommunityIcons name='file-document' size={40} color={colors.text} />
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Invoice Status
 									</Text>
 								</View>
 								{isPayed ? (
-									<Text className='text-sm font-bold text-success dark:text-success'>
-										Payed
+									<Text className='text-sm font-bold' style={{ color: '#39AD6A' }}>
+										Paid
 									</Text>
 								) : (
-									<Text className='text-sm font-bold text-danger dark:text-danger'>
+									<Text className='text-sm font-bold' style={{ color: '#ee1c1c' }}>
 										Overdue
 									</Text>
 								)}
 							</View>
-							<View className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+							<View
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
 								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='check-circle-outline'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										Mark as payed
+									<MaterialCommunityIcons name='check-circle-outline' size={40} color={colors.text} />
+									<Text className='text-sm' style={{ color: colors.text }}>
+										Mark as Paid
 									</Text>
 								</View>
-								<TouchableOpacity
-									onPress={handleMarkAsPayed}
-									className='flex-row items-center justify-center'>
+								<TouchableOpacity onPress={handleMarkAsPayed} className='flex-row items-center justify-center'>
 									{isPayed ? (
-										<MaterialCommunityIcons
-											name='checkbox-marked-outline'
-											size={28}
-											color={colors.success}
-										/>
+										<MaterialCommunityIcons name='checkbox-marked-outline' size={28} color='#39AD6A' />
 									) : (
-										<MaterialCommunityIcons
-											name='checkbox-blank-outline'
-											size={28}
-											color={colors.danger}
-										/>
+										<MaterialCommunityIcons name='checkbox-blank-outline' size={28} color='#ee1c1c' />
 									)}
 								</TouchableOpacity>
 							</View>
+						</View>
+
+						{/* Action buttons */}
+						<View className='flex-row gap-3 mt-2'>
 							<TouchableOpacity
 								onPress={handleEditInvoice}
-								className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
-								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='pencil'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										Edit Invoice
-									</Text>
-								</View>
-								<MaterialCommunityIcons
-									name='chevron-right'
-									size={30}
-									color={colors.text}
-								/>
+								className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+								style={{
+									backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+									shadowColor: '#2563eb',
+									shadowOffset: { width: 0, height: 2 },
+									shadowOpacity: 0.3,
+									shadowRadius: 4,
+									elevation: 4,
+								}}>
+								<MaterialCommunityIcons name='pencil' size={18} color='white' />
+								<Text className='font-bold text-white text-sm'>Edit</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={handleSavePdf}
+								className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+								style={{
+									backgroundColor: isDark ? '#2563eb' : '#1d4ed8',
+									shadowColor: '#2563eb',
+									shadowOffset: { width: 0, height: 2 },
+									shadowOpacity: 0.3,
+									shadowRadius: 4,
+									elevation: 4,
+								}}>
+								<MaterialCommunityIcons name='file-pdf-box' size={18} color='white' />
+								<Text className='font-bold text-white text-sm'>PDF</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={handleShareInvoice}
-								className='flex-row w-full  items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
-								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='share-variant'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
-										Share Invoice
-									</Text>
-								</View>
-								<MaterialCommunityIcons
-									name='chevron-right'
-									size={30}
-									color={colors.text}
-								/>
+								className='flex-1 py-3 rounded-lg items-center flex-row justify-center gap-2'
+								style={{
+									backgroundColor: '#39AD6A',
+									shadowColor: '#39AD6A',
+									shadowOffset: { width: 0, height: 2 },
+									shadowOpacity: 0.3,
+									shadowRadius: 4,
+									elevation: 4,
+								}}>
+								<MaterialCommunityIcons name='share-variant' size={18} color='white' />
+								<Text className='font-bold text-white text-sm'>Share</Text>
 							</TouchableOpacity>
 						</View>
+
 						{!isPayed && customer?.emailAddress && (
 							<TouchableOpacity
 								onPress={handleSendPaymentReminder}
-								className='flex-row w-full items-center justify-between border-b border-light-text/20 dark:border-dark-text/20 pb-2'>
+								className='flex-row w-full items-center justify-between pb-2'
+								style={{ borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
 								<View className='flex-row items-center gap-2'>
-									<MaterialCommunityIcons
-										name='email-send-outline'
-										size={40}
-										color={colors.text}
-									/>
-									<Text className='text-sm text-light-text dark:text-dark-text'>
+									<MaterialCommunityIcons name='email-send-outline' size={40} color={colors.text} />
+									<Text className='text-sm' style={{ color: colors.text }}>
 										Send Payment Reminder
 									</Text>
 								</View>
-								<MaterialCommunityIcons
-									name='chevron-right'
-									size={30}
-									color={colors.text}
-								/>
+								<MaterialCommunityIcons name='chevron-right' size={30} color={colors.noActive} />
 							</TouchableOpacity>
 						)}
 					</View>
 				</View>
 			</Modal>
-			<AddToBudgetModal
-				isVisible={isCategoryModalVisible}
-				onClose={hideCategoryModal}
-				onConfirm={handleConfirmAddToBudget}
-				selectedCategory={selectedCategory}
-				onSelectCategory={setSelectedCategory}
-				incomeCategories={incomeCategories}
-				title='Add Invoice to Budget'
-				confirmText='Mark as Paid & Add to Budget'
-			/>
+
+			{/* Income category picker modal */}
+			{showCategoryPicker && (
+				<Modal visible={showCategoryPicker} transparent={true} animationType='slide' onRequestClose={() => setShowCategoryPicker(false)}>
+					<View className='flex-1 justify-center items-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+						<View className='p-5 rounded-lg w-11/12' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+							<Text className='text-lg font-bold text-center mb-4' style={{ color: colors.text }}>
+								Select Income Category
+							</Text>
+							{INCOME_CATEGORIES.map((cat) => (
+								<TouchableOpacity
+									key={cat.id}
+									onPress={() => setSelectedIncomeCategory(cat.id)}
+									className='flex-row items-center p-3 rounded-lg mb-2'
+									style={{
+										backgroundColor:
+											selectedIncomeCategory === cat.id ? (isDark ? '#2563eb' : '#1d4ed8') : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+									}}>
+									<Text className='font-bold text-sm' style={{ color: selectedIncomeCategory === cat.id ? 'white' : colors.text }}>
+										{cat.label}
+									</Text>
+								</TouchableOpacity>
+							))}
+							<View className='flex-row gap-3 mt-4'>
+								<TouchableOpacity
+									onPress={() => setShowCategoryPicker(false)}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
+									<Text className='font-bold' style={{ color: colors.text }}>
+										Cancel
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity onPress={handleCategorySelected} className='flex-1 py-3 rounded-lg items-center' style={{ backgroundColor: '#39AD6A' }}>
+									<Text className='font-bold text-white'>Next</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					</View>
+				</Modal>
+			)}
+
+			{/* Payment date picker modal */}
+			{showDatePicker && (
+				<Modal visible={showDatePicker} transparent={true} animationType='slide' onRequestClose={() => setShowDatePicker(false)}>
+					<View className='flex-1 justify-center items-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+						<View className='p-5 rounded-lg w-11/12' style={{ backgroundColor: isDark ? colors.nav : colors.card }}>
+							<Text className='text-lg font-bold text-center mb-4' style={{ color: colors.text }}>
+								Payment Date
+							</Text>
+							<DateTimePicker
+								value={new Date(paymentDate)}
+								mode='date'
+								onChange={(_, date) => {
+									if (date) setPaymentDate(toISO(date));
+								}}
+								display={Platform.OS === 'ios' ? 'inline' : 'default'}
+							/>
+							<View className='flex-row gap-3 mt-4'>
+								<TouchableOpacity
+									onPress={() => setShowDatePicker(false)}
+									className='flex-1 py-3 rounded-lg items-center'
+									style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
+									<Text className='font-bold' style={{ color: colors.text }}>
+										Cancel
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity onPress={handleConfirmPaid} className='flex-1 py-3 rounded-lg items-center' style={{ backgroundColor: '#39AD6A' }}>
+									<Text className='font-bold text-white'>Confirm</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					</View>
+				</Modal>
+			)}
 		</>
 	);
 }

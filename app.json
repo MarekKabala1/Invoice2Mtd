@@ -1,7 +1,7 @@
 {
 	"expo": {
-		"name": "Invoicing-Budget",
-		"slug": "invoice",
+		"name": "Invoice2Mtd",
+		"slug": "invoice2mtd",
 		"version": "1.0.4",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
@@ -14,10 +14,10 @@
 		},
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.toxic87.invoice",
+			"bundleIdentifier": "com.invoice.invoice2mtd",
 			"userInterfaceStyle": "automatic",
 			"splash": {
-				"image": "./assets/images/splash.png",
+				"image": "./assets/images/splash-icon-light.png",
 				"backgroundColor": "#F3EDE2",
 				"resizeMode": "contain"
 			}
@@ -25,16 +25,16 @@
 		"android": {
 			"userInterfaceStyle": "automatic",
 			"adaptiveIcon": {
-				"foregroundImage": "./assets/images/icon.png",
+				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#F3EDE2"
 			},
 			"permissions": ["WRITE_EXTERNAL_STORAGE", "READ_EXTERNAL_STORAGE", "MEDIA_LIBRARY", "ACCESS_MEDIA_LOCATION"],
-			"package": "com.toxic87.invoice"
+			"package": "com.invoice.invoice2mtd"
 		},
 		"web": {
 			"bundler": "metro",
 			"output": "static",
-			"favicon": "./assets/images/icon.png",
+			"favicon": "./assets/images/adaptive-icon.png",
 			"build": {
 				"babel": {
 					"include": ["deprecated-react-native-listview"]
@@ -48,7 +48,7 @@
 				"@sentry/react-native/expo",
 				{
 					"organization": "mk-3c",
-					"project": "invoiceapp",
+					"project": "invoice2mtd",
 					"url": "https://sentry.io/"
 				}
 			],
@@ -82,7 +82,7 @@
 				"origin": false
 			},
 			"eas": {
-				"projectId": "548c8736-a95c-482f-9a6d-bcae3ea4131a"
+				"projectId": "067de4fa-7ee4-4821-8acc-c96a05c2f544"
 			}
 		},
 		"owner": "toxic87",
@@ -90,7 +90,7 @@
 			"policy": "appVersion"
 		},
 		"updates": {
-			"url": "https://u.expo.dev/548c8736-a95c-482f-9a6d-bcae3ea4131a"
+			"url": "https://u.expo.dev/067de4fa-7ee4-4821-8acc-c96a05c2f544"
 		}
 	}
 }

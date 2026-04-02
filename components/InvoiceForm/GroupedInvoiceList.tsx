@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import InvoiceCard from './InvoiceCard';
-import { GroupedInvoice } from '@/utils/invoiceGrouping';
+import { GroupedInvoice } from '@/utils/invoice/invoiceGrouping';
 import { InvoiceType } from '@/db/zodSchema';
 import { InvoiceForUpdate } from '@/types';
 

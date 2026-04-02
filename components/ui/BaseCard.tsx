@@ -1,0 +1,36 @@
+import React from 'react';
+import { View, Platform } from 'react-native';
+
+interface BaseCardProps {
+	children: React.ReactNode;
+	className?: string;
+	accentColor?: string;
+}
+
+const BaseCard: React.FC<BaseCardProps> = ({ children, className = '', accentColor }) => {
+	return (
+		<View
+			className={`bg-light-nav dark:bg-dark-nav p-2 rounded-md active:opacity-90 ${className}`}
+			style={[
+				Platform.OS === 'ios'
+					? {
+							shadowColor: '#223',
+							shadowOffset: { width: 0, height: 4 },
+							shadowOpacity: 0.25,
+							shadowRadius: 20,
+						}
+					: { borderRadius: 15, elevation: 4 },
+				accentColor ? {
+					borderLeftWidth: 3,
+					borderLeftColor: accentColor,
+					borderTopWidth: 0,
+					borderRightWidth: 0,
+					borderBottomWidth: 0,
+				} : undefined,
+			]}>
+			{children}
+		</View>
+	);
+};
+
+export default BaseCard;

@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-	View,
-	Text,
-	TextInput,
-	ScrollView,
-	TouchableOpacity,
-	Modal,
-	SafeAreaView,
-	Alert,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Modal, SafeAreaView, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,28 +7,21 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { customerSchema, CustomerType } from '@/db/zodSchema';
-import {
-	handleSaveCustomer,
-	getCustomers,
-	handleDeleteCustomer,
-} from '@/utils/customerOperations';
-import { CustomerList, CustomerFormModal } from './index';
+import { handleSaveCustomer, getCustomers, handleDeleteCustomer } from '@/utils/invoice/customerOperations';
+import { captureException } from '@/utils/shared/sentry';
+import { CustomerList } from './CustomerList';
+import { CustomerFormModal } from './CustomerFormModal';
 
 interface CustomerFormProps {
 	isUpdateMode?: boolean;
 	customerData?: CustomerType;
 }
 
-const CustomerForm: React.FC<CustomerFormProps> = ({
-	isUpdateMode = false,
-	customerData,
-}) => {
+const CustomerForm: React.FC<CustomerFormProps> = ({ isUpdateMode = false, customerData }) => {
 	const [modalVisible, setModalVisible] = useState(false);
 	const [customers, setCustomers] = useState<CustomerType[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [editingCustomer, setEditingCustomer] = useState<CustomerType | null>(
-		null
-	);
+	const [editingCustomer, setEditingCustomer] = useState<CustomerType | null>(null);
 
 	const { colors } = useTheme();
 
@@ -62,7 +46,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
 			const customersData = await getCustomers();
 			setCustomers(customersData);
 		} catch (error) {
-			console.error('Error fetching customers:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'fetching customers' });
 		}
 	};
 
@@ -91,29 +75,25 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
 	};
 
 	const handleCustomerLongPress = (customer: CustomerType) => {
-		Alert.alert(
-			'Delete Customer',
-			`Are you sure you want to delete ${customer.name}?`,
-			[
-				{
-					text: 'Cancel',
-					style: 'cancel',
+		Alert.alert('Delete Customer', `Are you sure you want to delete ${customer.name}?`, [
+			{
+				text: 'Cancel',
+				style: 'cancel',
+			},
+			{
+				text: 'Delete',
+				style: 'destructive',
+				onPress: async () => {
+					try {
+						await handleDeleteCustomer(customer.id!);
+						await fetchCustomers();
+					} catch (error) {
+						captureException(error instanceof Error ? error : new Error(String(error)), { action: 'deleting customer' });
+						Alert.alert('Error', 'Failed to delete customer');
+					}
 				},
-				{
-					text: 'Delete',
-					style: 'destructive',
-					onPress: async () => {
-						try {
-							await handleDeleteCustomer(customer.id!);
-							await fetchCustomers();
-						} catch (error) {
-							console.error('Error deleting customer:', error);
-							Alert.alert('Error', 'Failed to delete customer');
-						}
-					},
-				},
-			]
-		);
+			},
+		]);
 	};
 
 	const handleSave = async (data: CustomerType): Promise<void> => {
@@ -125,7 +105,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
 			setEditingCustomer(null);
 			await fetchCustomers();
 		} catch (error) {
-			console.error('Error saving customer:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving customer' });
 			Alert.alert('Error', 'Failed to save customer');
 		} finally {
 			setIsLoading(false);
@@ -146,20 +126,12 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
 	return (
 		<View className='flex-1 gap-4 p-4'>
 			<View className=' justify-center items-end'>
-				<TouchableOpacity
-					onPress={() => setModalVisible(true)}
-					className='flex-row items-center gap-2 bg-primary px-4 py-3 rounded-md'>
+				<TouchableOpacity onPress={() => setModalVisible(true)} className='flex-row items-center gap-2 bg-primary px-4 py-3 rounded-md'>
 					<Ionicons name='add-circle-outline' size={24} color={colors.text} />
-					<Text className='text-light-text dark:text-dark-text font-semibold'>
-						Add New Customer
-					</Text>
+					<Text className='text-light-text dark:text-dark-text font-semibold'>Add New Customer</Text>
 				</TouchableOpacity>
 			</View>
-			<CustomerList
-				customers={customers}
-				onCustomerPress={handleCustomerPress}
-				onCustomerLongPress={handleCustomerLongPress}
-			/>
+			<CustomerList customers={customers} onCustomerPress={handleCustomerPress} onCustomerLongPress={handleCustomerLongPress} />
 
 			<CustomerFormModal
 				modalVisible={modalVisible}
@@ -173,12 +145,8 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
 			/>
 
 			<View className='flex-row justify-between'>
-				<Text className='text-xs text-light-text dark:text-dark-text text-center'>
-					*You can add multiple Customers
-				</Text>
-				<Text className='text-xs text-light-text dark:text-dark-text text-center'>
-					*Long Press to Delete
-				</Text>
+				<Text className='text-xs text-light-text dark:text-dark-text text-center'>*You can add multiple Customers</Text>
+				<Text className='text-xs text-light-text dark:text-dark-text text-center'>*Long Press to Delete</Text>
 			</View>
 		</View>
 	);

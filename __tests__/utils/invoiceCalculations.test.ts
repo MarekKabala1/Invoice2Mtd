@@ -2,7 +2,7 @@ import {
   calculateInvoiceWorkItemTotals,
   calculateInvoiceTotal,
   calculateMonthlyTotals,
-} from '@/utils/invoiceCalculations';
+} from '@/utils/invoice/invoiceCalculations';
 
 // Import actual types from the schema
 import type { 

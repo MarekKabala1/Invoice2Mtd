@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 
 export const User = sqliteTable('User', {
 	id: text('id').primaryKey(),
@@ -57,7 +57,10 @@ export const Invoice = sqliteTable('Invoice', {
 	taxValue: integer('taxValue', { mode: 'boolean' }).default(false),
 	isPayed: integer('is_payed', { mode: 'boolean' }).default(false),
 	discount: real('discount'),
-});
+}, (table) => ({
+	invoiceDateIdx: index('invoice_date_idx').on(table.invoiceDate),
+	isPayedIdx: index('is_payed_idx').on(table.isPayed),
+}));
 
 export const Estimate = sqliteTable('Estimate', {
 	id: text('id').primaryKey(),
@@ -120,7 +123,10 @@ export const Transactions = sqliteTable('Transactions', {
 	currency: text('currency').default('GBP'),
 	description: text('description').default(''),
 	type: text('type'),
-});
+}, (table) => ({
+	dateIdx: index('txn_date_idx').on(table.date),
+	typeIdx: index('txn_type_idx').on(table.type),
+}));
 
 export const appSettings = sqliteTable('app_settings', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -155,6 +161,90 @@ export const appSettings = sqliteTable('app_settings', {
 	language: text('language').default('en-GB'),
 	theme: text('theme').default('system'),
 	logoUrl: text('logo_url'),
+	applyTaxByDefault: integer('apply_tax_by_default', { mode: 'boolean' }).default(true),
+	defaultNotes: text('default_notes'),
+	// HMRC tax rates stored as JSON string — allows user to update when rates change each April
+	// Parsed via JSON.parse() into TaxRates type from types/mtd.ts
+	taxRatesJson: text('tax_rates_json'),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ─── MTD TABLES (NEW) ────────────────────────────────────────────────────────
+
+export const MtdTransactions = sqliteTable('Mtd_Transactions', {
+	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => User.id),
+	invoiceId: text('invoice_id').references(() => Invoice.id),
+	transactionId: text('transaction_id').references(() => Transactions.id),
+	date: text('date').notNull(),
+	description: text('description').notNull(),
+	amount: real('amount').notNull(),
+	type: text('type').notNull(),
+	category: text('category').notNull(),
+	taxYear: text('tax_year').notNull(),
+	quarter: integer('quarter').notNull(),
+	currency: text('currency').default('GBP'),
+	receiptRef: text('receipt_ref'),
+	notes: text('notes'),
+	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+	taxYearQuarterIdx: index('mtd_txn_year_quarter_idx').on(table.taxYear, table.quarter),
+}));
+
+export const MtdQuarterlySummary = sqliteTable(
+	'Mtd_Quarterly_Summary',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id').references(() => User.id),
+		taxYear: text('tax_year').notNull(),
+		quarter: integer('quarter').notNull(),
+		periodStart: text('period_start').notNull(),
+		periodEnd: text('period_end').notNull(),
+		submissionDeadline: text('submission_deadline').notNull(),
+		totalTurnover: real('total_turnover').notNull().default(0),
+		costOfGoodsAllowable: real('cost_of_goods_allowable').notNull().default(0),
+		employeeCosts: real('employee_costs').notNull().default(0),
+		premisesRunningCosts: real('premises_running_costs').notNull().default(0),
+		maintenanceCosts: real('maintenance_costs').notNull().default(0),
+		advertisingCosts: real('advertising_costs').notNull().default(0),
+		interestOnBankLoans: real('interest_on_bank_loans').notNull().default(0),
+		professionalFees: real('professional_fees').notNull().default(0),
+		depreciation: real('depreciation').notNull().default(0),
+		otherAllowableExpenses: real('other_allowable_expenses').notNull().default(0),
+		businessEntertainmentCosts: real('business_entertainment_costs').notNull().default(0),
+		otherDisallowableExpenses: real('other_disallowable_expenses').notNull().default(0),
+		totalAllowableExpenses: real('total_allowable_expenses').notNull().default(0),
+		netProfit: real('net_profit').notNull().default(0),
+		status: text('status').notNull().default('not_started'),
+		lastCalculatedAt: text('last_calculated_at'),
+		updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+	},
+	// uniqueIndex on (userId, taxYear, quarter) — userId included for future
+	// multi-user support, consistent with Invoice/Transactions patterns
+	(table) => ({
+		taxYearQuarterIdx: uniqueIndex('mtd_qs_year_quarter_idx').on(
+			table.userId,
+			table.taxYear,
+			table.quarter
+		),
+	})
+);
+
+export const MtdAnnualSummary = sqliteTable('Mtd_Annual_Summary', {
+	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => User.id),
+	taxYear: text('tax_year').notNull(),
+	finalDeclarationDeadline: text('final_declaration_deadline').notNull(),
+	totalTurnover: real('total_turnover').notNull().default(0),
+	totalAllowableExpenses: real('total_allowable_expenses').notNull().default(0),
+	netProfit: real('net_profit').notNull().default(0),
+	estimatedTaxableProfit: real('estimated_taxable_profit').notNull().default(0),
+	estimatedIncomeTax: real('estimated_income_tax').notNull().default(0),
+	estimatedNI: real('estimated_ni').notNull().default(0),
+	estimatedTotalTax: real('estimated_total_tax').notNull().default(0),
+	// Stored as snapshot so historical estimates remain accurate if rates change
+	personalAllowanceUsed: real('personal_allowance_used').notNull().default(12570),
+	status: text('status').notNull().default('in_progress'),
 	updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });

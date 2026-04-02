@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { userSchema, UserType } from '@/db/zodSchema';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generateId } from '@/utils/generateUuid';
+import { generateId } from '@/utils/shared/generateUuid';
 import { eq } from 'drizzle-orm';
 import { UserToUpdate } from '@/types';
 import { useTheme } from '@/context/ThemeContext';

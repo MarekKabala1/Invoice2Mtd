@@ -1,4 +1,4 @@
-import { generateAndSavePdf } from '@/utils/pdfOperations';
+import { generateAndSavePdf } from '@/utils/invoice/pdfOperations';
 
 // Mock expo modules
 jest.mock('expo-print', () => ({
@@ -33,10 +33,12 @@ jest.mock('react-native', () => ({
   },
 }));
 
-jest.mock('@/utils/permissions', () => ({
+jest.mock('@/utils/shared/permissions', () => ({
   requestMediaLibraryPermission: jest.fn().mockResolvedValue(true),
-  getOrCreateStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
-  resetStorageDirectory: jest.fn().mockResolvedValue(undefined),
+  getOrCreateInvoiceStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
+  getOrCreateEstimateStorageDirectory: jest.fn().mockResolvedValue('dir://storage'),
+  resetInvoiceStorageDirectory: jest.fn().mockResolvedValue(undefined),
+  resetEstimateStorageDirectory: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('PDF Operations', () => {
@@ -97,7 +99,7 @@ describe('PDF Operations', () => {
     };
 
     it('should return false when permission is not granted', async () => {
-      const { requestMediaLibraryPermission } = require('@/utils/permissions');
+      const { requestMediaLibraryPermission } = require('@/utils/shared/permissions');
       requestMediaLibraryPermission.mockResolvedValueOnce(false);
 
       const result = await generateAndSavePdf(mockParams);

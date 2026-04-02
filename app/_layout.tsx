@@ -7,7 +7,7 @@ import { Stack, useNavigationContainerRef, useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { useQuickActionRouting, RouterAction } from 'expo-quick-actions/router';
 import * as QuickActions from 'expo-quick-actions';
 import { AppSettingsProvider } from '@/context/AppSettingsContext';
@@ -26,7 +26,7 @@ const HeaderLeft = () => {
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 
 Sentry.init({
-	dsn: 'https://d28491e1b8f26b6a29beefe0093c6d02@o4508151262347264.ingest.de.sentry.io/4508158889689168',
+	dsn: 'https://73c7209d913226b700df16950fd41f83@o4508151262347264.ingest.de.sentry.io/4511077837504592',
 
 	debug: true,
 	integrations: [
@@ -218,12 +218,66 @@ function StackLayout() {
 				}}
 			/>
 			<Stack.Screen
-				name='(stack)/settings'
+				name='(stack)/addMtdTransaction'
 				options={{
 					headerShown: true,
 					headerLeft: () => <HeaderLeft />,
 					headerRight: () => <ThemeToggle size={26} />,
-					title: 'Settings',
+					title: 'Add MTD Record',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdDeadlines'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'MTD Deadlines',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdQuarterlySummary'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'Quarterly Summary',
+					headerStyle: {
+						backgroundColor: colors.primary,
+					},
+					headerTitleAlign: 'center',
+					headerTintColor: colors.text,
+					animation: 'slide_from_left',
+					headerTitleStyle: {
+						fontWeight: 'bold',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='(stack)/mtdAnnualEstimate'
+				options={{
+					headerShown: true,
+					headerLeft: () => <HeaderLeft />,
+					headerRight: () => <ThemeToggle size={26} />,
+					title: 'Annual Tax Estimate',
 					headerStyle: {
 						backgroundColor: colors.primary,
 					},

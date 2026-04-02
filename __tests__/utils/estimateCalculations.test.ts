@@ -1,7 +1,7 @@
 import {
   calculateEstimateTotals,
   calculateEstimateTotal,
-} from '@/utils/estimateCalculations';
+} from '@/utils/invoice/estimateCalculations';
 
 describe('Estimate Calculations', () => {
   describe('calculateEstimateTotals', () => {

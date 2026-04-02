@@ -36,13 +36,14 @@ import {
 	handleSendInvoice,
 	handleExportPdfInvoice,
 	handlePreviewInvoice,
-} from '@/utils/invoiceFormOperations';
-import { getCustomers } from '@/utils/customerOperations';
+} from '@/utils/invoice/invoiceFormOperations';
+import { getCustomers } from '@/utils/invoice/customerOperations';
 import { InvoiceHeaderSection } from './InvoiceHeaderSection';
 import { WorkItemsList } from './WorkItemsList';
 import { PaymentsList } from './PaymentsList';
 import { NotesSection } from './NotesSection';
 import { ActionButtons } from './ActionButtons';
+import { captureException } from '@/utils/shared/sentry';
 
 interface InvoiceFormProps {
 	isUpdateMode?: boolean;
@@ -253,7 +254,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 			reset();
 			router.navigate('/(tabs)/invoices');
 		} catch (error) {
-			console.error('Error saving invoice:', error);
+			captureException(error instanceof Error ? error : new Error(String(error)), { action: 'saving invoice' });
 			if (error instanceof Error) {
 				Alert.alert('Error', error.message);
 			} else {
@@ -269,7 +270,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'sending invoice' });
 			return;
 		}
 		await handleSendInvoice(
@@ -288,7 +289,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): Promise<void> => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'exporting PDF invoice' });
 			return;
 		}
 		await handleExportPdfInvoice(
@@ -308,7 +309,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 		}
 	): void => {
 		if (!selectedUser || !selectedCustomer || !bankDetails) {
-			console.error('Missing required information.');
+			captureException(new Error('Missing required information'), { action: 'previewing invoice' });
 			return;
 		}
 		const html = handlePreviewInvoice(
@@ -352,12 +353,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 	const paymentRefs = useRef<(TextInput | null)[]>([]);
 
 	return (
-		<ScrollView className='flex-1 p-4 bg-light-primary dark:bg-dark-primary'>
-			<SafeAreaView className=' pb-10'>
+		<ScrollView className='flex-1 p-4' style={{ backgroundColor: colors.primary }}>
+			<SafeAreaView className='pb-10'>
 				{!isUpdateMode && (
-					<Text className='text-light-text dark:text-dark-text '>{`Next invoice number : ${nextInvoiceId ? nextInvoiceId : 1}`}</Text>
+					<Text style={{ color: colors.noActive }}>{`Next invoice number : ${nextInvoiceId ? nextInvoiceId : 1}`}</Text>
 				)}
-				<Text className='text-lg text-light-text dark:text-dark-text font-bold mb-4'>
+				<Text className='text-lg font-bold mb-4' style={{ color: colors.text }}>
 					Invoice Information
 				</Text>
 				<InvoiceHeaderSection
@@ -400,12 +401,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 					onPreview={handleSubmit(handlePreview)}
 				/>
 				<Modal visible={isPreviewVisible} animationType='slide'>
-					<SafeAreaView className='flex-1 bg-light-primary dark:bg-dark-primary min-h-8'>
+					<SafeAreaView className='flex-1 min-h-8' style={{ backgroundColor: colors.primary }}>
 						<TouchableOpacity
 							onPress={() => setIsPreviewVisible(false)}
-							className='flex flex-row  items-center gap-1 p-1'>
+							className='flex-row items-center gap-1 p-1'>
 							<Ionicons name='arrow-back' size={24} color={colors.text} />
-							<Text className='text-xs text-light-text dark:text-dark-text'>
+							<Text className='text-xs' style={{ color: colors.text }}>
 								Create Invoice
 							</Text>
 						</TouchableOpacity>

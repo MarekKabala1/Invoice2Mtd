@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
-import TermsAndConditions from '@/components/TermsAndConditions';
-import BaseCard from '../BaseCard';
+import TermsAndConditions from '@/components/email/TermsAndConditions';
+import BaseCard from '@/components/ui/BaseCard';
 
 interface EstimateTermsSectionProps {
 	estimateId: string;

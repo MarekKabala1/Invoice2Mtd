@@ -1,1 +1,0 @@
-ALTER TABLE `Invoice` ADD `taxValue` integer DEFAULT false;

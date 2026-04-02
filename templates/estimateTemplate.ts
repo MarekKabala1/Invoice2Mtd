@@ -5,7 +5,7 @@ import {
 	CustomerType,
 	BankDetailsType,
 } from '@/db/zodSchema';
-import { getCurrencySymbol } from '@/utils/getCurrencySymbol';
+import { getCurrencySymbol } from '@/utils/shared/getCurrencySymbol';
 
 interface ThemeColors {
 	background?: string;
