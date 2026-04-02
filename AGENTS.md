@@ -73,7 +73,7 @@ __tests__/                   # Unit, hook, and integration tests
 ### Import Order
 
 ```
-1. React and React Native
+1. Expo and React Native
 2. expo-router
 3. Third-party packages
 4. Local imports (@/ aliases)
@@ -96,36 +96,67 @@ __tests__/                   # Unit, hook, and integration tests
 | Screens | camelCase | `tax.tsx` |
 | Constants | UPPER_SNAKE_CASE | `EXPENSE_CATEGORIES` |
 | Functions | camelCase | `formatGBP()`, `taxYearForDate()` |
+| DB tables | PascalCase | `MtdTransactions`, `Invoice` |
+| DB columns | snake_case (SQL) / camelCase (Drizzle) | `tax_year` / `taxYear` |
+| Zod schemas | PascalCase + `Schema` | `InvoiceSchema`, `MtdTransactionSchema` |
+| Types/Interfaces | PascalCase | `TaxQuarter`, `DeadlineItem` |
+| Enums/Unions | PascalCase | `ExpenseCategory`, `DeadlineStatus` |
 
-### Styling
+### Styling — CRITICAL RULES
 
-- **Tailwind only** — use `className` prop via NativeWind
-- **No inline styles** except for dynamic values (e.g. `style={{ backgroundColor: colors.primary }}`)
-- **Dark mode**: use `dark:` Tailwind variant + ThemeContext tokens
-- **Colors**: always from `useTheme()` context or `tailwind.config.ts` — never hardcode hex values
+**ALL colors must come from the theme. Never hardcode hex values, rgb(), or Tailwind color names like `bg-blue-500`.**
+
+1. **Tailwind classes via NativeWind** — use `className` prop for all static styling
+2. **Dynamic colors** — use `style={{ color: colors.text }}` where `colors` comes from `useTheme()` context or `tailwind.config.ts` tokens
+3. **Dark mode** — use `dark:` Tailwind variant (e.g. `bg-light-primary dark:bg-dark-primary`)
+4. **Named color tokens** — use `tailwind.config.ts` semantic tokens:
+   - `bg-light-primary`, `bg-dark-primary` — backgrounds
+   - `text-light-text`, `text-dark-text` — text colors
+   - `bg-invoice-accent-500`, `bg-mtd-accent-600` — module accents
+   - `bg-success`, `bg-danger`, `bg-muted`, `bg-bg_accent` — status colors
+5. **Never** use `style={{ backgroundColor: '#4f46e5' }}` — extract to theme token or use NativeWind class
+6. **Never** use inline Tailwind color names like `bg-blue-600` — use semantic tokens like `bg-mtd-accent-600`
+7. **Gradients** — use `bg-gradient` or `bg-gradient_2` from config, not inline gradient strings
 
 ```tsx
-// Good
-<View className="p-4 rounded-lg bg-white dark:bg-slate-900">
-  <Text style={{ color: colors.text }}>Dynamic value</Text>
+// Good — semantic tokens from tailwind.config.ts
+<View className="p-4 rounded-lg bg-light-primary dark:bg-dark-primary">
+  <Text className="text-light-text dark:text-dark-text">Hello</Text>
+  <View className="bg-invoice-accent-500 rounded p-2" />
 </View>
 
-// Bad
+// Good — dynamic value from useTheme()
+const { colors } = useTheme();
+<Text style={{ color: colors.text }}>{dynamicLabel}</Text>
+
+// Bad — hardcoded hex
 <View style={{ backgroundColor: '#4f46e5' }}>
+
+// Bad — Tailwind raw color name
+<View className="bg-blue-600">
+
+// Bad — inline rgb
+<Text style={{ color: 'rgb(30, 64, 175)' }}>
 ```
 
-### Forms
+### File Comments
 
-- **react-hook-form** + **zod** validation + `@hookform/resolvers/zod`
-- Schemas defined in `db/zodSchema.ts`
-- Validation on submit, not onChange
-- Error display via `control.formState.errors`
+Every new file must have a comment block at the top:
 
-### Error Handling
-
-- Catch blocks: use `Alert.alert()` for user-facing errors
-- No `console.log` in production code — use Sentry utilities from `utils/sentry.ts`
-- Silent catches only for non-critical operations (e.g. DB not ready before migrations)
+```typescript
+/**
+ * mtdDates.ts
+ *
+ * Pure utility functions for UK tax year and quarterly deadline calculations.
+ * No React Native or Expo imports — fully testable in Node.
+ *
+ * Used by: db/mtdOperations.ts, hooks/useMtdData.ts, hooks/useMtdDeadlines.ts,
+ *          app/(drawer)/(tabs)/tax.tsx, app/(stack)/mtdDeadlines.tsx
+ *
+ * UK tax year runs 6 April → 5 April. The four MTD quarterly deadlines are
+ * fixed dates set by HMRC — they do not shift for weekends or bank holidays.
+ */
+```
 
 ### WHY Comments
 
@@ -143,9 +174,32 @@ const taxYearStart = new Date(year, 3, 6);
 
 Required on: financial calculations, date/deadline logic, three-source aggregations, user preference overrides.
 
+### Forms
+
+- **react-hook-form** + **zod** validation + `@hookform/resolvers/zod`
+- Schemas defined in `db/zodSchema.ts`
+- Validation on submit, not onChange
+- Error display via `control.formState.errors`
+
+### Error Handling
+
+- Catch blocks: use `Alert.alert()` for user-facing errors
+- No `console.log` in production code — use Sentry utilities from `utils/sentry.ts`
+- Sentry DSN: `https://73c7209d913226b700df16950fd41f83@o4508151262347264.ingest.de.sentry.io/4511077837504592`
+- Sentry setup via wizard: `npx @sentry/wizard@latest -i reactNative --saas --org mk-3c --project react-native`
+- Silent catches only for non-critical operations (e.g. DB not ready before migrations)
+- Wrap sensitive operations with `Sentry.captureException(error)` for crash reporting
+
 ---
 
 ## Git Discipline
+
+### Before Every Commit Checklist
+
+1. `npx tsc --noEmit` — zero TypeScript errors
+2. `npm run lint` — zero lint warnings
+3. `npm test` — all tests pass
+4. Stage specific files only: `git add file1.ts file2.ts` (NEVER `git add .`)
 
 ### Commit Prefix Convention
 
@@ -161,7 +215,7 @@ Every commit message must start with one of these prefixes:
 | `[SCHEMA]` | db/schema.ts or generated migration files |
 | `[STYLE]` | Visual identity — Tailwind config, NativeWind classes, theme |
 | `[TEST]` | New or updated test files |
-| `[FIX]` | Bug fix on any module |
+| `[FIX]` | Bug fix on any module — add the module in the description |
 | `[REFACTOR]` | Code reorganisation with no behaviour change |
 | `[DOCS]` | README, planning docs, comments only |
 | `[CHORE]` | package.json, config files, tooling |
@@ -173,19 +227,20 @@ Every commit message must start with one of these prefixes:
 
 Optional body — explain WHY, not WHAT. The diff shows what
 changed. The commit message explains why you made the decision.
+If there is a trade-off or a non-obvious choice, explain it here.
 
 Refs: MASTER_PLAN.md Phase X Step Y.Z
 ```
 
-### Rules
-
-1. **One logical change per commit** — if message contains "and", split it
-2. **Never use `git add .`** — always stage specific files: `git add [file1] [file2]`
-3. **Run type check before every commit**: `npx tsc --noEmit`
-4. **Run tests before merge**: `npm test`
-5. **Write file comments** at the top of every new file: what, why, dependencies
-6. **Commit after each completed step**, not after each phase
-7. **Tag each completed phase**: `git tag phase-1-navigation`, `git tag phase-2-data-layer`, etc.
+Rules:
+- Start with prefix in square brackets
+- Sentence case (not Title Case, not ALL CAPS)
+- 50 characters max after the prefix
+- No full stop at end
+- One logical change per commit — if message contains "and", split it
+- Never use `git add .` — stage specific files
+- Commit after each completed step, not after each phase
+- Tag each completed phase: `git tag phase-1-navigation`, `git tag phase-2-data-layer`, etc.
 
 ---
 
@@ -229,6 +284,7 @@ All sources combine in `aggregateQuarter()`.
 - **Integration**: test full workflows end-to-end
 - **No snapshot tests** — too brittle with Tailwind classes
 - Coverage thresholds: 60% branches, 70% functions/lines/statements
+- Jest config: `jest-expo` preset, node environment, `@/` alias mapping
 
 ### Test File Structure
 
@@ -244,7 +300,7 @@ __tests__/
 
 ## Key Tech Stack (already installed — do NOT reinstall)
 
-Expo SDK 51, expo-router v3 (drawer via `expo-router/drawer`), React Native 0.74, TypeScript 5.3, Drizzle ORM 0.33 + expo-sqlite 14, NativeWind 4 + Tailwind CSS 3, React Hook Form 7 + Zod 3, date-fns 4, react-native-uuid 2, react-native-chart-kit + react-native-svg, jest-expo, react-native-gesture-handler + react-native-reanimated
+Expo SDK 51, expo-router v3 (drawer via `expo-router/drawer`), React Native 0.74, TypeScript 5.3, Drizzle ORM 0.33 + expo-sqlite 14, NativeWind 4 + Tailwind CSS 3, React Hook Form 7 + Zod 3, date-fns 4, react-native-uuid 2, react-native-chart-kit + react-native-svg, jest-expo, react-native-gesture-handler + react-native-reanimated, Sentry
 
 ---
 
@@ -265,7 +321,9 @@ Expo SDK 51, expo-router v3 (drawer via `expo-router/drawer`), React Native 0.74
 | TypeScript error in mtdDates.ts | Tax year is Apr 6 → Apr 5, not Jan 1 → Dec 31. Check date math |
 | MTD data not showing | Verify `userId` is passed through hook chain |
 | Migration not applied | Check `drizzle/migrations.js` imports the new SQL file |
+| Hardcoded color found | Replace with `tailwind.config.ts` semantic token or `useTheme()` color |
+| Sentry not reporting | Verify DSN in config, check `utils/sentry.ts` integration |
 
 ---
 
-**Last updated**: 2026-03-25
+**Last updated**: 2026-03-29
