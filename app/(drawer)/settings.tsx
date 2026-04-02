@@ -36,6 +36,7 @@ import {
 	AppearanceSection,
 	RemindersSection,
 	AboutSection,
+	StorageDirectorySection,
 } from './settings/sections';
 
 type UserType = InferSelectModel<typeof User>;
@@ -215,6 +216,7 @@ export default function SettingsScreen() {
 					{/* Settings sections */}
 					<TaxSettingsSection formState={formState} onFieldChange={handleFieldChange} />
 					<InvoiceSettingsSection formState={formState} onFieldChange={handleFieldChange} />
+					<StorageDirectorySection />
 					<MTDSettingsSection formState={formState} onFieldChange={handleFieldChange} />
 					<FinancialYearSection formState={formState} onFieldChange={handleFieldChange} />
 					<HMRCRatesSection formState={formState} onFieldChange={handleFieldChange} />

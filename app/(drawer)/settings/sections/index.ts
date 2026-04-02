@@ -8,4 +8,5 @@ export { HMRCRatesSection } from './HMRCRatesSection';
 export { AppearanceSection } from './AppearanceSection';
 export { RemindersSection } from './RemindersSection';
 export { AboutSection } from './AboutSection';
+export { StorageDirectorySection } from './StorageDirectorySection';
 
