@@ -17,7 +17,7 @@
 			"bundleIdentifier": "com.invoice.invoice2mtd",
 			"userInterfaceStyle": "automatic",
 			"splash": {
-				"image": "./assets/images/splash.png",
+				"image": "./assets/images/splash-icon-light.png",
 				"backgroundColor": "#F3EDE2",
 				"resizeMode": "contain"
 			}
@@ -25,7 +25,7 @@
 		"android": {
 			"userInterfaceStyle": "automatic",
 			"adaptiveIcon": {
-				"foregroundImage": "./assets/images/icon.png",
+				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#F3EDE2"
 			},
 			"permissions": ["WRITE_EXTERNAL_STORAGE", "READ_EXTERNAL_STORAGE", "MEDIA_LIBRARY", "ACCESS_MEDIA_LOCATION"],
@@ -34,7 +34,7 @@
 		"web": {
 			"bundler": "metro",
 			"output": "static",
-			"favicon": "./assets/images/icon.png",
+			"favicon": "./assets/images/adaptive-icon.png",
 			"build": {
 				"babel": {
 					"include": ["deprecated-react-native-listview"]
