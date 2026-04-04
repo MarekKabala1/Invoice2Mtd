@@ -63,6 +63,7 @@ export const TABLE_SYNC_ORDER = [
 	'users',
 	'customers',
 	'invoices',
+	'invoice_items',
 	'estimates',
 	'transactions',
 	'mtd_transactions',
