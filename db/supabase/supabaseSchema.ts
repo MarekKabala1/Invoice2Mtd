@@ -14,6 +14,7 @@ import { relations } from 'drizzle-orm';
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	localId: text('local_id').unique().notNull(),
+	authUserId: uuid('auth_user_id'), // Links to Supabase auth.users (no FK reference)
 	email: text('email'),
 	fullName: text('full_name'),
 	address: text('address'),
@@ -28,6 +29,7 @@ export const users = pgTable('users', {
 }, (table) => ({
 	emailIdx: uniqueIndex('idx_users_email').on(table.email),
 	localIdIdx: uniqueIndex('idx_users_local_id').on(table.localId),
+	authUserIdIdx: uniqueIndex('idx_users_auth_user_id').on(table.authUserId),
 }));
 
 export const customers = pgTable('customers', {
@@ -219,21 +221,24 @@ export const mtdAnnualSummaries = pgTable('mtd_annual_summaries', {
 
 export const documents = pgTable('documents', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	localId: text('local_id'),
+	localId: text('local_id').unique().notNull(),
 	userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+	transactionId: uuid('transaction_id').references(() => transactions.id, { onDelete: 'set null' }),
+	invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
 	fileName: text('file_name').notNull(),
 	storagePath: text('storage_path').notNull(),
 	fileType: text('file_type').notNull(),
 	documentType: text('document_type').notNull(),
-	taxYear: text('tax_year').notNull(),
-	quarter: integer('quarter').notNull(),
+	taxYear: text('tax_year'),
+	quarter: integer('quarter'),
 	documentDate: text('document_date'),
+	notes: text('notes'),
 	createdAt: timestamp('created_at').defaultNow(),
 	syncedAt: timestamp('synced_at'),
 	syncStatus: text('sync_status').default('pending'),
 }, (table) => ({
 	userQuarterIdx: index('idx_documents_user_quarter').on(table.userId, table.taxYear, table.quarter),
-	localIdIdx: index('idx_documents_local_id').on(table.localId),
+	localIdIdx: uniqueIndex('idx_documents_local_id').on(table.localId),
 }));
 
 export const syncMetadata = pgTable('sync_metadata', {
