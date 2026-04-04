@@ -248,3 +248,22 @@ export const MtdAnnualSummary = sqliteTable('Mtd_Annual_Summary', {
 	status: text('status').notNull().default('in_progress'),
 	updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const Documents = sqliteTable('Documents', {
+	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => User.id),
+	transactionId: text('transaction_id').references(() => Transactions.id),
+	invoiceId: text('invoice_id').references(() => Invoice.id),
+	fileName: text('file_name').notNull(),
+	filePath: text('file_path').notNull(),
+	fileType: text('file_type').notNull(),
+	documentType: text('document_type').notNull(),
+	taxYear: text('tax_year'),
+	quarter: integer('quarter'),
+	documentDate: text('document_date'),
+	notes: text('notes'),
+	createdAt: text('timestamp').default(sql`(current_timestamp)`),
+}, (table) => ({
+	documentTypeIdx: index('doc_type_idx').on(table.documentType),
+	taxYearIdx: index('doc_tax_year_idx').on(table.taxYear),
+}));
