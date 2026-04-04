@@ -10,7 +10,7 @@
 
 export type StorageBucket = 'receipts' | 'invoices' | 'exports';
 
-export type DocumentType = 'receipt' | 'invoice' | 'expense' | 'export';
+export type DocumentType = 'receipt' | 'invoice' | 'expense' | 'export' | 'bank_statement' | 'other';
 
 export type FileType = 'pdf' | 'csv' | 'xlsx' | 'jpg' | 'png';
 
