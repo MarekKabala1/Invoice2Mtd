@@ -9,14 +9,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppSettings } from '@/context/AppSettingsContext';
-
-const LAST_SYNC_KEY = '@supabase_last_sync';
 import {
   runSync,
   getSyncStatus,
   checkConnection,
 } from '@/db/supabase/sync/syncEngine';
 import type { SyncResult, SyncProgress } from '@/db/supabase/sync/sync.types';
+
+const LAST_SYNC_KEY = '@supabase_last_sync';
 
 interface UseCloudSyncReturn {
   sync: () => Promise<SyncResult | null>;

@@ -7,7 +7,6 @@
 
 import { useState, useCallback } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import { Alert } from 'react-native';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { uploadDocument } from '@/db/supabase/storage/storage';
